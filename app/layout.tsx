@@ -8,8 +8,8 @@ import { Provider } from "./provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Stack Template",
-  description: "A Multi-tenant Next.js Starter Template",
+  title: "Doable",
+  description: "Doable is a task management tool that helps you get things done.",
 };
 
 export default function RootLayout({
