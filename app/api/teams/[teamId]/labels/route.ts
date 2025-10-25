@@ -21,10 +21,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { teamId: string } }
+  { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const teamId = params.teamId
+    const { teamId } = await params
     const body = await request.json()
 
     const labelData: CreateLabelData = {
@@ -45,10 +45,10 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { teamId: string; labelId: string } }
+  { params }: { params: Promise<{ teamId: string; labelId: string }> }
 ) {
   try {
-    const { teamId, labelId } = params
+    const { teamId, labelId } = await params
     const body = await request.json()
 
     const updateData: Partial<CreateLabelData> = {
@@ -69,10 +69,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { teamId: string; labelId: string } }
+  { params }: { params: Promise<{ teamId: string; labelId: string }> }
 ) {
   try {
-    const { teamId, labelId } = params
+    const { teamId, labelId } = await params
     await deleteLabel(teamId, labelId)
     return NextResponse.json({ success: true })
   } catch (error) {

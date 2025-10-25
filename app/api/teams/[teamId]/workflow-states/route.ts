@@ -21,10 +21,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { teamId: string } }
+  { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const teamId = params.teamId
+    const { teamId } = await params
     const body = await request.json()
 
     const stateData: CreateWorkflowStateData = {
@@ -47,10 +47,10 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { teamId: string; stateId: string } }
+  { params }: { params: Promise<{ teamId: string; stateId: string }> }
 ) {
   try {
-    const { teamId, stateId } = params
+    const { teamId, stateId } = await params
     const body = await request.json()
 
     const updateData: Partial<CreateWorkflowStateData> = {
@@ -73,10 +73,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { teamId: string; stateId: string } }
+  { params }: { params: Promise<{ teamId: string; stateId: string }> }
 ) {
   try {
-    const { teamId, stateId } = params
+    const { teamId, stateId } = await params
     await deleteWorkflowState(teamId, stateId)
     return NextResponse.json({ success: true })
   } catch (error) {
