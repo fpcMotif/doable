@@ -124,36 +124,38 @@ export function LandingPageHeader(props: NavProps) {
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
 
   return (
-    <header className="fixed w-full z-50 bg-background/80 px-4 md:px-8 backdrop-blur">
-      <div className="flex h-18 items-center justify-between py-4">
-        <div className="flex items-center gap-4 md:gap-10">
-          <Logo className="hidden md:flex" />
+    <header className="fixed w-full z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Logo className="hidden md:flex" />
 
-          {props.items?.length ? <DesktopItems items={props.items} /> : null}
+            {props.items?.length ? <DesktopItems items={props.items} /> : null}
 
-          <Button
-            className="space-x-2 md:hidden"
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-          >
-            {showMobileMenu ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
+            <Button
+              className="space-x-2 md:hidden"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              {showMobileMenu ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
 
-          <Logo className="md:hidden" />
+            <Logo className="md:hidden" />
 
-          {showMobileMenu && props.items && <MobileItems items={props.items} />}
-        </div>
+            {showMobileMenu && props.items && <MobileItems items={props.items} />}
+          </div>
 
-        <div className="flex gap-4 items-center">
-          <ColorModeSwitcher />
-          <nav className="gap-4 items-center hidden md:flex">
-            <AuthButtons />
-          </nav>
+          <div className="flex gap-3 items-center">
+            <ColorModeSwitcher />
+            <nav className="gap-3 items-center hidden md:flex">
+              <AuthButtons />
+            </nav>
+          </div>
         </div>
       </div>
     </header>

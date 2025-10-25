@@ -1,189 +1,333 @@
-import { FeatureGrid } from "@/components/features";
-import { Hero } from "@/components/hero";
-import { PricingGrid } from "@/components/pricing";
 import { stackServerApp } from "@/stack";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { ComponentIcon, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, CheckCircle, Star, Globe, Users, Zap, Shield, Code, ComponentIcon } from "lucide-react";
 
 export default async function IndexPage() {
   const project = await stackServerApp.getProject();
-  if (!project.config.clientTeamCreationEnabled) {
-    return (
-      <div className="w-full min-h-96 flex items-center justify-center">
-        <div className="max-w-xl gap-4">
-          <p className="font-bold text-xl">Setup Required</p>
-          <p className="">
-            {
-              "To start using this project, please enable client-side team creation in the Stack Auth dashboard (Project > Team Settings). This message will disappear once the feature is enabled."
-            }
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
-    <>
-      <Hero
-        capsuleText="100% Open-source & Free"
-        capsuleLink="https://stacktemplate.com"
-        title="A Multi-tenant Next.js Starter Template"
-        subtitle="Built for developers, by developers. Next.js + Shadcn UI + Stack Auth."
-        primaryCtaText="Get Started"
-        primaryCtaLink={stackServerApp.urls.signUp}
-        secondaryCtaText="GitHub"
-        secondaryCtaLink="https://github.com/stack-auth/stack-template"
-        credits={
-          <>
-            Crafted with ❤️ by{" "}
-            <a
-              href="https://stack-auth.com"
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              Stack Auth
-            </a>
-          </>
-        }
-      />
-
-      <div id="features" />
-      <FeatureGrid
-        title="Features"
-        subtitle="Unlock powerful capabilities for your project."
-        items={[
-          {
-            icon: (
-              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-current">
-                <path d="M11.572 0c-.176 0-.31.001-.358.007a19.76 19.76 0 0 1-.364.033C7.443.346 4.25 2.185 2.228 5.012a11.875 11.875 0 0 0-2.119 5.243c-.096.659-.108.854-.108 1.747s.012 1.089.108 1.748c.652 4.506 3.86 8.292 8.209 9.695.779.25 1.6.422 2.534.525.363.04 1.935.04 2.299 0 1.611-.178 2.977-.577 4.323-1.264.207-.106.247-.134.219-.158-.02-.013-.9-1.193-1.955-2.62l-1.919-2.592-2.404-3.558a338.739 338.739 0 0 0-2.422-3.556c-.009-.002-.018 1.579-.023 3.51-.007 3.38-.01 3.515-.052 3.595a.426.426 0 0 1-.206.214c-.075.037-.14.044-.495.044H7.81l-.108-.068a.438.438 0 0 1-.157-.171l-.05-.106.006-4.703.007-4.705.072-.092a.645.645 0 0 1 .174-.143c.096-.047.134-.051.54-.051.478 0 .558.018.682.154.035.038 1.337 1.999 2.895 4.361a10760.433 10760.433 0 0 0 4.735 7.17l1.9 2.879.096-.063a12.317 12.317 0 0 0 2.466-2.163 11.944 11.944 0 0 0 2.824-6.134c.096-.66.108-.854.108-1.748 0-.893-.012-1.088-.108-1.747-.652-4.506-3.859-8.292-8.208-9.695a12.597 12.597 0 0 0-2.499-.523A33.119 33.119 0 0 0 11.573 0zm4.069 7.217c.347 0 .408.005.486.047a.473.473 0 0 1 .237.277c.018.06.023 1.365.018 4.304l-.006 4.218-.744-1.14-.746-1.14v-3.066c0-1.982.01-3.097.023-3.15a.478.478 0 0 1 .233-.296c.096-.05.13-.054.5-.054z" />
-              </svg>
-            ),
-            title: "Next.js 14",
-            description:
-              "Utilize the latest features: App Router, Layouts, Suspense.",
-          },
-          {
-            icon: (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 256 256"
-                className="h-12 w-12 fill-current"
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/20 to-primary/5 rounded-full blur-3xl opacity-30" />
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            {/* Capsule Badge */}
+            <div className="mb-8">
+              <a
+                href="https://github.com/stack-auth/stack-template"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card/50 backdrop-blur-sm text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <rect width="256" height="256" fill="none"></rect>
-                <line
-                  x1="208"
-                  y1="128"
-                  x2="128"
-                  y2="208"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="22"
-                ></line>
-                <line
-                  x1="192"
-                  y1="40"
-                  x2="40"
-                  y2="192"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="22"
-                ></line>
-              </svg>
-            ),
-            title: "Shadcn UI",
-            description:
-              "Modern and fully customizable UI components based on Tailwind CSS.",
-          },
-          {
-            icon: (
-              <svg
-                width="201"
-                height="242"
-                viewBox="0 0 201 242"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 fill-current"
-              >
-                <path d="M104.004 1.78785C101.751 0.662376 99.1002 0.663161 96.8483 1.78998L4.9201 47.7892C2.21103 49.1448 0.5 51.9143 0.5 54.9436V130.526C0.5 133.556 2.2123 136.327 4.92292 137.682L96.9204 183.67C99.1725 184.796 101.823 184.796 104.075 183.67L168.922 151.246C174.242 148.587 180.5 152.455 180.5 158.402V168.855C180.5 171.885 178.788 174.655 176.078 176.01L104.077 212.011C101.825 213.137 99.1745 213.137 96.9224 212.012L12.0771 169.598C6.75791 166.939 0.5 170.807 0.5 176.754V187.048C0.5 190.083 2.21689 192.856 4.93309 194.209L97.0051 240.072C99.2529 241.191 101.896 241.191 104.143 240.07L196.071 194.21C198.785 192.857 200.5 190.084 200.5 187.052V119.487C200.5 113.54 194.242 109.672 188.922 112.332L132.078 140.754C126.758 143.414 120.5 139.546 120.5 133.599V123.145C120.5 120.115 122.212 117.345 124.922 115.99L196.078 80.4124C198.788 79.0573 200.5 76.2872 200.5 73.257V54.9468C200.5 51.9158 198.787 49.1451 196.076 47.7904L104.004 1.78785Z" />
-              </svg>
-            ),
-            title: "Stack Auth",
-            description:
-              "Comprehensive Authentication: OAuth, User Management, and more.",
-          },
-          {
-            icon: <Users className="h-12 w-12" />,
-            title: "Multi-tenancy & RBAC",
-            description: "Built-in Teams and Permissions.",
-          },
-          {
-            icon: <GitHubLogoIcon className="h-12 w-12" />,
-            title: "100% Open-source",
-            description: "Open-source and self-hostable codebase.",
-          },
-          {
-            icon: <ComponentIcon className="h-12 w-12" />,
-            title: "Modular Design",
-            description: "Easily extend and customize. No spaghetti code.",
-          },
-        ]}
-      />
+                <Star className="h-4 w-4" />
+                100% Open-source & Free
+                <ArrowRight className="h-3 w-3" />
+              </a>
+            </div>
 
-      <div id="pricing" />
-      <PricingGrid
-        title="Pricing"
-        subtitle="Flexible plans for every team."
-        items={[
-          {
-            title: "Basic",
-            price: "Free",
-            description: "For individuals and small projects.",
-            features: [
-              "Full source code",
-              "100% Open-source",
-              "Community support",
-              "Free forever",
-              "No credit card required",
-            ],
-            buttonText: "Get Started",
-            buttonHref: stackServerApp.urls.signUp,
-          },
-          {
-            title: "Pro",
-            price: "$0.00",
-            description: "Ideal for growing teams and businesses.",
-            features: [
-              "Full source code",
-              "100% Open-source",
-              "Community support",
-              "Free forever",
-              "No credit card required",
-            ],
-            buttonText: "Upgrade to Pro",
-            isPopular: true,
-            buttonHref: stackServerApp.urls.signUp,
-          },
-          {
-            title: "Enterprise",
-            price: "Still Free",
-            description: "For large organizations.",
-            features: [
-              "Full source code",
-              "100% Open-source",
-              "Community support",
-              "Free forever",
-              "No credit card required",
-            ],
-            buttonText: "Contact Us",
-            buttonHref: stackServerApp.urls.signUp,
-          },
-        ]}
-      />
-    </>
+            {/* Main Title */}
+            <div className="mb-6">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight">
+                The Modern Task Management Platform
+              </h1>
+            </div>
+
+            {/* Subtitle */}
+            <div className="mb-12">
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles.
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <Button
+                size="lg"
+                className="group px-8 py-4 text-lg font-medium bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105"
+                asChild
+              >
+                <a href={stackServerApp.urls.signUp}>
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </a>
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                className="px-8 py-4 text-lg font-medium hover:bg-secondary transition-all duration-300"
+                asChild
+              >
+                <a href="https://github.com/stack-auth/stack-template">
+                  View on GitHub
+                </a>
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Free forever</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Open source</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>No credit card required</span>
+              </div>
+            </div>
+
+            {/* Credits */}
+            <div className="mt-16 text-sm text-muted-foreground">
+              Crafted with ❤️ by{" "}
+              <a
+                href="https://stack-auth.com"
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-primary transition-colors"
+              >
+                Stack Auth
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-24 bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight mb-6">
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Everything you need to manage tasks
+              </span>
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Powerful features designed with Swiss design principles for maximum clarity and efficiency.
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Globe className="h-8 w-8" />,
+                title: "Modern Interface",
+                description: "Clean, intuitive design inspired by Swiss design principles. Every pixel serves a purpose.",
+              },
+              {
+                icon: <Users className="h-8 w-8" />,
+                title: "Team Collaboration",
+                description: "Built-in team management with role-based permissions. Work together seamlessly.",
+              },
+              {
+                icon: <Zap className="h-8 w-8" />,
+                title: "Lightning Fast",
+                description: "Built with Next.js 14 and optimized for performance. Experience the speed difference.",
+              },
+              {
+                icon: <Shield className="h-8 w-8" />,
+                title: "Secure & Reliable",
+                description: "Enterprise-grade security with Stack Auth. Your data is always protected.",
+              },
+              {
+                icon: <Code className="h-8 w-8" />,
+                title: "Open Source",
+                description: "Full source code available. Customize, extend, and contribute to the project.",
+              },
+              {
+                icon: <ComponentIcon className="h-8 w-8" />,
+                title: "Modular Design",
+                description: "Clean architecture with reusable components. No spaghetti code, just clean solutions.",
+              },
+            ].map((item, index) => (
+              <Card key={index} className="group relative p-8 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 h-full">
+                {/* Icon */}
+                <div className="mb-6">
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                    {item.icon}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-foreground group-hover:text-primary transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Hover Effect */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              </Card>
+            ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-20">
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border bg-card/50 backdrop-blur-sm text-sm font-medium text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span>All features included in the free plan</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-24 bg-muted/30 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight mb-6">
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Simple, transparent pricing
+              </span>
+            </h2>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Start free, scale as you grow. No hidden fees, no surprises.
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                title: "Free",
+                price: "Free",
+                description: "Perfect for individuals and small teams getting started.",
+                features: [
+                  "Unlimited projects and tasks",
+                  "Up to 5 team members",
+                  "Basic integrations",
+                  "Community support",
+                  "Full source code access",
+                ],
+                buttonText: "Get Started",
+                buttonHref: stackServerApp.urls.signUp,
+              },
+              {
+                title: "Pro",
+                price: "$9",
+                description: "Ideal for growing teams that need advanced features.",
+                features: [
+                  "Everything in Free",
+                  "Unlimited team members",
+                  "Advanced analytics",
+                  "Priority support",
+                  "Custom integrations",
+                  "Advanced permissions",
+                ],
+                buttonText: "Upgrade to Pro",
+                buttonHref: stackServerApp.urls.signUp,
+                isPopular: true,
+              },
+              {
+                title: "Enterprise",
+                price: "Custom",
+                description: "For large organizations with specific needs.",
+                features: [
+                  "Everything in Pro",
+                  "Dedicated support",
+                  "Custom deployment",
+                  "SLA guarantee",
+                  "Advanced security",
+                  "Custom integrations",
+                ],
+                buttonText: "Contact Sales",
+                buttonHref: stackServerApp.urls.signUp,
+              },
+            ].map((item, index) => (
+              <Card 
+                key={index} 
+                className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
+                  item.isPopular 
+                    ? "border-primary bg-card shadow-lg shadow-primary/10" 
+                    : "border-border bg-card/50 backdrop-blur-sm hover:bg-card/80"
+                }`}
+              >
+                {/* Popular Badge */}
+                {item.isPopular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                      <Star className="h-4 w-4" />
+                      Most Popular
+                    </div>
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-semibold mb-2 text-foreground">
+                    {item.title}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-4xl font-light text-foreground">
+                      {item.price}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-4 mb-8">
+                  {item.features.map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA Button */}
+                <Button
+                  className={`w-full py-3 font-medium transition-all duration-300 ${
+                    item.isPopular
+                      ? "bg-primary hover:bg-primary/90 hover:scale-105"
+                      : "bg-secondary hover:bg-secondary/80"
+                  }`}
+                  asChild
+                >
+                  <a href={item.buttonHref}>
+                    {item.buttonText}
+                  </a>
+                </Button>
+
+                {/* Hover Effect */}
+                {!item.isPopular && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                )}
+              </Card>
+            ))}
+          </div>
+
+          {/* Bottom Note */}
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border bg-card/50 backdrop-blur-sm text-sm font-medium text-muted-foreground">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+              <span>All plans include full access to source code</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

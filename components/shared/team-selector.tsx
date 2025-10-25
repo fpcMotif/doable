@@ -15,7 +15,7 @@ interface TeamSelectorProps {
 export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
   const user = useUser()
   const router = useRouter()
-  const teams = user.useTeams()
+  const teams = user?.useTeams() || []
   const [isCreatingTeam, setIsCreatingTeam] = useState(false)
   const [showTeamCreator, setShowTeamCreator] = useState(false)
 
@@ -33,8 +33,11 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
   }
 
   const handleSelectTeam = (teamId: string) => {
-    user.setSelectedTeam(teams.find(t => t.id === teamId))
-    router.push(`/dashboard/${teamId}/issues`)
+    const team = teams.find(t => t.id === teamId)
+    if (user && team) {
+      user.setSelectedTeam(team)
+      router.push(`/dashboard/${teamId}/issues`)
+    }
   }
 
   const handleTeamCreated = (team: any) => {
@@ -57,7 +60,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-muted-foreground">
-                You don't have access to any teams yet.
+                You don&apos;t have access to any teams yet.
               </p>
               
               <Button 
@@ -74,7 +77,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                   <div className="text-sm text-blue-800">
                     <p className="font-medium">Server-side Team Creation</p>
                     <p className="text-xs mt-1">
-                      We'll create your team using our server-side API, which works regardless of Stack Auth settings.
+                      We&apos;ll create your team using our server-side API, which works regardless of Stack Auth settings.
                     </p>
                   </div>
                 </div>
@@ -117,7 +120,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                   <div className="text-left">
                     <div className="font-medium">{team.displayName}</div>
                     <div className="text-xs text-muted-foreground">
-                      {team.memberCount} member{team.memberCount !== 1 ? 's' : ''}
+                      Team members
                     </div>
                   </div>
                 </div>

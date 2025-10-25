@@ -40,7 +40,7 @@ const projectSchema = z.object({
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format'),
   icon: z.string().optional(),
   leadId: z.string().optional(),
-  status: z.enum(['active', 'completed', 'canceled']).default('active'),
+  status: z.enum(['active', 'completed', 'canceled']),
 })
 
 type ProjectFormData = z.infer<typeof projectSchema>
