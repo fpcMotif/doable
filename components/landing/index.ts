@@ -1,0 +1,10 @@
+export { LandingPage } from './LandingPage';
+export { CustomNavbar } from './CustomNavbar';
+export { HeroSection } from './HeroSection';
+export { FeaturesSection } from './FeaturesSection';
+export { HowToUseSection } from './HowToUseSection';
+export { CtaSection } from './CtaSection';
+export { Footer } from './Footer';
+export { HorizontalLine } from './HorizontalLine';
+export { Logo } from './Logo';
+export { GitHubStarButton } from './GitHubStarButton';

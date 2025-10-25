@@ -59,13 +59,17 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+  .theme {
+    --animate-shiny-text: shiny-text 8s infinite;
+    --animate-ripple: ripple var(--duration,2s) ease calc(var(--i, 0)*.2s) infinite;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -206,6 +210,29 @@
   }
 }
 
+/* Landing Page Animations */
+@keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+  }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+  }
+}
+
+@keyframes ripple {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+.animate-shiny-text {
+  animation: shiny-text 8s infinite;
+}
+
 /* Swiss Design Layout Components */
 @layer components {
   /* Swiss Grid System */
@@ -308,21 +335,21 @@
   .drag-handle {
     cursor: grab;
   }
-  
+
   .drag-handle:active {
     cursor: grabbing;
   }
-  
+
   .dragging {
     transform: rotate(2deg) scale(1.05);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     z-index: 1000;
   }
-  
+
   .drop-zone {
     transition: background-color 0.2s ease;
   }
-  
+
   .drop-zone.drag-over {
     background-color: rgba(59, 130, 246, 0.1);
     border: 2px dashed rgba(59, 130, 246, 0.3);
@@ -802,5 +829,24 @@
     font-weight: 500 !important;
     margin-bottom: 8px !important;
     display: block !important;
+  }
+}
+
+@theme inline {
+  @keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }
+  @keyframes ripple {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    }
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
+    }
   }
 }
