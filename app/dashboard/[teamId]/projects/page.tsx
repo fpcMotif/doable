@@ -11,8 +11,17 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { ProjectCardSkeleton } from '@/components/ui/skeletons'
 import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
-import { Plus, Search, Filter, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Filter, AlertTriangle, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu'
 
 interface Project {
   id: string
@@ -29,6 +38,12 @@ interface Project {
   }
 }
 
+interface ProjectFilters {
+  status?: string[]
+  lead?: string[]
+  search?: string
+}
+
 export default function ProjectsPage() {
   const params = useParams<{ teamId: string }>()
   const teamId = params.teamId
@@ -38,6 +53,12 @@ export default function ProjectsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<ProjectFilters>({
+    status: [],
+    lead: [],
+    search: ''
+  })
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
@@ -91,11 +112,59 @@ export default function ProjectsPage() {
     }
   }
 
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Filter functions
+  const updateFilter = (key: keyof ProjectFilters, value: string[] | string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const clearFilter = (key: keyof ProjectFilters) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: key === 'search' ? '' : []
+    }))
+  }
+
+  const clearAllFilters = () => {
+    setFilters({
+      status: [],
+      lead: [],
+      search: ''
+    })
+    setSearchQuery('')
+  }
+
+  const getActiveFilterCount = () => {
+    return Object.values(filters).filter(value => 
+      Array.isArray(value) ? value.length > 0 : value !== '' && value !== undefined
+    ).length
+  }
+
+  const hasActiveFilters = getActiveFilterCount() > 0
+
+  // Get unique leads from projects
+  const uniqueLeads = Array.from(new Set(projects.map(p => p.lead).filter(Boolean))) as string[]
+
+  // Filter projects based on current filters
+  const filteredProjects = projects.filter(project => {
+    // Search filter
+    const searchMatch = !filters.search || 
+      project.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      project.key.toLowerCase().includes(filters.search.toLowerCase()) ||
+      project.description?.toLowerCase().includes(filters.search.toLowerCase())
+
+    // Status filter
+    const statusMatch = !filters.status || filters.status.length === 0 || 
+      filters.status.includes(project.status)
+
+    // Lead filter
+    const leadMatch = !filters.lead || filters.lead.length === 0 || 
+      (project.lead && filters.lead.includes(project.lead))
+
+    return searchMatch && statusMatch && leadMatch
+  })
 
   if (error) {
     return (
@@ -143,22 +212,115 @@ export default function ProjectsPage() {
           <CardTitle className="text-xl font-medium">Search & Filter</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-11"
-                />
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search projects..."
+                    value={filters.search || ''}
+                    onChange={(e) => updateFilter('search', e.target.value)}
+                    className="pl-10 h-11"
+                  />
+                </div>
               </div>
+              <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="font-medium">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                    {hasActiveFilters && (
+                      <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                        {getActiveFilterCount()}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                  {['active', 'completed', 'canceled'].map((status) => (
+                    <DropdownMenuCheckboxItem
+                      key={status}
+                      checked={filters.status?.includes(status) || false}
+                      onCheckedChange={(checked) => {
+                        const currentStatuses = filters.status || []
+                        const newStatuses = checked
+                          ? [...currentStatuses, status]
+                          : currentStatuses.filter(s => s !== status)
+                        updateFilter('status', newStatuses)
+                      }}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Filter by Lead</DropdownMenuLabel>
+                  {uniqueLeads.map((lead) => (
+                    <DropdownMenuCheckboxItem
+                      key={lead}
+                      checked={filters.lead?.includes(lead) || false}
+                      onCheckedChange={(checked) => {
+                        const currentLeads = filters.lead || []
+                        const newLeads = checked
+                          ? [...currentLeads, lead]
+                          : currentLeads.filter(l => l !== lead)
+                        updateFilter('lead', newLeads)
+                      }}
+                    >
+                      {lead}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+
+                  {hasActiveFilters && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuCheckboxItem
+                        checked={false}
+                        onCheckedChange={clearAllFilters}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        Clear all filters
+                      </DropdownMenuCheckboxItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <Button variant="outline" className="font-medium">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
+
+            {/* Active filter badges */}
+            {hasActiveFilters && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {filters.status?.map((status) => (
+                  <Badge key={status} variant="secondary" className="text-xs">
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                      onClick={() => clearFilter('status')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+                
+                {filters.lead?.map((lead) => (
+                  <Badge key={lead} variant="secondary" className="text-xs">
+                    {lead}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                      onClick={() => clearFilter('lead')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -169,10 +331,17 @@ export default function ProjectsPage() {
           <Card className="border-border/50">
             <CardContent className="text-center py-16">
               <div className="text-muted-foreground">
-                {searchQuery ? (
+                {hasActiveFilters || filters.search ? (
                   <>
                     <p className="text-xl font-medium text-foreground mb-2">No projects found</p>
-                    <p className="text-body-medium">Try adjusting your search terms</p>
+                    <p className="text-body-medium mb-4">Try adjusting your search terms or filters</p>
+                    <Button 
+                      variant="outline"
+                      className="font-medium" 
+                      onClick={clearAllFilters}
+                    >
+                      Clear all filters
+                    </Button>
                   </>
                 ) : (
                   <>
