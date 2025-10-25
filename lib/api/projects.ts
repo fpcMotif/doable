@@ -1,0 +1,107 @@
+import { db } from '@/lib/db'
+import { CreateProjectData, UpdateProjectData } from '@/lib/types'
+
+export async function getProjects(teamId: string) {
+  return await db.project.findMany({
+    where: { teamId },
+    include: {
+      _count: {
+        select: {
+          issues: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+}
+
+export async function getProjectById(teamId: string, projectId: string) {
+  return await db.project.findFirst({
+    where: {
+      id: projectId,
+      teamId,
+    },
+    include: {
+      issues: {
+        include: {
+          workflowState: true,
+          labels: {
+            include: {
+              label: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+      _count: {
+        select: {
+          issues: true,
+        },
+      },
+    },
+  })
+}
+
+export async function createProject(teamId: string, data: CreateProjectData) {
+  return await db.project.create({
+    data: {
+      ...data,
+      teamId,
+    },
+    include: {
+      _count: {
+        select: {
+          issues: true,
+        },
+      },
+    },
+  })
+}
+
+export async function updateProject(teamId: string, projectId: string, data: UpdateProjectData) {
+  return await db.project.update({
+    where: {
+      id: projectId,
+      teamId,
+    },
+    data,
+    include: {
+      _count: {
+        select: {
+          issues: true,
+        },
+      },
+    },
+  })
+}
+
+export async function deleteProject(teamId: string, projectId: string) {
+  return await db.project.delete({
+    where: {
+      id: projectId,
+      teamId,
+    },
+  })
+}
+
+export async function getProjectStats(teamId: string) {
+  const [total, byStatus] = await Promise.all([
+    db.project.count({
+      where: { teamId },
+    }),
+    db.project.groupBy({
+      by: ['status'],
+      where: { teamId },
+      _count: true,
+    }),
+  ])
+
+  return {
+    total,
+    byStatus,
+  }
+}

@@ -7,9 +7,15 @@ import { useParams, useRouter } from "next/navigation";
 
 const navigationItems: SidebarItem[] = [
   {
-    name: "Overview",
-    href: "/",
+    name: "Issues",
+    href: "/issues",
     icon: Globe,
+    type: "item",
+  },
+  {
+    name: "Projects",
+    href: "/projects",
+    icon: ShoppingBag,
     type: "item",
   },
   {
@@ -17,9 +23,9 @@ const navigationItems: SidebarItem[] = [
     name: 'Management',
   },
   {
-    name: "Products",
-    href: "/products",
-    icon: ShoppingBag,
+    name: "Management",
+    href: "/management",
+    icon: BarChart4,
     type: "item",
   },
   {
@@ -38,28 +44,6 @@ const navigationItems: SidebarItem[] = [
     name: "Regions",
     href: "/regions",
     icon: Locate,
-    type: "item",
-  },
-  {
-    type: 'label',
-    name: 'Monetization',
-  },
-  {
-    name: "Revenue",
-    href: "/revenue",
-    icon: BarChart4,
-    type: "item",
-  },
-  {
-    name: "Orders",
-    href: "/orders",
-    icon: ShoppingCart,
-    type: "item",
-  },
-  {
-    name: "Discounts",
-    href: "/discounts",
-    icon: BadgePercent,
     type: "item",
   },
   {

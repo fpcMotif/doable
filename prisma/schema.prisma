@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  key       String   @unique // 3-letter team identifier (e.g., "ENG", "DES")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projects       Project[]
+  issues         Issue[]
+  workflowStates WorkflowState[]
+  labels         Label[]
+
+  @@map("teams")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  key         String   // 3-letter project identifier (e.g., "WEB", "API")
+  color       String   @default("#6366f1") // Hex color
+  icon        String?  // Icon name or emoji
+  status      String   @default("active") // active, completed, canceled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  leadId String? // Stack Auth user ID
+  lead   String? // User display name
+
+  issues Issue[]
+
+  @@unique([teamId, key])
+  @@map("projects")
+}
+
+model WorkflowState {
+  id       String @id @default(cuid())
+  name     String
+  type     String // backlog, unstarted, started, completed, canceled
+  color    String @default("#64748b") // Hex color
+  position Int    @default(0) // Order in workflow
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  issues Issue[]
+
+  @@unique([teamId, name])
+  @@map("workflow_states")
+}
+
+model Label {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#64748b") // Hex color
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  issues IssueLabel[]
+
+  @@unique([teamId, name])
+  @@map("labels")
+}
+
+model Issue {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  number      Int      // Sequential number per team (e.g., 123)
+  priority    String   @default("none") // none, low, medium, high, urgent
+  estimate    Int?     // Story points or hours
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  workflowStateId String
+  workflowState   WorkflowState @relation(fields: [workflowStateId], references: [id])
+
+  assigneeId String? // Stack Auth user ID
+  assignee   String? // User display name
+
+  creatorId String // Stack Auth user ID
+  creator   String  // User display name
+
+  comments Comment[]
+  labels   IssueLabel[]
+
+  @@unique([teamId, number])
+  @@map("issues")
+}
+
+model IssueLabel {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Relations
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId])
+  @@map("issue_labels")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId String // Stack Auth user ID
+  user   String // User display name
+
+  @@map("comments")
+}

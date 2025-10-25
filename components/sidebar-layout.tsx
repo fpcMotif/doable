@@ -124,14 +124,12 @@ function HeaderBreadcrumb(props: { items: SidebarItem[], baseBreadcrumb?: Header
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {props.baseBreadcrumb?.map((item, index) => (
-          <>
-            <BreadcrumbItem key={index}>
-              <BreadcrumbLink href={item.href}>{item.title}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator key={`separator-${index}`} />
-          </>
-        ))}
+        {props.baseBreadcrumb?.map((item, index) => [
+          <BreadcrumbItem key={`item-${index}`}>
+            <BreadcrumbLink href={item.href}>{item.title}</BreadcrumbLink>
+          </BreadcrumbItem>,
+          <BreadcrumbSeparator key={`separator-${index}`} />
+        ]).flat()}
 
         <BreadcrumbItem>
           <BreadcrumbPage>{title}</BreadcrumbPage>
