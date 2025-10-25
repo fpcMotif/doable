@@ -143,6 +143,15 @@
     letter-spacing: 0.025em;
     text-transform: uppercase;
   }
+
+  /* Remove all focus outlines and borders */
+  a:focus,
+  a:focus-visible,
+  button:focus,
+  button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
 
 .loader {

@@ -58,9 +58,9 @@ function NavItem(props: {
         "group relative flex items-center w-full px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
         "hover:bg-secondary/50 rounded-md",
         selected 
-          ? "bg-secondary text-foreground font-medium" 
+          ? "bg-secondary text-foreground font-medium border-0" 
           : "text-muted-foreground hover:text-foreground",
-        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+        "focus:outline-none focus-visible:outline-none"
       )}
       onClick={props.onClick}
       prefetch={true}
@@ -70,9 +70,6 @@ function NavItem(props: {
         selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
       )} />
       <span className="truncate">{props.item.name}</span>
-      {selected && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
-      )}
     </Link>
   );
 }

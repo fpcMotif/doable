@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProjectCard } from '@/components/projects/project-card'
 import { ProjectDialog } from '@/components/projects/project-dialog'
-import { CreateProjectData } from '@/lib/types'
+import { CreateProjectData, UpdateProjectData } from '@/lib/types'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { ProjectCardSkeleton } from '@/components/ui/skeletons'
 import { useToast } from '@/lib/hooks/use-toast'
@@ -67,7 +67,7 @@ export default function ProjectsPage() {
     }
   }
 
-  const handleCreateProject = async (data: CreateProjectData) => {
+  const handleCreateProject = async (data: CreateProjectData | UpdateProjectData) => {
     try {
       const response = await fetch(`/api/teams/${teamId}/projects`, {
         method: 'POST',
@@ -99,15 +99,18 @@ export default function ProjectsPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Card className="max-w-md w-full">
-          <CardContent className="text-center py-8">
-            <div className="text-red-500 mb-4">
-              <AlertTriangle className="h-12 w-12 mx-auto" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md border-border/50">
+          <CardContent className="text-center py-12">
+            <div className="mb-6">
+              <AlertTriangle className="h-16 w-16 text-destructive mx-auto" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>
+            <h3 className="text-xl font-medium text-foreground mb-3">Something went wrong</h3>
+            <p className="text-body-medium text-muted-foreground mb-6">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="font-medium"
+            >
               Refresh Page
             </Button>
           </CardContent>
@@ -121,35 +124,38 @@ export default function ProjectsPage() {
       <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <p className="text-gray-600">Manage your team&apos;s projects</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-light tracking-tight">Projects</h1>
+          <p className="text-muted-foreground text-body-medium">Manage your team&apos;s projects</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
+        <Button 
+          onClick={() => setCreateDialogOpen(true)}
+          className="font-medium"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Create Project
         </Button>
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Search & Filter</CardTitle>
+      <Card className="border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-medium">Search & Filter</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="flex gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search projects..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-11"
                 />
               </div>
             </div>
-            <Button variant="outline">
+            <Button variant="outline" className="font-medium">
               <Filter className="h-4 w-4 mr-2" />
               Filters
             </Button>
@@ -158,22 +164,22 @@ export default function ProjectsPage() {
       </Card>
 
       {/* Projects Grid */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {filteredProjects.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <div className="text-gray-500">
+          <Card className="border-border/50">
+            <CardContent className="text-center py-16">
+              <div className="text-muted-foreground">
                 {searchQuery ? (
                   <>
-                    <p className="text-lg font-medium">No projects found</p>
-                    <p className="text-sm">Try adjusting your search terms</p>
+                    <p className="text-xl font-medium text-foreground mb-2">No projects found</p>
+                    <p className="text-body-medium">Try adjusting your search terms</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-medium">No projects yet</p>
-                    <p className="text-sm">Create your first project to get started</p>
+                    <p className="text-xl font-medium text-foreground mb-2">No projects yet</p>
+                    <p className="text-body-medium mb-6">Create your first project to get started</p>
                     <Button 
-                      className="mt-4" 
+                      className="font-medium" 
                       onClick={() => setCreateDialogOpen(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
