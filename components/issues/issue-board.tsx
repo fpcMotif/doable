@@ -55,8 +55,14 @@ export function IssueBoard({
     const newWorkflowStateId = destination.droppableId
 
     try {
-      // Optimistically update the UI
-      onIssueUpdate?.(issueId, { workflowStateId: newWorkflowStateId })
+      // Find the new workflow state object
+      const newWorkflowState = workflowStates.find(state => state.id === newWorkflowStateId)
+      
+      // Optimistically update the UI with both workflowStateId and workflowState
+      onIssueUpdate?.(issueId, { 
+        workflowStateId: newWorkflowStateId,
+        workflowState: newWorkflowState
+      })
 
       // Update the issue in the database
       const response = await fetch(`/api/teams/${teamId}/issues/${issueId}`, {
@@ -81,7 +87,11 @@ export function IssueBoard({
       
       // Revert the optimistic update on error
       const originalWorkflowStateId = source.droppableId
-      onIssueUpdate?.(issueId, { workflowStateId: originalWorkflowStateId })
+      const originalWorkflowState = workflowStates.find(state => state.id === originalWorkflowStateId)
+      onIssueUpdate?.(issueId, { 
+        workflowStateId: originalWorkflowStateId,
+        workflowState: originalWorkflowState
+      })
     }
   }
 
