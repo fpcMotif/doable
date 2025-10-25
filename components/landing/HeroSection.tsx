@@ -126,22 +126,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </a>
           </Button>
         </div>
-
-        {/* Trust Indicators */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>Free forever</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>Open source</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>No credit card required</span>
-          </div>
-        </div>
       </div>
     </div>
   );

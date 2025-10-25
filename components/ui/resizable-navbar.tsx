@@ -8,6 +8,7 @@ import {
   useMotionValueEvent,
 } from "motion/react";
 import Link from "next/link";
+import { Logo } from "@/components/landing/Logo";
 
 import React, { useRef, useState } from "react";
 
@@ -235,12 +236,9 @@ export const NavbarLogo = () => {
   return (
     <Link
       href="/"
-      className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
+      className="relative z-20 mr-4 flex items-center px-2 py-1 text-sm font-normal text-black"
     >
-      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-        <span className="text-primary-foreground font-bold text-lg">D</span>
-      </div>
-      <span className="font-medium text-black dark:text-white">Doable</span>
+      <Logo />
     </Link>
   );
 };

@@ -38,7 +38,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
         {/* Bottom */}
         <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 text-center">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Doable. Licensed under Apache 2.0
+            © {new Date().getFullYear()} doable
           </p>
         </div>
       </div>

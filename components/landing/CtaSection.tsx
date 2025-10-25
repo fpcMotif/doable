@@ -18,15 +18,6 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
     <div className={`py-16 md:py-24 lg:py-32 relative overflow-hidden ${className}`}>
       {/* Dot Pattern Background - Square Container */}
       <div className="absolute inset-0 flex items-center justify-center z-0">
-        <div className="w-[600px] h-[600px] relative">
-          <DotPattern
-            width={20}
-            height={20}
-            cr={1}
-            className="opacity-90 text-gray-300"
-            glow={true}
-          />
-        </div>
       </div>
       
       {/* Ripple Effect Background */}
@@ -45,7 +36,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
       
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         {/* Big Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight mb-6 sm:mb-8">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center tracking-tight mb-6 sm:mb-8">
           <TextAnimate
             by="word"
             animation="blurInUp"
@@ -58,7 +49,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
         </h1>
         
         {/* Subtitle */}
-        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
           <TextAnimate
             by="word"
             animation="fadeIn"
@@ -68,7 +59,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
           >
             Join thousands of teams already using Doable to manage their tasks and boost productivity.
           </TextAnimate>
-        </p>
+        </h2>
         
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4">
@@ -82,12 +73,6 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
-          <GitHubStarButton 
-            owner="KartikLabhshetwar" 
-            repo="doable" 
-            variant="outline"
-            className="px-6 py-3 text-base font-medium"
-          />
         </div>
       </div>
     </div>

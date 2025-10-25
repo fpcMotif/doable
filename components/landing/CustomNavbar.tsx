@@ -11,7 +11,6 @@ import {
   NavbarButton,
   NavItems 
 } from '@/components/ui/resizable-navbar';
-import { Button } from '@/components/ui/button';
 import { GitHubStarButton } from './GitHubStarButton';
 
 interface CustomNavbarProps {
@@ -21,19 +20,13 @@ interface CustomNavbarProps {
 export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-  const navItems = [
-    { name: "Features", link: "#features" },
-    { name: "How it Works", link: "#how-it-works" },
-    { name: "Pricing", link: "#pricing" },
-  ];
-
   return (
     <Navbar className={className}>
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
         <NavItems 
-          items={navItems}
+          items={[]}
           onItemClick={() => setIsMobileMenuOpen(false)}
         />
         <div className="flex items-center gap-3">
@@ -63,16 +56,6 @@ export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
           onClose={() => setIsMobileMenuOpen(false)}
         >
           <div className="flex flex-col gap-3">
-            {navItems.map((item, index) => (
-              <a
-                key={index}
-                href={item.link}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {item.name}
-              </a>
-            ))}
             <GitHubStarButton 
               owner="KartikLabhshetwar" 
               repo="doable" 

@@ -144,20 +144,6 @@ export const HowToUseSection: React.FC<HowToUseSectionProps> = ({ className = ''
             ))}
           </div>
         </motion.div>
-
-        {/* CTA */}
-        <div className="text-center mt-16">
-          <Button
-            size="lg"
-            className="group px-8 py-4 text-lg font-medium bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105"
-            asChild
-          >
-            <Link href="/dashboard">
-              Get Started Now
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-        </div>
       </div>
     </div>
   );

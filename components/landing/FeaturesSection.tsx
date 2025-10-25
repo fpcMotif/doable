@@ -44,18 +44,6 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className = ''
 
   return (
     <div id="features" className={`py-20 lg:py-40 relative overflow-hidden ${className}`}>
-      {/* Dot Pattern Background - Square Container */}
-      <div className="absolute inset-0 flex items-center justify-center z-0">
-        <div className="w-[800px] h-[800px] relative">
-          <DotPattern
-            width={32}
-            height={32}
-            cr={1}
-            className="opacity-80 text-gray-300"
-            glow={true}
-          />
-        </div>
-      </div>
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
