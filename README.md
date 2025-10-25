@@ -1,185 +1,180 @@
 # Doable
 
-## 🚀 Quick Start
+A modern task management platform built with Next.js.
 
-### 1. Enable Team Creation in Stack Auth
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC)
+![Stack Auth](https://img.shields.io/badge/Stack_Auth-2.7-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 
-The error you're seeing is because client-side team creation is disabled in your Stack Auth project. To fix this:
+## Overview
 
-1. **Go to your Stack Auth Dashboard**
-2. **Navigate to Project Settings**
-3. **Go to Team Settings**
-4. **Enable "Client team creation"**
-5. **Save the changes**
+Doable is a comprehensive task management solution designed for modern teams.
 
-### 2. Alternative: Create Teams Manually
+## Features
 
-If you prefer to manage teams manually:
+- **Modern Interface** - Clean, intuitive design inspired by Swiss design principles
+- **Team Collaboration** - Built-in team management with role-based permissions
+- **Lightning Fast** - Built with Next.js 14 and optimized for performance
+- **Secure & Reliable** - Enterprise-grade security with Stack Auth
+- **Open Source** - Full source code available for customization
+- **Modular Design** - Clean architecture with reusable components
 
-1. **Go to your Stack Auth Dashboard**
-2. **Navigate to Teams**
-3. **Create a team manually**
-4. **Add users to the team**
-5. **Users can then select from existing teams**
+## Tech Stack
 
-### 3. Database Setup
-
-Make sure you have your database configured:
-
-```bash
-# Install dependencies
-npm install
-
-# Set up your database URL in .env
-DATABASE_URL="postgresql://username:password@localhost:5432/doable"
-
-# Run database migrations
-npx prisma db push
-
-# Seed the database with default workflow states and labels
-npm run db:seed
-```
-
-### 4. Start the Development Server
-
-```bash
-npm run dev
-```
-
-## 🎯 Features
-
-- ✅ **Issue Management**: Create, edit, delete, and track issues
-- ✅ **Project Organization**: Organize issues into projects
-- ✅ **Workflow States**: Customizable status workflows
-- ✅ **Labels & Priorities**: Categorize and prioritize issues
-- ✅ **Multiple Views**: List, Board (Kanban), and Table views
-- ✅ **Advanced Filtering**: Filter by status, assignee, project, labels
-- ✅ **Search**: Real-time search across all content
-- ✅ **Command Palette**: Keyboard shortcuts (⌘K)
-- ✅ **User Management**: Integrated with Stack Auth
-- ✅ **Responsive Design**: Works on desktop and mobile
-- ✅ **Error Handling**: Comprehensive error boundaries and notifications
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
-- **UI Components**: Shadcn/ui
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS with custom Swiss design system
 - **Authentication**: Stack Auth
 - **Database**: PostgreSQL with Prisma ORM
-- **Styling**: Tailwind CSS
-- **Forms**: React Hook Form + Zod validation
+- **UI Components**: Custom components with Shadcn/ui base
+- **Forms**: React Hook Form with Zod validation
 
-## 📁 Project Structure
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL database
+- Stack Auth account
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/KartikLabhshetwar/doable.git
+   cd doable
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Update `.env` with your configuration:
+   ```env
+   DATABASE_URL="postgresql://username:password@localhost:5432/doable"
+   STACK_PROJECT_ID="your-stack-project-id"
+   STACK_PUBLISHABLE_CLIENT_KEY="your-stack-publishable-key"
+   ```
+
+4. **Set up the database**
+   ```bash
+   npx prisma db push
+   npm run db:seed
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
 
 ```
-app/
-├── api/teams/[teamId]/
-│   ├── issues/          # Issue CRUD operations
-│   ├── projects/        # Project CRUD operations
-│   ├── labels/          # Label management
-│   └── workflow-states/ # Workflow state management
-├── dashboard/[teamId]/
-│   ├── issues/          # Issues list and detail pages
-│   └── projects/        # Projects list and detail pages
-components/
-├── issues/              # Issue-related components
-├── projects/            # Project-related components
-├── shared/              # Reusable UI components
-└── filters/             # Filtering components
-lib/
-├── api/                 # API helper functions
-├── hooks/               # Custom React hooks
-└── types/               # TypeScript type definitions
+doable/
+├── app/                    # Next.js app directory
+│   ├── (landing-page)/    # Landing page routes
+│   ├── dashboard/         # Dashboard routes
+│   ├── api/               # API routes
+│   └── handler/           # Stack Auth handler
+├── components/            # React components
+│   ├── ui/               # Base UI components
+│   ├── projects/         # Project-related components
+│   └── shared/           # Shared components
+├── lib/                  # Utility functions and types
+├── prisma/               # Database schema and migrations
+└── public/               # Static assets
 ```
 
-## 🎨 UI Components
+## Key Components
 
-- **IssueCard**: Display issue in list/board views
-- **IssueDialog**: Create/edit issue modal
-- **ProjectCard**: Display project information
-- **ProjectDialog**: Create/edit project modal
-- **StatusBadge**: Visual status indicator
-- **PriorityIcon**: Priority level display
-- **LabelBadge**: Colored label chips
-- **UserAvatar**: User profile picture with fallback
-- **ViewSwitcher**: Toggle between list/board/table views
-- **FilterBar**: Filter issues by various criteria
-- **CommandPalette**: Keyboard shortcut interface (⌘K)
+### Landing Page
+- Modern hero section with animated text
+- Feature showcase with floating cards
+- Pricing section with popular badges
+- Responsive design for all devices
 
-## ⌨️ Keyboard Shortcuts
+### Dashboard
+- Clean sidebar navigation
+- Issue and project management
+- Advanced filtering and search
+- Multiple view modes (list, board, table)
 
-- `⌘K` - Open command palette
-- `⌘C` - Create new issue
-- `↑↓` - Navigate commands
-- `↵` - Execute command
-- `⎋` - Close palette
+### Authentication
+- Seamless Stack Auth integration
+- Team-based access control
+- User management and permissions
 
-## 🔧 Configuration
+## Development
 
-### Environment Variables
+### Available Scripts
 
-Create a `.env` file with:
-
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/doable"
-STACK_PROJECT_ID="your-stack-project-id"
-STACK_PUBLISHABLE_CLIENT_KEY="your-stack-publishable-key"
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run db:push      # Push database schema changes
+npm run db:seed      # Seed database with default data
 ```
 
-### Stack Auth Configuration
+### Database Management
 
-Make sure your Stack Auth project has:
-- Client team creation enabled (for automatic team creation)
-- Or manually create teams and add users
+```bash
+# Update database schema
+npx prisma db push
 
-## 🚨 Troubleshooting
+# Generate Prisma client
+npx prisma generate
 
-### Team Creation Error
+# View database in Prisma Studio
+npx prisma studio
+```
 
-If you see "Client team creation is disabled for this project":
+## Configuration
 
-1. **Enable team creation** in Stack Auth dashboard
-2. **Or create teams manually** and add users
-3. **Refresh the page** after making changes
+### Stack Auth Setup
 
-### Database Connection Issues
+1. Create a new project in [Stack Auth Dashboard](https://stack-auth.com)
+2. Configure OAuth providers (optional)
+3. Set up team management settings
+4. Copy your project credentials to `.env`
 
-1. **Check your DATABASE_URL** in `.env`
-2. **Ensure PostgreSQL is running**
-3. **Run `npx prisma db push`** to sync schema
-4. **Run `npm run db:seed`** to add default data
+### Database Configuration
 
-### Build Issues
+The application uses PostgreSQL with Prisma ORM. Make sure your database is running and accessible via the `DATABASE_URL` environment variable.
 
-1. **Clear Next.js cache**: `rm -rf .next`
-2. **Reinstall dependencies**: `rm -rf node_modules && npm install`
-3. **Check TypeScript errors**: `npm run lint`
+## Design System
 
-## 📝 Development
+Doable implements a custom design system based on Swiss design principles:
 
-### Adding New Features
+- **Typography**: Inter font family with proper hierarchy
+- **Colors**: Notion-inspired dark theme with HSL color system
+- **Spacing**: Consistent spacing scale (4px base unit)
+- **Components**: Modular, reusable UI components
+- **Animations**: Subtle, purposeful animations
 
-1. **Create API routes** in `app/api/teams/[teamId]/`
-2. **Add database models** in `prisma/schema.prisma`
-3. **Create UI components** in `components/`
-4. **Add TypeScript types** in `lib/types/`
-5. **Update hooks** in `lib/hooks/`
+## Contributing
 
-### Database Changes
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-1. **Update schema** in `prisma/schema.prisma`
-2. **Run migration**: `npx prisma db push`
-3. **Update types**: `npx prisma generate`
+## License
 
-## 🎉 Success!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Once everything is set up, you'll have a fully functional Linear-inspired task management system with:
-
-- Professional UI/UX
-- Comprehensive error handling
-- Loading states and notifications
-- Keyboard shortcuts and command palette
-- Multi-tenant architecture
-- Responsive design
-
-Happy coding! 🚀
+## Support
+- **Issues**: Report bugs and request features via [GitHub Issues](https://github.com/KartikLabhshetwar/doable/issues)
