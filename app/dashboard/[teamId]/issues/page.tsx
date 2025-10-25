@@ -243,16 +243,34 @@ export default function IssuesPage() {
 
   const handleFiltersChange = (newFilters: IssueFilters) => {
     setFilters(newFilters)
+    // Also update search query if it's in the filters
+    if (newFilters.search !== undefined) {
+      setSearchQuery(newFilters.search)
+    }
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    setFilters(prev => ({
+      ...prev,
+      search: value
+    }))
   }
 
   const handleSort = (field: string, direction: 'asc' | 'desc') => {
     setSort({ field: field as any, direction })
   }
 
-  const filteredIssues = issues.filter(issue =>
-    issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    issue.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Apply client-side search filtering to API-filtered results
+  const filteredIssues = issues.filter(issue => {
+    // If there's a search query, apply client-side search filtering
+    if (searchQuery) {
+      return issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             issue.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    }
+    // Otherwise, return all issues (they're already filtered by API)
+    return true
+  })
 
   if (error) {
     return (
@@ -314,7 +332,7 @@ export default function IssuesPage() {
                 <Input
                   placeholder="Search issues..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10 h-11"
                 />
               </div>
@@ -343,10 +361,22 @@ export default function IssuesPage() {
           <Card className="border-border/50">
             <CardContent className="text-center py-16">
               <div className="text-muted-foreground">
-                {searchQuery ? (
+                {searchQuery || Object.values(filters).some(value => 
+                  Array.isArray(value) ? value.length > 0 : value !== '' && value !== undefined
+                ) ? (
                   <>
                     <p className="text-xl font-medium text-foreground mb-2">No issues found</p>
-                    <p className="text-body-medium">Try adjusting your search terms</p>
+                    <p className="text-body-medium mb-4">Try adjusting your search terms or filters</p>
+                    <Button 
+                      variant="outline"
+                      className="font-medium" 
+                      onClick={() => {
+                        setSearchQuery('')
+                        setFilters({})
+                      }}
+                    >
+                      Clear all filters
+                    </Button>
                   </>
                 ) : (
                   <>
