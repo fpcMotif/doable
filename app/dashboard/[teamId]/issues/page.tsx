@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +17,7 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { IssueCardSkeleton, TableSkeleton, BoardSkeleton } from '@/components/ui/skeletons'
-import { Plus, Search, AlertTriangle } from 'lucide-react'
+import { Plus, Search, AlertTriangle, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 
 interface Issue {
@@ -56,6 +56,22 @@ interface Label {
   color: string
 }
 
+// Cache for API responses
+const cache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+function getCachedData(key: string) {
+  const cached = cache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data
+  }
+  return null
+}
+
+function setCachedData(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() })
+}
+
 export default function IssuesPage() {
   const params = useParams<{ teamId: string }>()
   const teamId = params.teamId
@@ -65,6 +81,7 @@ export default function IssuesPage() {
   const [workflowStates, setWorkflowStates] = useState<any[]>([])
   const [labels, setLabels] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [issuesLoading, setIssuesLoading] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentView, setCurrentView] = useState<ViewType>('list')
@@ -80,18 +97,41 @@ export default function IssuesPage() {
   useCommandPalette(() => setCommandPaletteOpen(true))
   useCreateShortcut(() => setCreateDialogOpen(true))
 
+  // Memoized cache keys
+  const cacheKeys = useMemo(() => ({
+    projects: `projects-${teamId}`,
+    workflowStates: `workflowStates-${teamId}`,
+    labels: `labels-${teamId}`,
+    issues: `issues-${teamId}-${JSON.stringify(filters)}-${JSON.stringify(sort)}`
+  }), [teamId, filters, sort])
+
   useEffect(() => {
-    fetchData()
+    fetchInitialData()
   }, [teamId])
 
   useEffect(() => {
     fetchIssues()
   }, [teamId, filters, sort])
 
-  const fetchData = async () => {
+  const fetchInitialData = async () => {
     try {
       setLoading(true)
       setError(null)
+
+      // Check cache first
+      const cachedProjects = getCachedData(cacheKeys.projects)
+      const cachedWorkflowStates = getCachedData(cacheKeys.workflowStates)
+      const cachedLabels = getCachedData(cacheKeys.labels)
+
+      if (cachedProjects && cachedWorkflowStates && cachedLabels) {
+        setProjects(cachedProjects)
+        setWorkflowStates(cachedWorkflowStates)
+        setLabels(cachedLabels)
+        setLoading(false)
+        return
+      }
+
+      // Fetch data in parallel
       const [projectsRes, workflowStatesRes, labelsRes] = await Promise.all([
         fetch(`/api/teams/${teamId}/projects`),
         fetch(`/api/teams/${teamId}/workflow-states`),
@@ -108,6 +148,11 @@ export default function IssuesPage() {
         labelsRes.json(),
       ])
 
+      // Cache the data
+      setCachedData(cacheKeys.projects, projectsData)
+      setCachedData(cacheKeys.workflowStates, workflowStatesData)
+      setCachedData(cacheKeys.labels, labelsData)
+
       setProjects(projectsData as any)
       setWorkflowStates(workflowStatesData as any)
       setLabels(labelsData as any)
@@ -122,6 +167,16 @@ export default function IssuesPage() {
 
   const fetchIssues = async () => {
     try {
+      setIssuesLoading(true)
+      
+      // Check cache first
+      const cachedIssues = getCachedData(cacheKeys.issues)
+      if (cachedIssues) {
+        setIssues(cachedIssues)
+        setIssuesLoading(false)
+        return
+      }
+
       const searchParams = new URLSearchParams()
       
       // Add filters to search params
@@ -144,10 +199,15 @@ export default function IssuesPage() {
       }
       
       const data = await response.json()
+      
+      // Cache the issues
+      setCachedData(cacheKeys.issues, data)
       setIssues(data)
     } catch (error) {
       console.error('Error fetching issues:', error)
       toast.error('Failed to load issues', 'Please try again.')
+    } finally {
+      setIssuesLoading(false)
     }
   }
 
@@ -164,6 +224,10 @@ export default function IssuesPage() {
       if (response.ok) {
         const newIssue = await response.json()
         setIssues(prev => [newIssue, ...prev])
+        
+        // Clear issues cache to force refresh
+        cache.delete(cacheKeys.issues)
+        
         toast.success('Issue created', 'Your issue has been created successfully.')
       } else {
         const errorData = await response.json()
@@ -224,6 +288,7 @@ export default function IssuesPage() {
         <Button 
           onClick={() => setCreateDialogOpen(true)}
           className="font-medium"
+          disabled={loading}
         >
           <Plus className="h-4 w-4 mr-2" />
           Create Issue
@@ -267,7 +332,14 @@ export default function IssuesPage() {
 
         {/* Issues Display */}
         <div className="space-y-6">
-        {filteredIssues.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="text-muted-foreground">Loading dashboard...</span>
+            </div>
+          </div>
+        ) : filteredIssues.length === 0 ? (
           <Card className="border-border/50">
             <CardContent className="text-center py-16">
               <div className="text-muted-foreground">
@@ -294,7 +366,7 @@ export default function IssuesPage() {
           </Card>
         ) : (
           <>
-            {loading ? (
+            {issuesLoading ? (
               <>
                 {currentView === 'list' && (
                   <div className="grid gap-4">

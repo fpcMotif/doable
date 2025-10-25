@@ -4,6 +4,7 @@ import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
 import { SelectedTeamSwitcher, useUser } from "@stackframe/stack";
 import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { DashboardLoader } from "@/components/ui/dashboard-loader";
 
 const navigationItems: SidebarItem[] = [
   {
@@ -64,9 +65,14 @@ export default function Layout(props: { children: React.ReactNode }) {
   const team = user.useTeam(params.teamId);
   const router = useRouter();
 
+  // Show loading while team is being fetched
+  if (team === undefined) {
+    return <DashboardLoader message="Loading team" submessage="Fetching team data..." />;
+  }
+
   if (!team) {
     router.push('/dashboard');
-    return null;
+    return <DashboardLoader message="Redirecting" submessage="Team not found, redirecting..." />;
   }
 
   return (

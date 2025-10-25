@@ -1,5 +1,15 @@
+import { Loader2 } from 'lucide-react'
+
 export default function Loading() {
-  // Stack uses React Suspense, which will render this page while user data is being fetched.
-  // See: https://nextjs.org/docs/app/api-reference/file-conventions/loading
-  return <span><span className="loader" /></span>;
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="text-center">
+          <h2 className="text-lg font-medium text-foreground">Loading Doable</h2>
+          <p className="text-sm text-muted-foreground">Setting up your workspace...</p>
+        </div>
+      </div>
+    </div>
+  )
 }

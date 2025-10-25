@@ -4,8 +4,16 @@ import { CreateIssueData } from '@/lib/types'
 import { stackServerApp } from '@/stack'
 import { db } from '@/lib/db'
 
+// Cache for team existence checks
+const teamExistsCache = new Set<string>()
+
 // Helper function to ensure team exists in local database
 async function ensureTeamExists(teamId: string) {
+  // Check cache first
+  if (teamExistsCache.has(teamId)) {
+    return { id: teamId }
+  }
+
   let localTeam = await db.team.findUnique({
     where: { id: teamId }
   })
@@ -26,45 +34,39 @@ async function ensureTeamExists(teamId: string) {
       }
     })
 
-    // Create default workflow states for the team
-    const defaultWorkflowStates = [
-      { name: 'Backlog', type: 'backlog', color: '#64748b', position: 0 },
-      { name: 'Todo', type: 'unstarted', color: '#3b82f6', position: 1 },
-      { name: 'In Progress', type: 'started', color: '#f59e0b', position: 2 },
-      { name: 'Done', type: 'completed', color: '#10b981', position: 3 },
-    ]
-
-    await Promise.all(
-      defaultWorkflowStates.map(state =>
+    // Create default workflow states and labels in parallel
+    const [defaultWorkflowStates, defaultLabels] = await Promise.all([
+      Promise.all([
+        { name: 'Backlog', type: 'backlog', color: '#64748b', position: 0 },
+        { name: 'Todo', type: 'unstarted', color: '#3b82f6', position: 1 },
+        { name: 'In Progress', type: 'started', color: '#f59e0b', position: 2 },
+        { name: 'Done', type: 'completed', color: '#10b981', position: 3 },
+      ].map(state =>
         db.workflowState.create({
           data: {
             ...state,
             teamId: teamId,
           }
         })
-      )
-    )
-
-    // Create default labels for the team
-    const defaultLabels = [
-      { name: 'Bug', color: '#ef4444' },
-      { name: 'Feature', color: '#8b5cf6' },
-      { name: 'Enhancement', color: '#06b6d4' },
-      { name: 'Documentation', color: '#84cc16' },
-    ]
-
-    await Promise.all(
-      defaultLabels.map(label =>
+      )),
+      Promise.all([
+        { name: 'Bug', color: '#ef4444' },
+        { name: 'Feature', color: '#8b5cf6' },
+        { name: 'Enhancement', color: '#06b6d4' },
+        { name: 'Documentation', color: '#84cc16' },
+      ].map(label =>
         db.label.create({
           data: {
             ...label,
             teamId: teamId,
           }
         })
-      )
-    )
+      ))
+    ])
   }
 
+  // Cache the team existence
+  teamExistsCache.add(teamId)
   return localTeam
 }
 
