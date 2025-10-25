@@ -55,15 +55,24 @@ function NavItem(props: {
     <Link
       href={props.basePath + props.item.href}
       className={cn(
-        buttonVariants({ variant: "ghost", size: "sm" }),
-        selected && "bg-muted",
-        "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2"
+        "group relative flex items-center w-full px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+        "hover:bg-secondary/50 rounded-md",
+        selected 
+          ? "bg-secondary text-foreground font-medium" 
+          : "text-muted-foreground hover:text-foreground",
+        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
       )}
       onClick={props.onClick}
       prefetch={true}
     >
-      <props.item.icon className="mr-2 h-5 w-5" />
-      {props.item.name}
+      <props.item.icon className={cn(
+        "mr-3 h-4 w-4 transition-colors duration-200",
+        selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+      )} />
+      <span className="truncate">{props.item.name}</span>
+      {selected && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+      )}
     </Link>
   );
 }
@@ -78,36 +87,38 @@ function SidebarContent(props: {
   const segment = useSegment(props.basePath);
 
   return (
-    <div className="flex flex-col h-full items-stretch">
-      <div className="h-14 flex items-center px-2 shrink-0 mr-10 md:mr-0 border-b">
+    <div className="flex flex-col h-full bg-card border-r border-border">
+      {/* Header */}
+      <div className="h-16 flex items-center px-4 shrink-0 border-b border-border bg-card">
         {props.sidebarTop}
       </div>
-      <div className="flex flex-grow flex-col gap-2 pt-4 overflow-y-auto">
-        {props.items.map((item, index) => {
-          if (item.type === "separator") {
-            return <Separator key={index} className="my-2" />;
-          } else if (item.type === "item") {
-            return (
-              <div key={index} className="flex px-2">
+      
+      {/* Navigation */}
+      <div className="flex-1 flex flex-col py-4 overflow-y-auto">
+        <div className="px-3 space-y-1">
+          {props.items.map((item, index) => {
+            if (item.type === "separator") {
+              return <Separator key={index} className="my-4 mx-2" />;
+            } else if (item.type === "item") {
+              return (
                 <NavItem
+                  key={index}
                   item={item}
                   onClick={props.onNavigate}
                   basePath={props.basePath}
                 />
-              </div>
-            );
-          } else {
-            return (
-              <div key={index} className="flex my-2">
-                <div className="flex-grow justify-start text-sm font-medium text-zinc-500 px-2">
-                  {item.name}
+              );
+            } else {
+              return (
+                <div key={index} className="px-3 py-2">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {item.name}
+                  </div>
                 </div>
-              </div>
-            );
-          }
-        })}
-
-        <div className="flex-grow" />
+              );
+            }
+          })}
+        </div>
       </div>
     </div>
   );
@@ -150,46 +161,71 @@ export default function SidebarLayout(props: {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <div className="w-full flex">
-      <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
+    <div className="w-full flex min-h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex flex-col w-64 h-screen sticky top-0 z-20">
         <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
       </div>
-      <div className="flex flex-col flex-grow w-0">
-        <div className="h-14 border-b flex items-center justify-between sticky top-0 bg-white dark:bg-black z-10 px-4 md:px-6">
-          <div className="hidden md:flex">
-            <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
-          </div>
+      
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Header */}
+        <header className="h-16 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-10">
+          <div className="flex items-center justify-between h-full px-4 md:px-6">
+            {/* Left side - Mobile menu + Breadcrumb */}
+            <div className="flex items-center space-x-4">
+              {/* Mobile Menu */}
+              <div className="md:hidden">
+                <Sheet
+                  onOpenChange={(open) => setSidebarOpen(open)}
+                  open={sidebarOpen}
+                >
+                  <SheetTrigger asChild>
+                    <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle menu</span>
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-64 p-0">
+                    <SidebarContent
+                      onNavigate={() => setSidebarOpen(false)}
+                      items={props.items}
+                      sidebarTop={props.sidebarTop}
+                      basePath={props.basePath}
+                    />
+                  </SheetContent>
+                </Sheet>
+              </div>
 
-          <div className="flex md:hidden items-center">
-            <Sheet
-              onOpenChange={(open) => setSidebarOpen(open)}
-              open={sidebarOpen}
-            >
-              <SheetTrigger>
-                <Menu />
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[240px] p-0">
-                <SidebarContent
-                  onNavigate={() => setSidebarOpen(false)}
-                  items={props.items}
-                  sidebarTop={props.sidebarTop}
-                  basePath={props.basePath}
-                />
-              </SheetContent>
-            </Sheet>
+              {/* Breadcrumb */}
+              <HeaderBreadcrumb 
+                baseBreadcrumb={props.baseBreadcrumb} 
+                basePath={props.basePath} 
+                items={props.items} 
+              />
+            </div>
 
-            <div className="ml-4 flex md:hidden">
-              <HeaderBreadcrumb baseBreadcrumb={props.baseBreadcrumb} basePath={props.basePath} items={props.items} />
+            {/* Right side - User Button */}
+            <div className="flex items-center">
+              <UserButton
+                colorModeToggle={() =>
+                  setTheme(resolvedTheme === "light" ? "dark" : "light")
+                }
+              />
             </div>
           </div>
+        </header>
 
-          <UserButton
-            colorModeToggle={() =>
-              setTheme(resolvedTheme === "light" ? "dark" : "light")
-            }
-          />
-        </div>
-        <div className="flex-grow">{props.children}</div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+            <div className="swiss-grid">
+              <div className="col-span-full">
+                {props.children}
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
