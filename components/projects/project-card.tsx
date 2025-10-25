@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 import { ProjectWithRelations } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Users, FolderOpen } from 'lucide-react'
+import { Calendar, Users, FolderOpen, TrendingUp } from 'lucide-react'
 
 interface ProjectCardProps {
   project: ProjectWithRelations
@@ -16,7 +16,6 @@ export function ProjectCard({ project, onClick, className }: ProjectCardProps) {
     
     const dateObj = typeof date === 'string' ? new Date(date) : date
     
-    // Check if the date is valid
     if (isNaN(dateObj.getTime())) {
       return 'N/A'
     }
@@ -28,78 +27,126 @@ export function ProjectCard({ project, onClick, className }: ProjectCardProps) {
     }).format(dateObj)
   }
 
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default'
+      case 'completed':
+        return 'secondary'
+      case 'canceled':
+        return 'destructive'
+      default:
+        return 'outline'
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+        return 'bg-green-500/10 text-green-600 border-green-500/20'
       case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+        return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
       case 'canceled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+        return 'bg-red-500/10 text-red-600 border-red-500/20'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+        return 'bg-gray-500/10 text-gray-600 border-gray-500/20'
     }
   }
 
   return (
     <Card
       className={cn(
-        'p-6 cursor-pointer transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600',
+        'group relative overflow-hidden border-0 bg-card/50 backdrop-blur-sm transition-all duration-200 hover:bg-card/80 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
         className
       )}
       onClick={onClick}
     >
-      <div className="space-y-4">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      
+      {/* Color accent bar */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r opacity-60 group-hover:opacity-100 transition-opacity"
+        style={{ 
+          background: `linear-gradient(90deg, ${project.color || '#6366f1'}, ${project.color || '#6366f1'}40)`
+        }}
+      />
+      
+      <div className="relative p-6 space-y-4">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             {project.icon && (
-              <div className="text-2xl">{project.icon}</div>
+              <div className="text-2xl mt-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                {project.icon}
+              </div>
             )}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+            <div className="flex-1 min-w-0 space-y-1">
+              <h3 className="font-semibold text-foreground text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
                 {project.name}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {project.key}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs bg-muted/50 px-2 py-0.5 rounded">
+                  {project.key}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatDate(project.createdAt)}
+                </span>
+              </div>
             </div>
           </div>
-          <Badge className={getStatusColor(project.status)}>
+          
+          <Badge 
+            variant="outline"
+            className={cn(
+              'text-xs font-medium border',
+              getStatusColor(project.status)
+            )}
+          >
             {project.status}
           </Badge>
         </div>
 
         {/* Description */}
         {project.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
             {project.description}
           </p>
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-1">
-            <FolderOpen className="h-4 w-4" />
-            <span>{project._count.issues} issues</span>
+        <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="p-1.5 rounded-md bg-primary/10">
+              <FolderOpen className="h-3 w-3 text-primary" />
+            </div>
+            <span className="font-medium">{project._count.issues}</span>
+            <span className="text-xs">issues</span>
           </div>
+          
           {project.lead && (
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>{project.lead}</span>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="p-1.5 rounded-md bg-blue-500/10">
+                <Users className="h-3 w-3 text-blue-500" />
+              </div>
+              <span className="text-xs">Lead: {project.lead}</span>
             </div>
           )}
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(project.createdAt)}</span>
-          </div>
         </div>
 
-        {/* Color indicator */}
-        <div
-          className="h-1 rounded-full"
-          style={{ backgroundColor: project.color }}
-        />
+        {/* Progress indicator */}
+        <div className="pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+            <span>Progress</span>
+            <span className="font-medium">Active</span>
+          </div>
+          <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-300"
+              style={{ width: '75%' }}
+            />
+          </div>
+        </div>
       </div>
     </Card>
   )
