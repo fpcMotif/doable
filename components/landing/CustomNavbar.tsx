@@ -25,10 +25,6 @@ export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
       {/* Desktop Navigation */}
       <NavBody>
         <NavbarLogo />
-        <NavItems 
-          items={[]}
-          onItemClick={() => setIsMobileMenuOpen(false)}
-        />
         <div className="flex items-center gap-3">
           <GitHubStarButton 
             owner="KartikLabhshetwar" 

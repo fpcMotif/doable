@@ -36,20 +36,20 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ className = '' }) => {
       
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         {/* Big Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center tracking-tight mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center tracking-tight mb-6 sm:mb-8">
           <TextAnimate
             by="word"
             animation="blurInUp"
             delay={0.1}
             duration={0.8}
-            className="inline bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent"
+            className="inline text-primary"
           >
             Ready to get things done?
           </TextAnimate>
         </h1>
         
         {/* Subtitle */}
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-center text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto px-4 leading-relaxed">
           <TextAnimate
             by="word"
             animation="fadeIn"

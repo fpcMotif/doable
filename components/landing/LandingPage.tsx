@@ -30,9 +30,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ className = '' }) => {
       
       {/* Hero Section */}
       <HeroSection 
-        title="Modern Team Task Management"
-        highlightText="Modern"
-        description="Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles."
+        title="Ship Faster, Work Smarter"
+        highlightText="Faster"
+        description="The task management platform that actually works. Beautiful, intuitive, and built for teams who ship."
       />
 
       <HorizontalLine />

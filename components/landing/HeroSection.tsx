@@ -19,7 +19,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
-  tagline = "For teams who want to get things done.",
+  tagline = "Finally, a task manager that doesn't suck.",
   title = "Modern Team Task Management",
   highlightText = "Modern",
   description = "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles.",
@@ -97,6 +97,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             delay={0.8}
             duration={0.6}
             className="inline"
+            as="span"
           >
             {description}
           </TextAnimate>
@@ -112,17 +113,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <a href={primaryButtonHref}>
               {primaryButtonText}
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="lg"
-            className="px-8 py-4 text-lg font-medium hover:bg-secondary transition-all duration-300"
-            asChild
-          >
-            <a href={secondaryButtonHref} target="_blank" rel="noopener noreferrer">
-              {secondaryButtonText}
             </a>
           </Button>
         </div>

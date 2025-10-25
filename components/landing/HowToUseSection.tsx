@@ -79,6 +79,7 @@ export const HowToUseSection: React.FC<HowToUseSectionProps> = ({ className = ''
               delay={0.4}
               duration={0.8}
               className="inline"
+              as="span"
             >
               Get started with Doable in just three simple steps. No complex setup required!
             </TextAnimate>
@@ -135,6 +136,7 @@ export const HowToUseSection: React.FC<HowToUseSectionProps> = ({ className = ''
                       delay={0.8 + (index * 0.2)}
                       duration={0.6}
                       className="inline"
+                      as="span"
                     >
                       {step.description}
                     </TextAnimate>

@@ -65,6 +65,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className = ''
               delay={0.4}
               duration={0.8}
               className="inline"
+              as="span"
             >
               Powerful features designed with Swiss design principles for maximum clarity and efficiency.
             </TextAnimate>
@@ -101,6 +102,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className = ''
                     delay={0.8 + (index * 0.1)}
                     duration={0.6}
                     className="inline"
+                    as="span"
                   >
                     {feature.description}
                   </TextAnimate>
