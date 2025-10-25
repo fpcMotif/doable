@@ -2,20 +2,20 @@
 
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
 import { SelectedTeamSwitcher, useUser } from "@stackframe/stack";
-import { BadgePercent, BarChart4, Columns3, Globe, Locate, Settings2, ShoppingBag, ShoppingCart, Users } from "lucide-react";
+import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
 const navigationItems: SidebarItem[] = [
   {
     name: "Issues",
     href: "/issues",
-    icon: Globe,
+    icon: AlertCircle,
     type: "item",
   },
   {
     name: "Projects",
     href: "/projects",
-    icon: ShoppingBag,
+    icon: FolderOpen,
     type: "item",
   },
   {
@@ -25,7 +25,7 @@ const navigationItems: SidebarItem[] = [
   {
     name: "Management",
     href: "/management",
-    icon: BarChart4,
+    icon: BarChart3,
     type: "item",
   },
   {
@@ -37,13 +37,13 @@ const navigationItems: SidebarItem[] = [
   {
     name: "Segments",
     href: "/segments",
-    icon: Columns3,
+    icon: Workflow,
     type: "item",
   },
   {
     name: "Regions",
     href: "/regions",
-    icon: Locate,
+    icon: MapPin,
     type: "item",
   },
   {
@@ -53,7 +53,7 @@ const navigationItems: SidebarItem[] = [
   {
     name: "Configuration",
     href: "/configuration",
-    icon: Settings2,
+    icon: Settings,
     type: "item",
   },
 ];
