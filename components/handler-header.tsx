@@ -10,14 +10,14 @@ export default function HandlerHeader() {
 
   return (
     <>
-      <header className="fixed w-full z-50 p-4 h-14 flex items-center py-4 border-b justify-between bg-background">
+      <header className="fixed w-full z-50 h-16 flex items-center justify-between px-6 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <Logo link={user ? "/dashboard" : "/"}/>
 
-        <div className="flex items-center justify-end gap-5">
+        <div className="flex items-center gap-4">
           <UserButton colorModeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
         </div>
       </header>
-      <div className="min-h-14"/> {/* Placeholder for fixed header */}
+      <div className="h-16"/> {/* Placeholder for fixed header */}
     </>
   );
 }

@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { stackServerApp } from "../stack";
 import "./globals.css";
 import { Provider } from "./provider";
+import { HydrationBoundary } from "@/components/hydration-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Provider>
-          <StackProvider app={stackServerApp}>
-            <StackTheme>{children}</StackTheme>
-          </StackProvider>
-        </Provider>
+        <HydrationBoundary>
+          <Provider>
+            <StackProvider app={stackServerApp}>
+              <StackTheme>{children}</StackTheme>
+            </StackProvider>
+          </Provider>
+        </HydrationBoundary>
       </body>
     </html>
   );
