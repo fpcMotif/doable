@@ -8,6 +8,7 @@ import { ViewType } from '@/lib/types'
 interface ViewSwitcherProps {
   currentView: ViewType
   onViewChange: (view: ViewType) => void
+  views?: ViewType[]
   className?: string
 }
 
@@ -29,10 +30,13 @@ const viewConfig = {
   }
 }
 
-export function ViewSwitcher({ currentView, onViewChange, className }: ViewSwitcherProps) {
+export function ViewSwitcher({ currentView, onViewChange, views, className }: ViewSwitcherProps) {
+  const availableViews = views || Object.keys(viewConfig) as ViewType[]
+  
   return (
     <div className={cn('flex items-center gap-1', className)}>
-      {Object.entries(viewConfig).map(([view, config]) => {
+      {availableViews.map((view) => {
+        const config = viewConfig[view]
         const Icon = config.icon
         const isActive = currentView === view
         
@@ -41,7 +45,7 @@ export function ViewSwitcher({ currentView, onViewChange, className }: ViewSwitc
             key={view}
             variant={isActive ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => onViewChange(view as ViewType)}
+            onClick={() => onViewChange(view)}
             className={cn(
               'flex items-center gap-2',
               isActive && 'bg-primary text-primary-foreground'

@@ -1,128 +1,95 @@
 import { cn } from '@/lib/utils'
 import { IssueWithRelations } from '@/lib/types'
-import { StatusBadge } from '@/components/shared/status-badge'
-import { PriorityIcon } from '@/components/shared/priority-icon'
-import { LabelBadge } from '@/components/shared/label-badge'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { Card } from '@/components/ui/card'
-import { Calendar, MessageSquare, Clock } from 'lucide-react'
+import { ActionsMenu, issueActions } from '@/components/shared/actions-menu'
 
 interface IssueCardProps {
   issue: IssueWithRelations
   onClick?: () => void
+  onView?: (issue: IssueWithRelations) => void
+  onEdit?: (issue: IssueWithRelations) => void
+  onAssign?: (issue: IssueWithRelations) => void
+  onMove?: (issue: IssueWithRelations) => void
+  onDelete?: (issueId: string) => void
   className?: string
   isDragging?: boolean
 }
 
-export function IssueCard({ issue, onClick, className, isDragging }: IssueCardProps) {
-  const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    
-    if (isNaN(dateObj.getTime())) {
-      return 'Invalid date'
-    }
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }).format(dateObj)
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'text-red-500'
-      case 'high':
-        return 'text-orange-500'
-      case 'medium':
-        return 'text-yellow-500'
-      case 'low':
-        return 'text-green-500'
-      default:
-        return 'text-gray-400'
-    }
-  }
-
+export function IssueCard({ 
+  issue, 
+  onClick, 
+  onView,
+  onEdit,
+  onAssign,
+  onMove,
+  onDelete,
+  className, 
+  isDragging 
+}: IssueCardProps) {
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden border-0 bg-card/50 backdrop-blur-sm transition-all duration-200 hover:bg-card/80 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
-        isDragging && 'opacity-50 scale-95',
+        'p-4 cursor-pointer transition-all hover:bg-muted/50 border-border/50',
+        isDragging && 'opacity-50',
         className
       )}
       onClick={onClick}
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-      
-      <div className="relative p-6 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0 space-y-1">
-            <h3 className="font-semibold text-foreground text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-              {issue.title}
-            </h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="font-mono text-xs bg-muted/50 px-2 py-0.5 rounded">
-                {issue.team.key}-{issue.number}
-              </span>
-              {issue.project && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                  {issue.project.key}
-                </span>
-              )}
+      <div className="space-y-3">
+        {/* Header with ID and Status */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
             </div>
+            <span className="font-mono text-sm text-muted-foreground">
+              {issue.team.key}-{issue.number}
+            </span>
           </div>
           
-          <div className="flex items-center gap-2">
-            <PriorityIcon priority={issue.priority as any} />
-            <StatusBadge status={issue.workflowState} />
+          {/* Status Badge */}
+          <div 
+            className="text-xs px-2 py-1 rounded text-white font-medium"
+            style={{ backgroundColor: issue.workflowState.color }}
+          >
+            {issue.workflowState.name}
           </div>
         </div>
 
-        {/* Description */}
-        {issue.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {issue.description}
-          </p>
-        )}
+        {/* Title */}
+        <h3 className="font-medium text-foreground text-sm leading-tight line-clamp-2">
+          {issue.title}
+        </h3>
 
-        {/* Labels */}
-        {issue.labels.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {issue.labels.slice(0, 2).map((issueLabel) => (
-              <LabelBadge key={issueLabel.id} label={issueLabel.label} />
-            ))}
-            {issue.labels.length > 2 && (
-              <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-                +{issue.labels.length - 2}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
-          <div className="flex items-center gap-3">
+        {/* Footer with assignee and actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             {issue.assignee && (
-              <div className="flex items-center gap-2">
-                <UserAvatar name={issue.assignee} size="sm" />
-                <span className="text-xs text-muted-foreground">Assigned</span>
+              <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center text-xs text-white font-medium">
+                {issue.assignee.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
-
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {issue.comments.length > 0 && (
-              <div className="flex items-center gap-1">
-                <MessageSquare className="h-3 w-3" />
-                <span>{issue.comments.length}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{formatDate(issue.createdAt)}</span>
-            </div>
+          
+          <div className="flex items-center gap-1">
+            <ActionsMenu
+              actions={[
+                issueActions.view(() => onView?.(issue)),
+                issueActions.edit(() => onEdit?.(issue)),
+                issueActions.assign(() => onAssign?.(issue)),
+                issueActions.move(() => onMove?.(issue)),
+                issueActions.delete(() => onDelete?.(issue.id)),
+              ]}
+              trigger={
+                <button
+                  className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="text-xs text-muted-foreground">⋯</span>
+                </button>
+              }
+            />
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { IssueTable } from '@/components/issues/issue-table'
 import { ViewSwitcher } from '@/components/shared/view-switcher'
 import { FilterBar } from '@/components/filters/filter-bar'
 import { CommandPalette } from '@/components/shared/command-palette'
-import { CreateIssueData, IssueFilters, IssueSort, ViewType} from '@/lib/types'
+import { CreateIssueData, IssueFilters, IssueSort, ViewType, IssueWithRelations } from '@/lib/types'
 import { useCommandPalette, useCreateShortcut } from '@/lib/hooks/use-keyboard-shortcuts'
 import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
@@ -208,6 +208,44 @@ export default function IssuesPage() {
       toast.error('Failed to load issues', 'Please try again.')
     } finally {
       setIssuesLoading(false)
+    }
+  }
+
+  const handleIssueView = (issue: IssueWithRelations) => {
+    // TODO: Navigate to issue detail
+    console.log('View issue:', issue.id)
+  }
+
+  const handleIssueEdit = (issue: IssueWithRelations) => {
+    // TODO: Open edit dialog
+    console.log('Edit issue:', issue.id)
+  }
+
+  const handleIssueAssign = (issue: IssueWithRelations) => {
+    // TODO: Open assign dialog
+    console.log('Assign issue:', issue.id)
+  }
+
+  const handleIssueMove = (issue: IssueWithRelations) => {
+    // TODO: Open move dialog
+    console.log('Move issue:', issue.id)
+  }
+
+  const handleIssueDelete = async (issueId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/issues/${issueId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setIssues(prev => prev.filter(i => i.id !== issueId))
+        toast.success('Issue deleted', 'The issue has been deleted successfully.')
+      } else {
+        throw new Error('Failed to delete issue')
+      }
+    } catch (error) {
+      console.error('Error deleting issue:', error)
+      toast.error('Failed to delete issue', 'Please try again.')
     }
   }
 
@@ -420,6 +458,11 @@ export default function IssuesPage() {
                           // TODO: Navigate to issue detail
                           console.log('Navigate to issue:', issue.id)
                         }}
+                        onView={handleIssueView}
+                        onEdit={handleIssueEdit}
+                        onAssign={handleIssueAssign}
+                        onMove={handleIssueMove}
+                        onDelete={handleIssueDelete}
                       />
                     ))}
                   </div>
@@ -436,13 +479,18 @@ export default function IssuesPage() {
                     }}
                     onIssueUpdate={(issueId, updates) => {
                       setIssues(prev => 
-                        prev.map(issue => 
+                        prev.map(issue =>
                           issue.id === issueId 
                             ? { ...issue, ...updates } as any
                             : issue
                         )
                       )
                     }}
+                    onIssueView={handleIssueView}
+                    onIssueEdit={handleIssueEdit}
+                    onIssueAssign={handleIssueAssign}
+                    onIssueMove={handleIssueMove}
+                    onIssueDelete={handleIssueDelete}
                   />
                 )}
 

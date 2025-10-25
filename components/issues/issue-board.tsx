@@ -5,7 +5,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { IssueWithRelations } from '@/lib/types'
 import { WorkflowState } from '@prisma/client'
 import { IssueCard } from '@/components/issues/issue-card'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/lib/hooks/use-toast'
 
@@ -14,6 +13,11 @@ interface IssueBoardProps {
   workflowStates: WorkflowState[]
   onIssueClick?: (issue: IssueWithRelations) => void
   onIssueUpdate?: (issueId: string, updates: Partial<IssueWithRelations>) => void
+  onIssueView?: (issue: IssueWithRelations) => void
+  onIssueEdit?: (issue: IssueWithRelations) => void
+  onIssueAssign?: (issue: IssueWithRelations) => void
+  onIssueMove?: (issue: IssueWithRelations) => void
+  onIssueDelete?: (issueId: string) => void
   teamId: string
   className?: string
 }
@@ -23,6 +27,11 @@ export function IssueBoard({
   workflowStates, 
   onIssueClick, 
   onIssueUpdate,
+  onIssueView,
+  onIssueEdit,
+  onIssueAssign,
+  onIssueMove,
+  onIssueDelete,
   teamId,
   className 
 }: IssueBoardProps) {
@@ -101,81 +110,85 @@ export function IssueBoard({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-      <div className={`flex gap-4 overflow-x-auto pb-4 ${className}`}>
+      <div className={`flex gap-6 overflow-x-auto pb-4 ${className}`}>
         {workflowStates.map((state) => {
           const stateIssues = getIssuesByStatus(state.id)
           
           return (
             <div key={state.id} className="flex-shrink-0 w-80">
-              <Card className="h-full">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: state.color }}
-                      />
-                      {state.name}
-                    </CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {stateIssues.length}
-                    </Badge>
+              {/* Column Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: state.color }}
+                    />
+                    <h3 className="font-medium text-foreground">{state.name}</h3>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Droppable droppableId={state.id}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={`min-h-[200px] transition-colors duration-200 ${
-                          snapshot.isDraggingOver 
-                            ? 'bg-blue-50 dark:bg-blue-950/20 rounded-lg' 
-                            : ''
-                        }`}
-                      >
-                        <div className="space-y-3">
-                          {stateIssues.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                              {snapshot.isDraggingOver ? 'Drop here' : 'No issues'}
-                            </div>
-                          ) : (
-                            stateIssues.map((issue, index) => (
-                              <Draggable
-                                key={issue.id}
-                                draggableId={issue.id}
-                                index={index}
-                                isDragDisabled={isDragging}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className={`transition-transform duration-200 ${
-                                      snapshot.isDragging ? 'rotate-2 scale-105' : ''
-                                    }`}
-                                  >
-                                    <IssueCard
-                                      issue={issue}
-                                      onClick={() => onIssueClick?.(issue)}
-                                      isDragging={snapshot.isDragging}
-                                      className={`cursor-pointer hover:shadow-sm ${
-                                        snapshot.isDragging ? 'shadow-lg' : ''
-                                      }`}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))
-                          )}
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground">
+                    {stateIssues.length}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Column Content */}
+              <Droppable droppableId={state.id}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`min-h-[400px] transition-colors duration-200 ${
+                      snapshot.isDraggingOver 
+                        ? 'bg-primary/5 rounded-lg border-2 border-dashed border-primary/20' 
+                        : ''
+                    }`}
+                  >
+                    <div className="space-y-3">
+                      {stateIssues.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground text-sm">
+                          {snapshot.isDraggingOver ? 'Drop here' : 'No issues'}
                         </div>
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </CardContent>
-              </Card>
+                      ) : (
+                        stateIssues.map((issue, index) => (
+                          <Draggable
+                            key={issue.id}
+                            draggableId={issue.id}
+                            index={index}
+                            isDragDisabled={isDragging}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`transition-transform duration-200 ${
+                                  snapshot.isDragging ? 'rotate-1 scale-105' : ''
+                                }`}
+                              >
+                                <IssueCard
+                                  issue={issue}
+                                  onClick={() => onIssueClick?.(issue)}
+                                  onView={onIssueView}
+                                  onEdit={onIssueEdit}
+                                  onAssign={onIssueAssign}
+                                  onMove={onIssueMove}
+                                  onDelete={onIssueDelete}
+                                  isDragging={snapshot.isDragging}
+                                  className={`cursor-pointer hover:shadow-sm ${
+                                    snapshot.isDragging ? 'shadow-lg' : ''
+                                  }`}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))
+                      )}
+                    </div>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
             </div>
           )
         })}

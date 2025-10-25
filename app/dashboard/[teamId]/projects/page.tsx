@@ -5,8 +5,10 @@ import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProjectCard } from '@/components/projects/project-card'
+import { ProjectTable } from '@/components/projects/project-table'
 import { ProjectDialog } from '@/components/projects/project-dialog'
-import { CreateProjectData, UpdateProjectData } from '@/lib/types'
+import { ViewSwitcher } from '@/components/shared/view-switcher'
+import { CreateProjectData, UpdateProjectData, ProjectWithRelations } from '@/lib/types'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { ProjectCardSkeleton } from '@/components/ui/skeletons'
 import { useToast } from '@/lib/hooks/use-toast'
@@ -23,21 +25,6 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 
-interface Project {
-  id: string
-  name: string
-  description?: string
-  key: string
-  color: string
-  icon?: string
-  status: string
-  lead?: string | null
-  createdAt: string
-  _count: {
-    issues: number
-  }
-}
-
 interface ProjectFilters {
   status?: string[]
   lead?: string[]
@@ -48,11 +35,12 @@ export default function ProjectsPage() {
   const params = useParams<{ teamId: string }>()
   const teamId = params.teamId
 
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [currentView, setCurrentView] = useState<'list' | 'table'>('list')
   const [filters, setFilters] = useState<ProjectFilters>({
     status: [],
     lead: [],
@@ -85,6 +73,62 @@ export default function ProjectsPage() {
       toast.error('Failed to load projects', 'Please refresh the page and try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleProjectEdit = (project: ProjectWithRelations) => {
+    // TODO: Open edit dialog
+    console.log('Edit project:', project.id)
+  }
+
+  const handleProjectDelete = async (projectId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/projects/${projectId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setProjects(prev => prev.filter(p => p.id !== projectId))
+        toast.success('Project deleted', 'The project has been deleted successfully.')
+      } else {
+        throw new Error('Failed to delete project')
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast.error('Failed to delete project', 'Please try again.')
+    }
+  }
+
+  const handleProjectDuplicate = (project: ProjectWithRelations) => {
+    // TODO: Open duplicate dialog with pre-filled data
+    console.log('Duplicate project:', project.id)
+  }
+
+  const handleProjectArchive = async (projectId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'canceled' }),
+      })
+
+      if (response.ok) {
+        setProjects(prev => 
+          prev.map(p => 
+            p.id === projectId 
+              ? { ...p, status: 'canceled' }
+              : p
+          )
+        )
+        toast.success('Project archived', 'The project has been archived successfully.')
+      } else {
+        throw new Error('Failed to archive project')
+      }
+    } catch (error) {
+      console.error('Error archiving project:', error)
+      toast.error('Failed to archive project', 'Please try again.')
     }
   }
 
@@ -209,7 +253,14 @@ export default function ProjectsPage() {
       {/* Search and Filters */}
       <Card className="border-border/50">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-medium">Search & Filter</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-medium">Search & Filter</CardTitle>
+            <ViewSwitcher
+              currentView={currentView}
+              onViewChange={(view) => setCurrentView(view as 'list' | 'table')}
+              views={['list', 'table']}
+            />
+          </div>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-4">
@@ -368,18 +419,49 @@ export default function ProjectsPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project as any}
-                    onClick={() => {
+              <>
+                {currentView === 'list' && (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredProjects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onClick={() => {
+                          // TODO: Navigate to project detail
+                          console.log('Navigate to project:', project.id)
+                        }}
+                        onEdit={handleProjectEdit}
+                        onDelete={handleProjectDelete}
+                        onDuplicate={handleProjectDuplicate}
+                        onArchive={handleProjectArchive}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {currentView === 'table' && (
+                  <ProjectTable
+                    projects={filteredProjects}
+                    onProjectClick={(project) => {
                       // TODO: Navigate to project detail
                       console.log('Navigate to project:', project.id)
                     }}
+                    onProjectUpdate={(projectId, updates) => {
+                      setProjects(prev => 
+                        prev.map(project => 
+                          project.id === projectId 
+                            ? { ...project, ...updates }
+                            : project
+                        )
+                      )
+                    }}
+                    onProjectEdit={handleProjectEdit}
+                    onProjectDelete={handleProjectDelete}
+                    onProjectDuplicate={handleProjectDuplicate}
+                    onProjectArchive={handleProjectArchive}
                   />
-                ))}
-              </div>
+                )}
+              </>
             )}
           </>
         )}
