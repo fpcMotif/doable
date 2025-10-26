@@ -45,7 +45,7 @@ export function IssueCard({
               <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
             </div>
             <span className="font-mono text-sm text-muted-foreground">
-              {issue.team.key}-{issue.number}
+              {issue.project?.key || issue.team.key}-{issue.number}
             </span>
             {issue.project && (
               <span className="text-xs px-2 py-0.5 rounded-md" style={{ 
@@ -73,7 +73,7 @@ export function IssueCard({
 
         {/* Priority */}
         <div className="flex items-center gap-2">
-          <PriorityIcon priority={issue.priority as any} />
+          <PriorityIcon priority={issue.priority as any} showLabel={true} />
         </div>
 
         {/* Footer with assignee and actions */}

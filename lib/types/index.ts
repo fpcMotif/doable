@@ -55,6 +55,7 @@ export interface UpdateIssueData {
   priority?: 'none' | 'low' | 'medium' | 'high' | 'urgent'
   estimate?: number | null
   labelIds?: string[]
+  number?: number
 }
 
 export interface CreateProjectData {

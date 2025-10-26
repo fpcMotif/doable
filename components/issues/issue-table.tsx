@@ -146,7 +146,7 @@ export function IssueTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {issue.team.key}-{issue.number}
+                    {issue.project?.key || issue.team.key}-{issue.number}
                   </TableCell>
                   <TableCell>
                     {workflowState && (
@@ -154,7 +154,7 @@ export function IssueTable({
                     )}
                   </TableCell>
                   <TableCell>
-                    <PriorityIcon priority={issue.priority as any} />
+                    <PriorityIcon priority={issue.priority as any} showLabel={true} />
                   </TableCell>
                   <TableCell className="text-sm">
                     {project ? (

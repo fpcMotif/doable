@@ -160,15 +160,21 @@ export async function createIssue(teamId: string, data: CreateIssueData, creator
   // Extract labelIds and exclude from main data
   const { labelIds, projectId, ...issueData } = data
 
-  // Parallel operations: Get next issue number and verify project if needed
-  const [lastIssue, project] = await Promise.all([
-    db.issue.findFirst({
-      where: { teamId },
-      orderBy: { number: 'desc' },
-      select: { number: true },
-    }),
-    projectId ? db.project.findFirst({ where: { id: projectId, teamId } }) : Promise.resolve(null)
-  ])
+  // Verify project if provided
+  const project = projectId ? await db.project.findFirst({ where: { id: projectId, teamId } }) : null
+
+  // Get next issue number - use project-specific numbering if project exists, otherwise team-based
+  const lastIssue = project 
+    ? await db.issue.findFirst({
+        where: { teamId, projectId },
+        orderBy: { number: 'desc' },
+        select: { number: true },
+      })
+    : await db.issue.findFirst({
+        where: { teamId, projectId: null },
+        orderBy: { number: 'desc' },
+        select: { number: true },
+      })
 
   const nextNumber = (lastIssue?.number || 0) + 1
 
@@ -259,6 +265,37 @@ export async function createIssue(teamId: string, data: CreateIssueData, creator
 }
 
 export async function updateIssue(teamId: string, issueId: string, data: UpdateIssueData) {
+  // Get current issue to check if project is changing
+  const currentIssue = await db.issue.findUnique({
+    where: { id: issueId },
+    select: { projectId: true, number: true },
+  })
+
+  // Normalize projectId: empty string becomes null
+  const normalizedProjectId = data.projectId === '' ? null : data.projectId
+
+  // Handle project change - renumber the issue
+  if (normalizedProjectId !== undefined && normalizedProjectId !== currentIssue?.projectId) {
+    // Get the last issue number for the new project
+    const lastIssue = normalizedProjectId 
+      ? await db.issue.findFirst({
+          where: { teamId, projectId: normalizedProjectId },
+          orderBy: { number: 'desc' },
+          select: { number: true },
+        })
+      : await db.issue.findFirst({
+          where: { teamId, projectId: null },
+          orderBy: { number: 'desc' },
+          select: { number: true },
+        })
+    
+    const nextNumber = (lastIssue?.number || 0) + 1
+    data.number = nextNumber
+    data.projectId = normalizedProjectId
+  } else if (normalizedProjectId !== undefined) {
+    data.projectId = normalizedProjectId
+  }
+
   // Handle labels separately
   if (data.labelIds !== undefined) {
     // Remove existing labels
