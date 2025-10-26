@@ -6,7 +6,7 @@ A modern task management platform built with Next.js.
 ![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC)
-![Stack Auth](https://img.shields.io/badge/Stack_Auth-2.7-green)
+![Clerk](https://img.shields.io/badge/Clerk-Auth-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 
 ## Overview
@@ -18,7 +18,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 - **Modern Interface** - Clean, intuitive design inspired by Swiss design principles
 - **Team Collaboration** - Built-in team management with role-based permissions
 - **Lightning Fast** - Built with Next.js 14 and optimized for performance
-- **Secure & Reliable** - Enterprise-grade security with Stack Auth
+- **Secure & Reliable** - Enterprise-grade security with Clerk
 - **Open Source** - Full source code available for customization
 - **Modular Design** - Clean architecture with reusable components
 
@@ -26,7 +26,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS with custom Swiss design system
-- **Authentication**: Stack Auth
+- **Authentication**: Clerk
 - **Database**: PostgreSQL with Prisma ORM
 - **UI Components**: Custom components with Shadcn/ui base
 - **Forms**: React Hook Form with Zod validation
@@ -37,7 +37,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 - Node.js 18+ 
 - PostgreSQL database
-- Stack Auth account
+- Clerk account
 
 ### Installation
 
@@ -59,9 +59,15 @@ Doable is a comprehensive task management solution designed for modern teams.
    
    Update `.env` with your configuration:
    ```env
+   # Clerk Authentication (Required)
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   CLERK_SECRET_KEY=sk_test_your_key_here
+   
+   # Database (Required)
    DATABASE_URL="postgresql://username:password@localhost:5432/doable"
-   STACK_PROJECT_ID="your-stack-project-id"
-   STACK_PUBLISHABLE_CLIENT_KEY="your-stack-publishable-key"
+   
+   # Application URL (Optional)
+   NEXT_PUBLIC_URL=http://localhost:3000
    ```
 
 4. **Set up the database**
@@ -111,7 +117,7 @@ doable/
 - Multiple view modes (list, board, table)
 
 ### Authentication
-- Seamless Stack Auth integration
+- Seamless Clerk integration
 - Team-based access control
 - User management and permissions
 
@@ -143,16 +149,43 @@ npx prisma studio
 
 ## Configuration
 
-### Stack Auth Setup
+### Clerk Setup
 
-1. Create a new project in [Stack Auth Dashboard](https://stack-auth.com)
+1. Create a new project in [Clerk Dashboard](https://dashboard.clerk.com)
 2. Configure OAuth providers (optional)
 3. Set up team management settings
-4. Copy your project credentials to `.env`
+4. Copy your publishable key and secret key to `.env`
+5. Set the environment variables:
+   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key (starts with `pk_test_` or `pk_live_`)
+   - `CLERK_SECRET_KEY`: Your Clerk secret key (starts with `sk_test_` or `sk_live_`)
 
 ### Database Configuration
 
 The application uses PostgreSQL with Prisma ORM. Make sure your database is running and accessible via the `DATABASE_URL` environment variable.
+
+### Deployment to Vercel
+
+1. **Push your code to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **Import your project in Vercel**
+   - Go to [Vercel Dashboard](https://vercel.com)
+   - Click "Add New Project"
+   - Import your GitHub repository
+
+3. **Configure Environment Variables in Vercel**
+   Go to your project settings → Environment Variables and add:
+   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+   - `CLERK_SECRET_KEY`
+   - `DATABASE_URL`
+   - `NEXT_PUBLIC_URL` (optional, Vercel sets this automatically)
+
+4. **Deploy**
+   Vercel will automatically deploy your application on push to main branch.
+
+**Note**: The application will build successfully even without Clerk keys for static pages, but authentication features require the keys to be set.
 
 ## Design System
 

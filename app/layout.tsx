@@ -7,6 +7,23 @@ import { HydrationBoundary } from "@/components/hydration-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Get Clerk publishable key
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
+
+// Conditional wrapper for ClerkProvider
+function ClerkWrapper({ children }: { children: React.ReactNode }) {
+  if (!clerkPublishableKey) {
+    console.warn("Clerk publishable key is not set. Authentication features will not work.");
+    return <>{children}</>;
+  }
+  
+  return (
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      {children}
+    </ClerkProvider>
+  );
+}
+
 export const metadata: Metadata = {
   title: "Doable - Modern Team Task Management. Elevated.",
   description: "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles. Free forever, open source.",
@@ -62,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkWrapper>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <HydrationBoundary>
@@ -70,6 +87,6 @@ export default function RootLayout({
           </HydrationBoundary>
         </body>
       </html>
-    </ClerkProvider>
+    </ClerkWrapper>
   );
 }

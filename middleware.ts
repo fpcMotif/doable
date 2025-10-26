@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 // Define public routes
 const isPublicRoute = createRouteMatcher([
@@ -8,10 +9,19 @@ const isPublicRoute = createRouteMatcher([
   "/api/public(.*)",
 ]);
 
+// Check if Clerk keys are available
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
+const clerkSecretKey = process.env.CLERK_SECRET_KEY || "";
+
 // Protect all non-public routes
-export default clerkMiddleware(async (auth, request) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
+  // If Clerk is not configured, allow all requests
+  if (!clerkPublishableKey || !clerkSecretKey) {
+    return NextResponse.next();
+  }
+
   // Protect non-public routes
-  if (!isPublicRoute(request)) {
+  if (!isPublicRoute(req)) {
     await auth.protect();
   }
 });
