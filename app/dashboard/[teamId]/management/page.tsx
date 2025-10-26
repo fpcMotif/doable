@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Settings, BarChart3, Shield } from "lucide-react"
 
+export const dynamic = 'force-dynamic'
+
 export default function ManagementPage() {
   return (
     <div className="p-6 space-y-6">
