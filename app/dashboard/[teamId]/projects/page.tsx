@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -38,6 +38,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [currentProject, setCurrentProject] = useState<ProjectWithRelations | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [currentView, setCurrentView] = useState<'list' | 'table'>('list')
@@ -51,11 +53,7 @@ export default function ProjectsPage() {
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
 
-  useEffect(() => {
-    fetchProjects()
-  }, [teamId])
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -74,11 +72,15 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [teamId, toast])
+
+  useEffect(() => {
+    fetchProjects()
+  }, [fetchProjects])
 
   const handleProjectEdit = (project: ProjectWithRelations) => {
-    // TODO: Open edit dialog
-    console.log('Edit project:', project.id)
+    setCurrentProject(project)
+    setEditDialogOpen(true)
   }
 
   const handleProjectDelete = async (projectId: string) => {
@@ -99,9 +101,49 @@ export default function ProjectsPage() {
     }
   }
 
-  const handleProjectDuplicate = (project: ProjectWithRelations) => {
-    // TODO: Open duplicate dialog with pre-filled data
-    console.log('Duplicate project:', project.id)
+  const handleProjectDuplicate = async (project: ProjectWithRelations) => {
+    try {
+      const duplicateData: CreateProjectData = {
+        name: `${project.name} (Copy)`,
+        description: project.description ?? undefined,
+        key: `${project.key}-COPY`,
+        color: project.color,
+        icon: project.icon ?? undefined,
+        leadId: project.lead ?? undefined,
+      }
+      
+      await handleCreateProject(duplicateData)
+      toast.success('Project duplicated', 'The project has been duplicated successfully.')
+    } catch (error) {
+      console.error('Error duplicating project:', error)
+      toast.error('Failed to duplicate project', 'Please try again.')
+    }
+  }
+
+  const handleProjectUpdate = async (data: CreateProjectData | UpdateProjectData) => {
+    if (!currentProject) return
+
+    try {
+      const response = await fetch(`/api/teams/${teamId}/projects/${currentProject.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (response.ok) {
+        const updatedProject = await response.json()
+        setProjects(prev => prev.map(p => p.id === currentProject.id ? updatedProject : p))
+        toast.success('Project updated', 'The project has been updated successfully.')
+      } else {
+        throw new Error('Failed to update project')
+      }
+    } catch (error) {
+      console.error('Error updating project:', error)
+      toast.error('Failed to update project', 'Please try again.')
+      throw error
+    }
   }
 
   const handleProjectArchive = async (projectId: string) => {
@@ -427,8 +469,7 @@ export default function ProjectsPage() {
                         key={project.id}
                         project={project}
                         onClick={() => {
-                          // TODO: Navigate to project detail
-                          console.log('Navigate to project:', project.id)
+                          handleProjectEdit(project)
                         }}
                         onEdit={handleProjectEdit}
                         onDelete={handleProjectDelete}
@@ -443,8 +484,7 @@ export default function ProjectsPage() {
                   <ProjectTable
                     projects={filteredProjects}
                     onProjectClick={(project) => {
-                      // TODO: Navigate to project detail
-                      console.log('Navigate to project:', project.id)
+                      handleProjectEdit(project)
                     }}
                     onProjectUpdate={(projectId, updates) => {
                       setProjects(prev => 
@@ -474,6 +514,29 @@ export default function ProjectsPage() {
         onSubmit={handleCreateProject}
         title="Create Project"
         description="Create a new project for your team."
+      />
+
+      {/* Edit Project Dialog */}
+      <ProjectDialog
+        open={editDialogOpen && !!currentProject}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open)
+          if (!open) setCurrentProject(null)
+        }}
+        onSubmit={async (data) => {
+          await handleProjectUpdate(data)
+        }}
+        initialData={currentProject ? {
+          name: currentProject.name,
+          description: currentProject.description ?? undefined,
+          key: currentProject.key,
+          color: currentProject.color,
+          icon: currentProject.icon ?? undefined,
+          leadId: currentProject.lead ?? undefined,
+          status: currentProject.status as any,
+        } : undefined}
+        title="Edit Project"
+        description="Update the project details."
       />
 
       {/* Toast Notifications */}

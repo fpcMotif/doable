@@ -83,6 +83,10 @@ export default function IssuesPage() {
   const [loading, setLoading] = useState(true)
   const [issuesLoading, setIssuesLoading] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editDialogOpenForAssign, setEditDialogOpenForAssign] = useState(false)
+  const [editDialogOpenForMove, setEditDialogOpenForMove] = useState(false)
+  const [currentIssue, setCurrentIssue] = useState<IssueWithRelations | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentView, setCurrentView] = useState<ViewType>('list')
   const [filters, setFilters] = useState<IssueFilters>({})
@@ -92,26 +96,6 @@ export default function IssuesPage() {
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
-
-  // Keyboard shortcuts
-  useCommandPalette(() => setCommandPaletteOpen(true))
-  useCreateShortcut(() => setCreateDialogOpen(true))
-
-  // Memoized cache keys
-  const cacheKeys = useMemo(() => ({
-    projects: `projects-${teamId}`,
-    workflowStates: `workflowStates-${teamId}`,
-    labels: `labels-${teamId}`,
-    issues: `issues-${teamId}-${JSON.stringify(filters)}-${JSON.stringify(sort)}`
-  }), [teamId, filters, sort])
-
-  useEffect(() => {
-    fetchInitialData()
-  }, [teamId])
-
-  useEffect(() => {
-    fetchIssues()
-  }, [teamId, filters, sort])
 
   const fetchInitialData = async () => {
     try {
@@ -211,24 +195,47 @@ export default function IssuesPage() {
     }
   }
 
+  // Keyboard shortcuts
+  useCommandPalette(() => setCommandPaletteOpen(true))
+  useCreateShortcut(() => setCreateDialogOpen(true))
+
+  // Memoized cache keys
+  const cacheKeys = useMemo(() => ({
+    projects: `projects-${teamId}`,
+    workflowStates: `workflowStates-${teamId}`,
+    labels: `labels-${teamId}`,
+    issues: `issues-${teamId}-${JSON.stringify(filters)}-${JSON.stringify(sort)}`
+  }), [teamId, filters, sort])
+
+  useEffect(() => {
+    fetchInitialData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
+
+  useEffect(() => {
+    fetchIssues()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId, filters, sort])
+
   const handleIssueView = (issue: IssueWithRelations) => {
-    // TODO: Navigate to issue detail
-    console.log('View issue:', issue.id)
+    // For now, just open the edit dialog to view details
+    setCurrentIssue(issue)
+    setEditDialogOpen(true)
   }
 
   const handleIssueEdit = (issue: IssueWithRelations) => {
-    // TODO: Open edit dialog
-    console.log('Edit issue:', issue.id)
+    setCurrentIssue(issue)
+    setEditDialogOpen(true)
   }
 
   const handleIssueAssign = (issue: IssueWithRelations) => {
-    // TODO: Open assign dialog
-    console.log('Assign issue:', issue.id)
+    setCurrentIssue(issue)
+    setEditDialogOpenForAssign(true)
   }
 
   const handleIssueMove = (issue: IssueWithRelations) => {
-    // TODO: Open move dialog
-    console.log('Move issue:', issue.id)
+    setCurrentIssue(issue)
+    setEditDialogOpenForMove(true)
   }
 
   const handleIssueDelete = async (issueId: string) => {
@@ -246,6 +253,38 @@ export default function IssuesPage() {
     } catch (error) {
       console.error('Error deleting issue:', error)
       toast.error('Failed to delete issue', 'Please try again.')
+    }
+  }
+
+  const handleIssueUpdate = async (data: any) => {
+    if (!currentIssue) return
+
+    try {
+      const response = await fetch(`/api/teams/${teamId}/issues/${currentIssue.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (response.ok) {
+        const updatedIssue = await response.json()
+        setIssues(prev => prev.map(i => i.id === currentIssue.id ? updatedIssue : i))
+        
+        // Clear issues cache to force refresh
+        cache.delete(cacheKeys.issues)
+        
+        toast.success('Issue updated', 'The issue has been updated successfully.')
+      } else {
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to update issue')
+      }
+    } catch (error) {
+      console.error('Error updating issue:', error)
+      toast.error('Failed to update issue', 'Please try again.')
+      throw error
     }
   }
 
@@ -455,8 +494,7 @@ export default function IssuesPage() {
                         key={issue.id}
                         issue={issue as any}
                         onClick={() => {
-                          // TODO: Navigate to issue detail
-                          console.log('Navigate to issue:', issue.id)
+                          handleIssueView(issue as any)
                         }}
                         onView={handleIssueView}
                         onEdit={handleIssueEdit}
@@ -474,8 +512,7 @@ export default function IssuesPage() {
                     workflowStates={workflowStates}
                     teamId={teamId}
                     onIssueClick={(issue) => {
-                      // TODO: Navigate to issue detail
-                      console.log('Navigate to issue:', issue.id)
+                      handleIssueView(issue)
                     }}
                     onIssueUpdate={(issueId, updates) => {
                       setIssues(prev => 
@@ -500,8 +537,7 @@ export default function IssuesPage() {
                     workflowStates={workflowStates}
                     projects={projects}
                     onIssueClick={(issue) => {
-                      // TODO: Navigate to issue detail
-                      console.log('Navigate to issue:', issue.id)
+                      handleIssueView(issue)
                     }}
                     onSort={handleSort}
                     sortField={sort.field}
@@ -528,6 +564,87 @@ export default function IssuesPage() {
         description="Create a new issue for your team."
       />
 
+      {/* Edit Issue Dialog */}
+      <IssueDialog
+        open={editDialogOpen && !!currentIssue}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open)
+          if (!open) setCurrentIssue(null)
+        }}
+        onSubmit={async (data: any) => {
+          await handleIssueUpdate(data)
+        }}
+        projects={projects}
+        workflowStates={workflowStates}
+        labels={labels}
+        initialData={currentIssue ? {
+          title: currentIssue.title,
+          description: currentIssue.description ?? undefined,
+          projectId: currentIssue.project?.id,
+          workflowStateId: currentIssue.workflowStateId,
+          assigneeId: currentIssue.assignee || '',
+          priority: currentIssue.priority as any,
+          estimate: (currentIssue as any).estimate,
+          labelIds: currentIssue.labels.map(l => l.label.id),
+        } : undefined}
+        title="Edit Issue"
+        description="Update the issue details."
+      />
+
+      {/* Assign Issue Dialog */}
+      <IssueDialog
+        open={editDialogOpenForAssign && !!currentIssue}
+        onOpenChange={(open) => {
+          setEditDialogOpenForAssign(open)
+          if (!open) setCurrentIssue(null)
+        }}
+        onSubmit={async (data: any) => {
+          await handleIssueUpdate(data)
+        }}
+        projects={projects}
+        workflowStates={workflowStates}
+        labels={labels}
+        initialData={currentIssue ? {
+          title: currentIssue.title,
+          description: currentIssue.description ?? undefined,
+          projectId: currentIssue.project?.id,
+          workflowStateId: currentIssue.workflowStateId,
+          assigneeId: currentIssue.assignee || '',
+          priority: currentIssue.priority as any,
+          estimate: (currentIssue as any).estimate,
+          labelIds: currentIssue.labels.map(l => l.label.id),
+        } : undefined}
+        title="Assign Issue"
+        description="Assign the issue to a team member."
+      />
+
+      {/* Move Issue Dialog */}
+      <IssueDialog
+        open={editDialogOpenForMove && !!currentIssue}
+        onOpenChange={(open) => {
+          setEditDialogOpenForMove(open)
+          if (!open) setCurrentIssue(null)
+        }}
+        onSubmit={async (data: any) => {
+          await handleIssueUpdate(data)
+        }}
+        projects={projects}
+        workflowStates={workflowStates}
+        labels={labels}
+        initialData={currentIssue ? {
+          title: currentIssue.title,
+          description: currentIssue.description ?? undefined,
+          projectId: currentIssue.project?.id,
+          workflowStateId: currentIssue.workflowStateId,
+          assigneeId: currentIssue.assignee || '',
+          priority: currentIssue.priority as any,
+          estimate: (currentIssue as any).estimate,
+          labelIds: currentIssue.labels.map(l => l.label.id),
+        } : undefined}
+        title="Move Issue"
+        description="Move the issue to a different project or status."
+      />
+
       {/* Command Palette */}
       <CommandPalette
         open={commandPaletteOpen}
@@ -535,8 +652,7 @@ export default function IssuesPage() {
         teamId={teamId}
         onCreateIssue={() => setCreateDialogOpen(true)}
         onCreateProject={() => {
-          // TODO: Navigate to projects page and open create dialog
-          console.log('Navigate to projects and create')
+          window.location.href = `/dashboard/${teamId}/projects`
         }}
       />
 
