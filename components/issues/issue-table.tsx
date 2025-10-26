@@ -54,9 +54,16 @@ export function IssueTable({
     }).format(dateObj)
   }
 
-  const getProjectName = (projectId?: string | null) => {
-    if (!projectId) return null
-    return projects.find(p => p.id === projectId)?.name
+  const getProjectInfo = (issue: any) => {
+    // First try to get from the project relation (if included in the query)
+    if (issue.project) {
+      return issue.project
+    }
+    // Fallback to looking up by ID in the projects list
+    if (issue.projectId) {
+      return projects.find(p => p.id === issue.projectId)
+    }
+    return null
   }
 
   const getWorkflowState = (stateId: string) => {
@@ -120,7 +127,7 @@ export function IssueTable({
           ) : (
             issues.map((issue) => {
               const workflowState = getWorkflowState(issue.workflowStateId)
-              const projectName = getProjectName(issue.projectId)
+              const project = getProjectInfo(issue)
               
               return (
                 <TableRow
@@ -150,7 +157,16 @@ export function IssueTable({
                     <PriorityIcon priority={issue.priority as any} />
                   </TableCell>
                   <TableCell className="text-sm">
-                    {projectName || '-'}
+                    {project ? (
+                      <span className="text-xs px-2 py-0.5 rounded-md" style={{ 
+                        backgroundColor: `${project.color || '#6366f1'}20`,
+                        color: project.color || '#6366f1'
+                      }}>
+                        {project.key}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     {issue.assignee ? (

@@ -36,16 +36,24 @@ export async function PATCH(
     const { teamId, issueId } = await params
     const body = await request.json()
     
+    // Get current user info (parallel calls for speed)
+    const [authResult, userResult] = await Promise.all([
+      auth(),
+      currentUser()
+    ])
+    
+    const { userId } = authResult
+    const user = userResult
+    
     // Get assignee name from team members if assigneeId is being updated
     let assigneeName: string | null = null
     if (body.assigneeId && body.assigneeId !== 'unassigned') {
-      const { userId } = await auth()
-      const user = await currentUser()
+      const currentUserDisplayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown' : null
       
       // Check if the assignee is the current user
-      if (userId && userId === body.assigneeId && user) {
-        assigneeName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
-      } else {
+      if (userId && userId === body.assigneeId && currentUserDisplayName) {
+        assigneeName = currentUserDisplayName
+      } else if (body.assigneeId) {
         // Fetch team members to get the assignee's name
         try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/teams/${teamId}/members`)

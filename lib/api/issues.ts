@@ -68,9 +68,32 @@ export async function getIssues(
   return await db.issue.findMany({
     where,
     orderBy,
-    include: {
-      project: true,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      number: true,
+      priority: true,
+      estimate: true,
+      createdAt: true,
+      updatedAt: true,
+      completedAt: true,
+      teamId: true,
+      projectId: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          key: true,
+          color: true,
+        },
+      },
+      workflowStateId: true,
       workflowState: true,
+      assigneeId: true,
+      assignee: true,
+      creatorId: true,
+      creator: true,
       team: true,
       labels: {
         include: {
@@ -92,9 +115,32 @@ export async function getIssueById(teamId: string, issueId: string) {
       id: issueId,
       teamId,
     },
-    include: {
-      project: true,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      number: true,
+      priority: true,
+      estimate: true,
+      createdAt: true,
+      updatedAt: true,
+      completedAt: true,
+      teamId: true,
+      projectId: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          key: true,
+          color: true,
+        },
+      },
+      workflowStateId: true,
       workflowState: true,
+      assigneeId: true,
+      assignee: true,
+      creatorId: true,
+      creator: true,
       team: true,
       labels: {
         include: {
@@ -111,42 +157,86 @@ export async function getIssueById(teamId: string, issueId: string) {
 }
 
 export async function createIssue(teamId: string, data: CreateIssueData, creatorId: string, creatorName: string) {
-  // Get the next issue number for this team
-  const lastIssue = await db.issue.findFirst({
-    where: { teamId },
-    orderBy: { number: 'desc' },
-    select: { number: true },
-  })
+  // Extract labelIds and exclude from main data
+  const { labelIds, projectId, ...issueData } = data
+
+  // Parallel operations: Get next issue number and verify project if needed
+  const [lastIssue, project] = await Promise.all([
+    db.issue.findFirst({
+      where: { teamId },
+      orderBy: { number: 'desc' },
+      select: { number: true },
+    }),
+    projectId ? db.project.findFirst({ where: { id: projectId, teamId } }) : Promise.resolve(null)
+  ])
 
   const nextNumber = (lastIssue?.number || 0) + 1
 
-  // Extract labelIds and exclude from main data
-  const { labelIds, ...issueData } = data
+  // Prepare issue data
+  const issueDataToCreate: any = {
+    title: issueData.title,
+    description: issueData.description,
+    workflowStateId: issueData.workflowStateId,
+    assigneeId: issueData.assigneeId,
+    assignee: issueData.assignee,
+    priority: issueData.priority || 'none',
+    estimate: issueData.estimate,
+    teamId,
+    creatorId,
+    creator: creatorName,
+    number: nextNumber,
+  }
 
-  // Create the issue
-  const issue = await db.issue.create({
-    data: {
-      ...issueData,
-      teamId,
-      creatorId,
-      creator: creatorName,
-      number: nextNumber,
-    },
-    include: {
-      project: true,
-      workflowState: true,
-      team: true,
-      labels: {
-        include: {
-          label: true,
-        },
+  // Only set projectId if it exists and belongs to this team (verified by query)
+  if (project) {
+    issueDataToCreate.projectId = projectId
+  }
+
+  // Create the issue with a select that includes all necessary relations
+  const selectConfig = {
+    id: true,
+    title: true,
+    description: true,
+    number: true,
+    priority: true,
+    estimate: true,
+    createdAt: true,
+    updatedAt: true,
+    completedAt: true,
+    teamId: true,
+    projectId: true,
+    project: {
+      select: {
+        id: true,
+        name: true,
+        key: true,
+        color: true,
       },
-      comments: true,
     },
-  })
+    workflowStateId: true,
+    workflowState: true,
+    assigneeId: true,
+    assignee: true,
+    creatorId: true,
+    creator: true,
+    team: true,
+    labels: {
+      include: {
+        label: true,
+      },
+    },
+    comments: true,
+  }
 
-  // Handle labels if provided
+  // If labels are provided, create them in the same transaction or directly after
   if (labelIds?.length) {
+    // Create issue first
+    const issue = await db.issue.create({
+      data: issueDataToCreate,
+      select: selectConfig,
+    })
+
+    // Then create labels in parallel
     await db.issueLabel.createMany({
       data: labelIds.map((labelId) => ({
         issueId: issue.id,
@@ -157,21 +247,15 @@ export async function createIssue(teamId: string, data: CreateIssueData, creator
     // Refetch with labels
     return await db.issue.findUnique({
       where: { id: issue.id },
-      include: {
-        project: true,
-        workflowState: true,
-        team: true,
-        labels: {
-          include: {
-            label: true,
-          },
-        },
-        comments: true,
-      },
+      select: selectConfig,
     })
   }
 
-  return issue
+  // Create issue without labels
+  return await db.issue.create({
+    data: issueDataToCreate,
+    select: selectConfig,
+  })
 }
 
 export async function updateIssue(teamId: string, issueId: string, data: UpdateIssueData) {
@@ -202,9 +286,32 @@ export async function updateIssue(teamId: string, issueId: string, data: UpdateI
       teamId,
     },
     data: updateData,
-    include: {
-      project: true,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      number: true,
+      priority: true,
+      estimate: true,
+      createdAt: true,
+      updatedAt: true,
+      completedAt: true,
+      teamId: true,
+      projectId: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          key: true,
+          color: true,
+        },
+      },
+      workflowStateId: true,
       workflowState: true,
+      assigneeId: true,
+      assignee: true,
+      creatorId: true,
+      creator: true,
       team: true,
       labels: {
         include: {

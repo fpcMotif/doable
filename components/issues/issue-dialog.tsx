@@ -83,7 +83,7 @@ export function IssueDialog({
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
-      projectId: initialData?.projectId || 'none',
+      projectId: initialData?.projectId || '',
       workflowStateId: initialData?.workflowStateId || (workflowStates.length > 0 ? workflowStates[0].id : ''),
       assigneeId: initialData?.assigneeId || '',
       priority: initialData?.priority || 'none',
@@ -94,10 +94,28 @@ export function IssueDialog({
 
   useEffect(() => {
     if (open && initialData) {
-      form.reset(initialData)
+      const resetData = {
+        ...initialData,
+        projectId: initialData.projectId || '', // Empty string means no project
+        labelIds: initialData.labelIds || []
+      }
+      form.reset(resetData)
       setSelectedLabels(initialData.labelIds || [])
+    } else if (open) {
+      // Reset to defaults when opening fresh dialog
+      form.reset({
+        title: '',
+        description: '',
+        projectId: '', // Empty string means no project selected
+        workflowStateId: workflowStates.length > 0 ? workflowStates[0].id : '',
+        assigneeId: '',
+        priority: 'none',
+        estimate: undefined,
+        labelIds: []
+      })
+      setSelectedLabels([])
     }
-  }, [open, initialData, form])
+  }, [open, initialData, form, workflowStates])
 
   // Update form when workflow states are loaded
   useEffect(() => {
@@ -111,7 +129,7 @@ export function IssueDialog({
     try {
       await onSubmit({
         ...data,
-        projectId: data.projectId === 'none' ? undefined : data.projectId,
+        projectId: data.projectId && data.projectId.trim() !== '' ? data.projectId : undefined,
         priority: data.priority || 'none',
         labelIds: selectedLabels,
         estimate: data.estimate,
@@ -183,7 +201,10 @@ export function IssueDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Project</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value === 'none' ? '' : value)} 
+                      value={field.value || 'none'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select project" />

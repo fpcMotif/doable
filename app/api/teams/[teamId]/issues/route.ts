@@ -79,9 +79,10 @@ export async function POST(
     const body = await request.json()
     
     // Get user info from Clerk (parallel calls for speed)
-    const [authResult, userResult] = await Promise.all([
+    const [authResult, userResult, teamCheck] = await Promise.all([
       auth(),
-      currentUser()
+      currentUser(),
+      ensureTeamExists(teamId)
     ])
     
     const { userId } = authResult
@@ -94,15 +95,38 @@ export async function POST(
       )
     }
 
-    // Ensure team exists in local database
-    await ensureTeamExists(teamId)
+    // Get creator name
+    const creatorName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+
+    // Get assignee name if assigneeId is provided (only fetch if different from current user)
+    let assigneeName: string | undefined = undefined
+    if (body.assigneeId && body.assigneeId !== 'unassigned' && body.assigneeId !== userId) {
+      // Fetch team members to get assignee name (only if different user)
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+        const membersResponse = await fetch(`${baseUrl}/api/teams/${teamId}/members`)
+        if (membersResponse.ok) {
+          const members = await membersResponse.json()
+          const assigneeMember = members.find((m: any) => m.id === body.assigneeId)
+          if (assigneeMember) {
+            assigneeName = assigneeMember.displayName
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching assignee name:', error)
+      }
+    } else if (body.assigneeId === userId) {
+      // If assignee is current user, use creator name
+      assigneeName = creatorName
+    }
 
     const issueData: CreateIssueData = {
       title: body.title,
       description: body.description,
-      projectId: body.projectId,
+      projectId: body.projectId && body.projectId.trim() !== '' ? body.projectId : undefined,
       workflowStateId: body.workflowStateId,
-      assigneeId: body.assigneeId,
+      assigneeId: body.assigneeId === 'unassigned' ? undefined : body.assigneeId,
+      assignee: assigneeName,
       priority: body.priority || 'none',
       estimate: body.estimate,
       labelIds: body.labelIds,
@@ -112,7 +136,7 @@ export async function POST(
       teamId, 
       issueData, 
       userId, 
-      `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+      creatorName
     )
     return NextResponse.json(issue, { status: 201 })
   } catch (error) {

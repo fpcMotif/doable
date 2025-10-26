@@ -3,6 +3,7 @@ import { IssueWithRelations } from '@/lib/types'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { Card } from '@/components/ui/card'
 import { ActionsMenu, issueActions } from '@/components/shared/actions-menu'
+import { PriorityIcon } from '@/components/shared/priority-icon'
 
 interface IssueCardProps {
   issue: IssueWithRelations
@@ -38,19 +39,27 @@ export function IssueCard({
     >
       <div className="space-y-3">
         {/* Header with ID and Status */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
               <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
             </div>
             <span className="font-mono text-sm text-muted-foreground">
               {issue.team.key}-{issue.number}
             </span>
+            {issue.project && (
+              <span className="text-xs px-2 py-0.5 rounded-md" style={{ 
+                backgroundColor: `${issue.project.color || '#6366f1'}20`,
+                color: issue.project.color || '#6366f1'
+              }}>
+                {issue.project.key}
+              </span>
+            )}
           </div>
           
           {/* Status Badge */}
           <div 
-            className="text-xs px-2 py-1 rounded text-white font-medium"
+            className="text-xs px-2 py-1 rounded text-white font-medium flex-shrink-0"
             style={{ backgroundColor: issue.workflowState.color }}
           >
             {issue.workflowState.name}
@@ -61,6 +70,11 @@ export function IssueCard({
         <h3 className="font-medium text-foreground text-sm leading-tight line-clamp-2">
           {issue.title}
         </h3>
+
+        {/* Priority */}
+        <div className="flex items-center gap-2">
+          <PriorityIcon priority={issue.priority as any} />
+        </div>
 
         {/* Footer with assignee and actions */}
         <div className="flex items-center justify-between">
