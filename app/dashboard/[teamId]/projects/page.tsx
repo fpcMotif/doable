@@ -520,6 +520,7 @@ export default function ProjectsPage() {
         onSubmit={handleCreateProject}
         title="Create Project"
         description="Create a new project for your team."
+        teamId={teamId}
       />
 
       {/* Edit Project Dialog */}
@@ -543,6 +544,7 @@ export default function ProjectsPage() {
         } : undefined}
         title="Edit Project"
         description="Update the project details."
+        teamId={teamId}
       />
 
       {/* Toast Notifications */}

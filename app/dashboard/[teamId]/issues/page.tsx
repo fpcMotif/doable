@@ -562,6 +562,7 @@ export default function IssuesPage() {
         labels={labels}
         title="Create Issue"
         description="Create a new issue for your team."
+        teamId={teamId}
       />
 
       {/* Edit Issue Dialog */}
@@ -589,6 +590,7 @@ export default function IssuesPage() {
         } : undefined}
         title="Edit Issue"
         description="Update the issue details."
+        teamId={teamId}
       />
 
       {/* Assign Issue Dialog */}
@@ -604,6 +606,7 @@ export default function IssuesPage() {
         projects={projects}
         workflowStates={workflowStates}
         labels={labels}
+        teamId={teamId}
         initialData={currentIssue ? {
           title: currentIssue.title,
           description: currentIssue.description ?? undefined,
@@ -631,6 +634,7 @@ export default function IssuesPage() {
         projects={projects}
         workflowStates={workflowStates}
         labels={labels}
+        teamId={teamId}
         initialData={currentIssue ? {
           title: currentIssue.title,
           description: currentIssue.description ?? undefined,

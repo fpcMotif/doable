@@ -78,9 +78,14 @@ export async function POST(
     const { teamId } = await params
     const body = await request.json()
     
-    // Get user info from Clerk
-    const { userId } = await auth()
-    const user = await currentUser()
+    // Get user info from Clerk (parallel calls for speed)
+    const [authResult, userResult] = await Promise.all([
+      auth(),
+      currentUser()
+    ])
+    
+    const { userId } = authResult
+    const user = userResult
     
     if (!userId || !user) {
       return NextResponse.json(

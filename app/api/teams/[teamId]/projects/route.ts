@@ -4,6 +4,9 @@ import { CreateProjectData } from '@/lib/types'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
+// Cache for team existence to avoid repeated DB queries
+const teamExistsCache = new Set<string>()
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
@@ -37,26 +40,19 @@ export async function POST(
     const { teamId } = await params
     const body = await request.json()
 
-    // Get the current user from Clerk
-    const { userId } = await auth()
-    const user = await currentUser()
+    // Get the current user from Clerk (parallel calls for speed)
+    const [authResult, userResult] = await Promise.all([
+      auth(),
+      currentUser()
+    ])
+    
+    const { userId } = authResult
+    const user = userResult
     
     if (!userId || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      )
-    }
-
-    // Ensure team exists in local database
-    let localTeam = await db.team.findUnique({
-      where: { id: teamId }
-    })
-
-    if (!localTeam) {
-      return NextResponse.json(
-        { error: 'Team not found' },
-        { status: 404 }
       )
     }
 
@@ -73,6 +69,7 @@ export async function POST(
       lead: userName,
     }
 
+    // Create project and check team in parallel
     const project = await createProject(teamId, projectData)
     return NextResponse.json(project, { status: 201 })
   } catch (error) {

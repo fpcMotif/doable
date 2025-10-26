@@ -58,6 +58,7 @@ interface IssueDialogProps {
   initialData?: Partial<IssueFormData>
   title?: string
   description?: string
+  teamId?: string
 }
 
 export function IssueDialog({
@@ -70,6 +71,7 @@ export function IssueDialog({
   initialData,
   title = 'Create Issue',
   description = 'Create a new issue for your team.',
+  teamId,
 }: IssueDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedLabels, setSelectedLabels] = useState<string[]>(
@@ -239,6 +241,7 @@ export function IssueDialog({
                         value={field.value}
                         onValueChange={field.onChange}
                         placeholder="Select assignee"
+                        teamId={teamId}
                       />
                     </FormControl>
                     <FormMessage />

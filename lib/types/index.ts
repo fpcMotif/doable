@@ -39,6 +39,7 @@ export interface CreateIssueData {
   projectId?: string
   workflowStateId: string
   assigneeId?: string
+  assignee?: string
   priority?: 'none' | 'low' | 'medium' | 'high' | 'urgent'
   estimate?: number
   labelIds?: string[]
@@ -50,6 +51,7 @@ export interface UpdateIssueData {
   projectId?: string | null
   workflowStateId?: string
   assigneeId?: string | null
+  assignee?: string | null
   priority?: 'none' | 'low' | 'medium' | 'high' | 'urgent'
   estimate?: number | null
   labelIds?: string[]

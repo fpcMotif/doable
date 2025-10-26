@@ -52,6 +52,7 @@ interface ProjectDialogProps {
   initialData?: Partial<ProjectFormData>
   title?: string
   description?: string
+  teamId?: string
 }
 
 const defaultColors = [
@@ -70,6 +71,7 @@ export function ProjectDialog({
   initialData,
   title = 'Create Project',
   description = 'Create a new project for your team.',
+  teamId,
 }: ProjectDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -252,6 +254,7 @@ export function ProjectDialog({
                         value={field.value}
                         onValueChange={field.onChange}
                         placeholder="Select project lead"
+                        teamId={teamId}
                       />
                     </FormControl>
                     <FormMessage />

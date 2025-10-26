@@ -23,13 +23,15 @@ interface UserSelectorProps {
   onValueChange: (value: string) => void
   placeholder?: string
   className?: string
+  teamId?: string
 }
 
 export function UserSelector({ 
   value, 
   onValueChange, 
   placeholder = "Select assignee",
-  className 
+  className,
+  teamId
 }: UserSelectorProps) {
   const { user } = useUser()
   const [teamMembers, setTeamMembers] = useState<User[]>([])
@@ -39,8 +41,22 @@ export function UserSelector({
     const fetchTeamMembers = async () => {
       try {
         setLoading(true)
-        // TODO: Implement team member fetching with proper team ID
-        const response = await fetch('/api/teams/team-id/members', {
+        
+        if (!teamId) {
+          // If no teamId provided, just show current user
+          if (user) {
+            const currentUser = {
+              id: user.id,
+              displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
+              email: user.emailAddresses[0]?.emailAddress || '',
+              profileImageUrl: user.imageUrl || undefined
+            }
+            setTeamMembers([currentUser])
+          }
+          return
+        }
+        
+        const response = await fetch(`/api/teams/${teamId}/members`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -81,7 +97,7 @@ export function UserSelector({
     }
 
     fetchTeamMembers()
-  }, [user])
+  }, [user, teamId])
 
   const selectedUser = teamMembers.find(member => member.id === value)
 
