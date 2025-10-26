@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stackServerApp } from '@/stack'
+import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 export async function POST(
@@ -9,21 +9,12 @@ export async function POST(
   try {
     const { teamId } = await params
 
-    // Get the current user from Stack Auth using the request object
-    const user = await stackServerApp.getUser({ tokenStore: request })
-    if (!user) {
+    // Get the current user from Clerk
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
-      )
-    }
-
-    // Get the team from Stack Auth
-    const stackTeam = await stackServerApp.getTeam(teamId)
-    if (!stackTeam) {
-      return NextResponse.json(
-        { error: 'Team not found in Stack Auth' },
-        { status: 404 }
       )
     }
 
@@ -36,12 +27,16 @@ export async function POST(
       return NextResponse.json(existingTeam)
     }
 
+    // Get team name from request body or default
+    const body = await request.json().catch(() => ({}))
+    const teamName = body.name || `Team ${teamId.substring(0, 8)}`
+
     // Create team in local database
     const localTeam = await db.team.create({
       data: {
         id: teamId,
-        name: stackTeam.displayName,
-        key: stackTeam.displayName.substring(0, 3).toUpperCase(),
+        name: teamName,
+        key: teamName.substring(0, 3).toUpperCase(),
       }
     })
 

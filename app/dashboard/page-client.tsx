@@ -1,32 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { useUser } from "@stackframe/stack";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { TeamSelector } from "@/components/shared/team-selector";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
 
 export function PageClient() {
   const router = useRouter();
-  const user = useUser({ or: "redirect" });
-  const teams = user.useTeams();
+  const { user, isLoaded } = useUser();
 
-  React.useEffect(() => {
-    if (teams.length > 0 && !user.selectedTeam) {
-      user.setSelectedTeam(teams[0]);
-    }
-  }, [teams, user]);
-
-  // Show loading while teams are being fetched
-  if (teams === undefined) {
+  // Show loading while user is being fetched
+  if (!isLoaded) {
     return <DashboardLoader message="Loading teams" submessage="Setting up your workspace..." />;
   }
 
-  if (teams.length === 0) {
-    return <TeamSelector />;
-  } else if (user.selectedTeam) {
-    router.push(`/dashboard/${user.selectedTeam.id}/issues`);
-  }
-
-  return <DashboardLoader message="Redirecting" submessage="Taking you to your dashboard..." />;
+  // For now, show team selector - this will need proper team fetching logic
+  return <TeamSelector />;
 }

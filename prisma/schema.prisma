@@ -41,7 +41,7 @@ model Project {
   teamId String
   team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  leadId String? // Stack Auth user ID
+  leadId String? // Clerk user ID
   lead   String? // User display name
 
   issues Issue[]
@@ -107,10 +107,10 @@ model Issue {
   workflowStateId String
   workflowState   WorkflowState @relation(fields: [workflowStateId], references: [id])
 
-  assigneeId String? // Stack Auth user ID
+  assigneeId String? // Clerk user ID
   assignee   String? // User display name
 
-  creatorId String // Stack Auth user ID
+  creatorId String // Clerk user ID
   creator   String  // User display name
 
   comments Comment[]
@@ -145,7 +145,7 @@ model Comment {
   issueId String
   issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
-  userId String // Stack Auth user ID
+  userId String // Clerk user ID
   user   String // User display name
 
   @@map("comments")

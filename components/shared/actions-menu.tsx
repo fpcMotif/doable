@@ -90,12 +90,15 @@ export function ActionsMenu({
         <DropdownMenuTrigger asChild>
           {trigger || defaultTrigger}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={align} className="w-48">
+        <DropdownMenuContent align={align} className="w-48" onClick={(e) => e.stopPropagation()}>
           {actions.map((action, index) => (
             <div key={action.id}>
               {action.separator && index > 0 && <DropdownMenuSeparator />}
               <DropdownMenuItem
-                onClick={() => handleActionClick(action)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleActionClick(action)
+                }}
                 disabled={action.disabled}
                 className={cn(
                   'flex items-center gap-2 cursor-pointer',

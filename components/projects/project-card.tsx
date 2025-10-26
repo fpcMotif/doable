@@ -40,11 +40,10 @@ export function ProjectCard({
   return (
     <Card
       className={cn(
-        'p-4 cursor-pointer transition-all hover:bg-muted/50 border-border/50',
+        'p-4 transition-all hover:bg-muted/50 border-border/50',
         isDragging && 'opacity-50',
         className
       )}
-      onClick={onClick}
     >
       <div className="space-y-3">
         {/* Header with ID and Status */}
@@ -80,7 +79,7 @@ export function ProjectCard({
             </span>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <ActionsMenu
               actions={[
                 projectActions.edit(() => onEdit?.(project)),
@@ -91,7 +90,6 @@ export function ProjectCard({
               trigger={
                 <button
                   className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <span className="text-xs text-muted-foreground">⋯</span>
                 </button>

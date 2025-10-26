@@ -72,7 +72,7 @@ export function IssueCard({
             )}
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <ActionsMenu
               actions={[
                 issueActions.view(() => onView?.(issue)),
@@ -84,7 +84,6 @@ export function IssueCard({
               trigger={
                 <button
                   className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <span className="text-xs text-muted-foreground">⋯</span>
                 </button>

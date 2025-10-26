@@ -62,6 +62,7 @@ export interface CreateProjectData {
   color?: string
   icon?: string
   leadId?: string
+  lead?: string
 }
 
 export interface UpdateProjectData {

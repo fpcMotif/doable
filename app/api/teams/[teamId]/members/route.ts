@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stackServerApp } from '@/stack'
+import { auth, currentUser } from '@clerk/nextjs/server'
 
 export async function GET(
   request: NextRequest,
@@ -8,32 +8,24 @@ export async function GET(
   try {
     const { teamId } = await params
 
-    // Get the current user from Stack Auth using the request object
-    const user = await stackServerApp.getUser({ tokenStore: request })
-    if (!user) {
+    // Get the current user from Clerk
+    const { userId } = await auth()
+    const user = await currentUser()
+    
+    if (!userId || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // Get the team using server-side method
-    const team = await stackServerApp.getTeam(teamId)
-    if (!team) {
-      return NextResponse.json(
-        { error: 'Team not found' },
-        { status: 404 }
-      )
-    }
-
-    // Get team members using server-side method
-    // Note: This method may not exist in the current Stack Auth version
-    // For now, return the current user as a fallback
+    // For now, return the current user as the only member
+    // In production, integrate with Clerk Organizations API to get actual members
     const members = [{
-      id: user.id,
-      displayName: user.displayName || (user as any).email,
-      email: (user as any).email,
-      profileImageUrl: user.profileImageUrl
+      id: userId,
+      displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
+      email: user.emailAddresses[0]?.emailAddress || '',
+      profileImageUrl: user.imageUrl || undefined
     }]
     
     // Format members for the frontend

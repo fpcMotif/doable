@@ -1,7 +1,6 @@
-import { StackProvider, StackTheme } from "@stackframe/stack";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { stackServerApp } from "../stack";
 import "./globals.css";
 import { Provider } from "./provider";
 import { HydrationBoundary } from "@/components/hydration-boundary";
@@ -63,16 +62,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <HydrationBoundary>
-          <Provider>
-            <StackProvider app={stackServerApp}>
-              <StackTheme>{children}</StackTheme>
-            </StackProvider>
-          </Provider>
-        </HydrationBoundary>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={inter.className}>
+          <HydrationBoundary>
+            <Provider>{children}</Provider>
+          </HydrationBoundary>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -1,16 +1,26 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export function middleware(request: NextRequest) {
-  // Add any custom middleware logic here if needed
-  return NextResponse.next();
-}
+// Define public routes
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/public(.*)",
+]);
+
+// Protect all non-public routes
+export default clerkMiddleware(async (auth, request) => {
+  // Protect non-public routes
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
-    // Match all API routes except Stack Auth handler
-    "/api/((?!teams/create|teams/\\[teamId\\]/sync).*)",
-    // Match all dashboard routes
-    "/dashboard/:path*",
+    // Skip Next.js internals and static files
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
   ],
 };

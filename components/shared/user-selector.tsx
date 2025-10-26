@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@stackframe/stack'
+import { useUser } from '@clerk/nextjs'
 import {
   Select,
   SelectContent,
@@ -31,8 +31,7 @@ export function UserSelector({
   placeholder = "Select assignee",
   className 
 }: UserSelectorProps) {
-  const user = useUser()
-  const teams = user?.useTeams()
+  const { user } = useUser()
   const [teamMembers, setTeamMembers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -40,43 +39,39 @@ export function UserSelector({
     const fetchTeamMembers = async () => {
       try {
         setLoading(true)
-        // Get team members from API
-        if (teams && teams.length > 0 && user?.selectedTeam) {
-          // Get auth headers from Stack Auth
-          const authHeaders = await user.getAuthHeaders()
-          
-          const response = await fetch(`/api/teams/${user.selectedTeam.id}/members`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...authHeaders,
-            },
-          })
+        // TODO: Implement team member fetching with proper team ID
+        const response = await fetch('/api/teams/team-id/members', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
-          if (response.ok) {
-            const members = await response.json()
-            setTeamMembers(members)
-          } else {
-            console.error('Failed to fetch team members:', response.statusText)
-            // Fallback to current user if API fails
+        if (response.ok) {
+          const members = await response.json()
+          setTeamMembers(members)
+        } else {
+          console.error('Failed to fetch team members:', response.statusText)
+          // Fallback to current user if API fails
+          if (user) {
             const currentUser = {
               id: user.id,
-              displayName: user.displayName || (user as any).email,
-              email: (user as any).email,
-              profileImageUrl: user.profileImageUrl || undefined
+              displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
+              email: user.emailAddresses[0]?.emailAddress || '',
+              profileImageUrl: user.imageUrl || undefined
             }
             setTeamMembers([currentUser])
           }
-        } 
+        }
       } catch (error) {
         console.error('Error fetching team members:', error)
         // Fallback to current user if API fails
         if (user) {
           const currentUser = {
             id: user.id,
-            displayName: user.displayName || (user as any).email,
-            email: (user as any).email,
-            profileImageUrl: user.profileImageUrl || undefined
+            displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
+            email: user.emailAddresses[0]?.emailAddress || '',
+            profileImageUrl: user.imageUrl || undefined
           }
           setTeamMembers([currentUser])
         }
@@ -86,7 +81,7 @@ export function UserSelector({
     }
 
     fetchTeamMembers()
-  }, [teams, user?.selectedTeam, user])
+  }, [user])
 
   const selectedUser = teamMembers.find(member => member.id === value)
 

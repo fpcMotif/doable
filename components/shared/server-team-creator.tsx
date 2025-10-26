@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { useToast } from '@/lib/hooks/use-toast'
-import { useUser } from '@stackframe/stack'
+import { useUser } from '@clerk/nextjs'
 
 interface ServerTeamCreatorProps {
   onTeamCreated?: (team: any) => void
@@ -17,7 +17,7 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
   const [teamName, setTeamName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const { toast } = useToast()
-  const user = useUser()
+  const { user } = useUser()
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,14 +25,10 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
 
     setIsCreating(true)
     try {
-      // Get auth headers from Stack Auth
-      const authHeaders = await user?.getAuthHeaders()
-      
       const response = await fetch('/api/teams/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...authHeaders,
         },
         body: JSON.stringify({
           displayName: teamName.trim(),
@@ -44,6 +40,11 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
         toast.success('Team created successfully!', 'Your team has been created and you have been added as a member.')
         setTeamName('')
         onTeamCreated?.(team)
+        
+        // Redirect to the new team's dashboard
+        if (team?.id) {
+          window.location.href = `/dashboard/${team.id}/issues`
+        }
       } else {
         const error = await response.json()
         throw new Error(error.error || 'Failed to create team')
@@ -95,19 +96,6 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
             )}
           </Button>
         </form>
-        
-        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 text-green-600 mt-0.5" />
-            <div className="text-sm text-green-800">
-              <p className="font-medium">Server-side Team Creation</p>
-              <p className="text-xs mt-1">
-                This creates teams using our server-side API, bypassing any client-side restrictions.
-                You&apos;ll be automatically added as the team creator.
-              </p>
-            </div>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )

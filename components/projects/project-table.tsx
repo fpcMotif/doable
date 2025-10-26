@@ -146,8 +146,7 @@ export function ProjectTable({
               {sortedProjects.map((project) => (
                 <tr 
                   key={project.id}
-                  className="border-b border-border/50 hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => onProjectClick?.(project)}
+                  className="border-b border-border/50 transition-colors"
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getIssues, createIssue, getIssueStats } from '@/lib/api/issues'
 import { CreateIssueData } from '@/lib/types'
-import { stackServerApp } from '@/stack'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 // Cache for team existence checks
@@ -14,55 +14,12 @@ async function ensureTeamExists(teamId: string) {
     return { id: teamId }
   }
 
-  let localTeam = await db.team.findUnique({
+  const localTeam = await db.team.findUnique({
     where: { id: teamId }
   })
 
   if (!localTeam) {
-    // Sync team from Stack Auth to local database
-    const stackTeam = await stackServerApp.getTeam(teamId)
-    if (!stackTeam) {
-      throw new Error('Team not found in Stack Auth')
-    }
-
-    // Create team in local database
-    localTeam = await db.team.create({
-      data: {
-        id: teamId,
-        name: stackTeam.displayName,
-        key: stackTeam.displayName.substring(0, 3).toUpperCase(),
-      }
-    })
-
-    // Create default workflow states and labels in parallel
-    const [defaultWorkflowStates, defaultLabels] = await Promise.all([
-      Promise.all([
-        { name: 'Backlog', type: 'backlog', color: '#64748b', position: 0 },
-        { name: 'Todo', type: 'unstarted', color: '#3b82f6', position: 1 },
-        { name: 'In Progress', type: 'started', color: '#f59e0b', position: 2 },
-        { name: 'Done', type: 'completed', color: '#10b981', position: 3 },
-      ].map(state =>
-        db.workflowState.create({
-          data: {
-            ...state,
-            teamId: teamId,
-          }
-        })
-      )),
-      Promise.all([
-        { name: 'Bug', color: '#ef4444' },
-        { name: 'Feature', color: '#8b5cf6' },
-        { name: 'Enhancement', color: '#06b6d4' },
-        { name: 'Documentation', color: '#84cc16' },
-      ].map(label =>
-        db.label.create({
-          data: {
-            ...label,
-            teamId: teamId,
-          }
-        })
-      ))
-    ])
+    throw new Error('Team not found')
   }
 
   // Cache the team existence
@@ -121,9 +78,11 @@ export async function POST(
     const { teamId } = await params
     const body = await request.json()
     
-    // Get user info from Stack Auth
-    const user = await stackServerApp.getUser({ tokenStore: request })
-    if (!user) {
+    // Get user info from Clerk
+    const { userId } = await auth()
+    const user = await currentUser()
+    
+    if (!userId || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -147,8 +106,8 @@ export async function POST(
     const issue = await createIssue(
       teamId, 
       issueData, 
-      user.id, 
-      user.displayName || (user as any).email
+      userId, 
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
     )
     return NextResponse.json(issue, { status: 201 })
   } catch (error) {

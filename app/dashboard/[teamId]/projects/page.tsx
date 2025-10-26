@@ -68,11 +68,10 @@ export default function ProjectsPage() {
     } catch (error) {
       console.error('Error fetching projects:', error)
       setError('Failed to load projects. Please try again.')
-      toast.error('Failed to load projects', 'Please refresh the page and try again.')
     } finally {
       setLoading(false)
     }
-  }, [teamId, toast])
+  }, [teamId])
 
   useEffect(() => {
     fetchProjects()
@@ -112,8 +111,21 @@ export default function ProjectsPage() {
         leadId: project.lead ?? undefined,
       }
       
-      await handleCreateProject(duplicateData)
-      toast.success('Project duplicated', 'The project has been duplicated successfully.')
+      const response = await fetch(`/api/teams/${teamId}/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(duplicateData),
+      })
+
+      if (response.ok) {
+        const newProject = await response.json()
+        setProjects(prev => [newProject, ...prev])
+        toast.success('Project duplicated', 'The project has been duplicated successfully.')
+      } else {
+        throw new Error('Failed to duplicate project')
+      }
     } catch (error) {
       console.error('Error duplicating project:', error)
       toast.error('Failed to duplicate project', 'Please try again.')
@@ -468,9 +480,6 @@ export default function ProjectsPage() {
                       <ProjectCard
                         key={project.id}
                         project={project}
-                        onClick={() => {
-                          handleProjectEdit(project)
-                        }}
                         onEdit={handleProjectEdit}
                         onDelete={handleProjectDelete}
                         onDuplicate={handleProjectDuplicate}
@@ -483,9 +492,6 @@ export default function ProjectsPage() {
                 {currentView === 'table' && (
                   <ProjectTable
                     projects={filteredProjects}
-                    onProjectClick={(project) => {
-                      handleProjectEdit(project)
-                    }}
                     onProjectUpdate={(projectId, updates) => {
                       setProjects(prev => 
                         prev.map(project => 

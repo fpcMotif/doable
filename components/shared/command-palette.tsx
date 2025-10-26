@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@stackframe/stack'
+import { useUser } from '@clerk/nextjs'
 import {
   Dialog,
   DialogContent,
@@ -48,7 +48,7 @@ export function CommandPalette({
   onCreateProject 
 }: CommandPaletteProps) {
   const router = useRouter()
-  const user = useUser()
+  const { user } = useUser()
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
 

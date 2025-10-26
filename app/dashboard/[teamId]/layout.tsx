@@ -1,10 +1,12 @@
 'use client';
 
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
-import { SelectedTeamSwitcher, useUser } from "@stackframe/stack";
+import { useUser } from "@clerk/nextjs";
 import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
+import { WorkspaceSelector } from "@/components/shared/workspace-selector";
+import { useState, useEffect } from "react";
 
 const navigationItems: SidebarItem[] = [
   {
@@ -61,30 +63,47 @@ const navigationItems: SidebarItem[] = [
 
 export default function Layout(props: { children: React.ReactNode }) {
   const params = useParams<{ teamId: string }>();
-  const user = useUser({ or: 'redirect' });
-  const team = user.useTeam(params.teamId);
+  const { user } = useUser();
   const router = useRouter();
+  const [team, setTeam] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch team data
+    const fetchTeam = async () => {
+      try {
+        const response = await fetch('/api/teams');
+        if (response.ok) {
+          const teams = await response.json();
+          const currentTeam = teams.find((t: any) => t.id === params.teamId);
+          if (currentTeam) {
+            setTeam(currentTeam);
+          } else {
+            // If team not found, redirect to dashboard
+            router.push('/dashboard');
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching team:', error);
+        setLoading(false);
+      }
+    };
+    fetchTeam();
+  }, [params.teamId, router]);
 
   // Show loading while team is being fetched
-  if (team === undefined) {
+  if (loading || !team) {
     return <DashboardLoader message="Loading team" submessage="Fetching team data..." />;
-  }
-
-  if (!team) {
-    router.push('/dashboard');
-    return <DashboardLoader message="Redirecting" submessage="Team not found, redirecting..." />;
   }
 
   return (
     <SidebarLayout 
       items={navigationItems}
       basePath={`/dashboard/${team.id}`}
-      sidebarTop={<SelectedTeamSwitcher 
-        selectedTeam={team}
-        urlMap={(team) => `/dashboard/${team.id}`}
-      />}
+      sidebarTop={<WorkspaceSelector currentTeamId={team.id} currentTeamName={team.name} />}
       baseBreadcrumb={[{
-        title: team.displayName,
+        title: team.displayName || team.name,
         href: `/dashboard/${team.id}`,
       }]}
     >

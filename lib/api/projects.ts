@@ -49,7 +49,13 @@ export async function getProjectById(teamId: string, projectId: string) {
 export async function createProject(teamId: string, data: CreateProjectData) {
   return await db.project.create({
     data: {
-      ...data,
+      name: data.name,
+      description: data.description,
+      key: data.key,
+      color: data.color,
+      icon: data.icon,
+      leadId: data.leadId,
+      lead: data.lead,
       teamId,
     },
     include: {

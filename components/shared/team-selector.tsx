@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@stackframe/stack'
+import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle, Users, Plus } from 'lucide-react'
+import { Users, Plus } from 'lucide-react'
 import { ServerTeamCreator } from './server-team-creator'
 
 interface TeamSelectorProps {
@@ -13,11 +13,35 @@ interface TeamSelectorProps {
 }
 
 export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
-  const user = useUser()
+  const { user } = useUser()
   const router = useRouter()
-  const teams = user?.useTeams() || []
+  const [teams, setTeams] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isCreatingTeam, setIsCreatingTeam] = useState(false)
   const [showTeamCreator, setShowTeamCreator] = useState(false)
+
+  const fetchTeams = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/teams')
+      if (response.ok) {
+        const data = await response.json()
+        setTeams(data)
+      } else {
+        console.error('Failed to fetch teams:', response.statusText)
+        setTeams([])
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error)
+      setTeams([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTeams()
+  }, [])
 
   const handleCreateTeam = async () => {
     if (!onCreateTeam) return
@@ -33,16 +57,32 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
   }
 
   const handleSelectTeam = (teamId: string) => {
-    const team = teams.find(t => t.id === teamId)
-    if (user && team) {
-      user.setSelectedTeam(team)
-      router.push(`/dashboard/${teamId}/issues`)
+    router.push(`/dashboard/${teamId}/issues`)
+  }
+
+  const handleTeamCreated = async (team: any) => {
+    // Refresh the teams list to show the new team
+    await fetchTeams()
+    
+    // If redirect didn't happen in ServerTeamCreator, navigate manually
+    if (team?.id) {
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        router.push(`/dashboard/${team.id}/issues`)
+      }, 100)
     }
   }
 
-  const handleTeamCreated = (team: any) => {
-    // Refresh the page to show the new team
-    window.location.reload()
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">Loading teams...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (teams.length === 0) {
@@ -70,18 +110,6 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Team
               </Button>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium">Server-side Team Creation</p>
-                    <p className="text-xs mt-1">
-                      We&apos;ll create your team using our server-side API, which works regardless of Stack Auth settings.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         )}
@@ -114,11 +142,11 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-blue-600">
-                      {team.displayName.charAt(0).toUpperCase()}
+                      {team.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="text-left">
-                    <div className="font-medium">{team.displayName}</div>
+                    <div className="font-medium">{team.name}</div>
                     <div className="text-xs text-muted-foreground">
                       Team members
                     </div>
