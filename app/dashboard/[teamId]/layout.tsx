@@ -36,10 +36,6 @@ const navigationItems: SidebarItem[] = [
     href: "/people",
     icon: Users,
     type: "item",
-  },
-  {
-    type: 'label',
-    name: 'Settings',
   }
 ];
 
