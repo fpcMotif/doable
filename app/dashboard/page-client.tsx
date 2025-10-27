@@ -12,7 +12,11 @@ export function PageClient() {
 
   // If loading, show loader
   if (isPending) {
-    return <DashboardLoader message="Loading teams" submessage="Setting up your workspace..." />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <DashboardLoader message="Loading teams" submessage="Setting up your workspace..." />
+      </div>
+    );
   }
 
   // If no session, middleware should redirect but show a message just in case

@@ -105,9 +105,25 @@ export default function IssuesPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
+
+  // Listen for sidebar collapse state changes
+  useEffect(() => {
+    const checkSidebarState = () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sidebar-collapsed')
+        setSidebarCollapsed(saved === 'true')
+      }
+    }
+
+    checkSidebarState()
+    
+    const interval = setInterval(checkSidebarState, 100)
+    return () => clearInterval(interval)
+  }, [])
 
   const fetchInitialData = async () => {
     try {
@@ -431,7 +447,7 @@ export default function IssuesPage() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6">
+      <div className={`space-y-6 ${currentView === 'board' ? 'h-full' : ''}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -565,28 +581,32 @@ export default function IssuesPage() {
                 )}
 
                 {currentView === 'board' && (
-                  <IssueBoard
-                    issues={filteredIssues as any}
-                    workflowStates={workflowStates}
-                    teamId={teamId}
-                    onIssueClick={(issue) => {
-                      handleIssueView(issue)
-                    }}
-                    onIssueUpdate={(issueId, updates) => {
-                      setIssues(prev => 
-                        prev.map(issue =>
-                          issue.id === issueId 
-                            ? { ...issue, ...updates } as any
-                            : issue
+                  <div className="w-full h-[calc(100vh-280px)] overflow-hidden">
+                    <IssueBoard
+                      issues={filteredIssues as any}
+                      workflowStates={workflowStates}
+                      teamId={teamId}
+                      onIssueClick={(issue) => {
+                        handleIssueView(issue)
+                      }}
+                      onIssueUpdate={(issueId, updates) => {
+                        setIssues(prev => 
+                          prev.map(issue =>
+                            issue.id === issueId 
+                              ? { ...issue, ...updates } as any
+                              : issue
+                          )
                         )
-                      )
-                    }}
-                    onIssueView={handleIssueView}
-                    onIssueEdit={handleIssueEdit}
-                    onIssueAssign={handleIssueAssign}
-                    onIssueMove={handleIssueMove}
-                    onIssueDelete={handleIssueDelete}
-                  />
+                      }}
+                      onIssueView={handleIssueView}
+                      onIssueEdit={handleIssueEdit}
+                      onIssueAssign={handleIssueAssign}
+                      onIssueMove={handleIssueMove}
+                      onIssueDelete={handleIssueDelete}
+                      className="h-full"
+                      sidebarCollapsed={sidebarCollapsed}
+                    />
+                  </div>
                 )}
 
                 {currentView === 'table' && (

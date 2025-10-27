@@ -20,6 +20,7 @@ interface IssueBoardProps {
   onIssueDelete?: (issueId: string) => void
   teamId: string
   className?: string
+  sidebarCollapsed?: boolean
 }
 
 export function IssueBoard({ 
@@ -33,7 +34,8 @@ export function IssueBoard({
   onIssueMove,
   onIssueDelete,
   teamId,
-  className 
+  className,
+  sidebarCollapsed = false
 }: IssueBoardProps) {
   const { toast } = useToast()
   const [isDragging, setIsDragging] = useState(false)
@@ -108,14 +110,17 @@ export function IssueBoard({
     setIsDragging(true)
   }
 
+  const boardGap = sidebarCollapsed ? 'gap-8' : 'gap-4'
+  
   return (
     <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-      <div className={`flex gap-6 overflow-x-auto pb-4 ${className}`}>
+      <div className={`flex ${boardGap} overflow-x-auto pb-4 h-full ${className}`}>
         {workflowStates.map((state) => {
           const stateIssues = getIssuesByStatus(state.id)
+          const columnWidth = sidebarCollapsed ? 'w-[340px]' : 'w-[290px]'
           
           return (
-            <div key={state.id} className="flex-shrink-0 w-80">
+            <div key={state.id} className={`flex-shrink-0 ${columnWidth}`}>
               {/* Column Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -138,7 +143,7 @@ export function IssueBoard({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-h-[400px] transition-colors duration-200 ${
+                    className={`min-h-[calc(100vh-320px)] max-h-[calc(100vh-320px)] overflow-y-auto transition-colors duration-200 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent ${
                       snapshot.isDraggingOver 
                         ? 'bg-primary/5 rounded-lg border-2 border-dashed border-primary/20' 
                         : ''

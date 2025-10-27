@@ -73,7 +73,11 @@ export default function Layout(props: { children: React.ReactNode }) {
 
   // Show loading while team is being fetched
   if (loading || !team) {
-    return <DashboardLoader message="Loading team" submessage="Fetching team data..." />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <DashboardLoader message="Loading team" submessage="Fetching team data..." />
+      </div>
+    );
   }
 
   return (
