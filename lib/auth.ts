@@ -7,6 +7,7 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   // Only Google OAuth authentication
   socialProviders: {
     google: { 
@@ -24,6 +25,7 @@ export const auth = betterAuth({
   },
   trustedOrigins: [
     process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ],
   plugins: [
     nextCookies(), // Must be last plugin
