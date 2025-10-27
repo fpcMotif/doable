@@ -14,7 +14,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { LogOut, User } from "lucide-react";
-import { useTheme } from "next-themes";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -197,7 +197,7 @@ export default function SidebarLayout(props: {
     }
     return false;
   });
-  const { resolvedTheme, setTheme } = useTheme();
+  
   const { data: session } = authClient.useSession();
 
   useEffect(() => {
@@ -292,14 +292,7 @@ export default function SidebarLayout(props: {
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
-                      <span>Toggle Theme</span>
-                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />  
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
