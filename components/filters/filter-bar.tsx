@@ -171,77 +171,90 @@ export function FilterBar({
               </DropdownMenuCheckboxItem>
             </>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
       {/* Active filter badges */}
       {hasActiveFilters && (
-        <div className="flex items-center gap-1 flex-wrap">
-          {filters.status?.map((statusId) => {
-            const state = workflowStates.find(s => s.id === statusId)
-            return state ? (
-              <Badge key={statusId} variant="secondary" className="text-xs">
-                {state.name}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                  onClick={() => clearFilter('status')}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ) : null
-          })}
-          
-          {filters.project?.map((projectId) => {
-            const project = projects.find(p => p.id === projectId)
-            return project ? (
-              <Badge key={projectId} variant="secondary" className="text-xs">
-                {project.name}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                  onClick={() => clearFilter('project')}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ) : null
-          })}
+        <>
+          <div className="flex items-center gap-1 flex-wrap flex-1">
+            {filters.status?.map((statusId) => {
+              const state = workflowStates.find(s => s.id === statusId)
+              return state ? (
+                <Badge key={statusId} variant="secondary" className="text-xs">
+                  {state.name}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                    onClick={() => clearFilter('status')}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ) : null
+            })}
+            
+            {filters.project?.map((projectId) => {
+              const project = projects.find(p => p.id === projectId)
+              return project ? (
+                <Badge key={projectId} variant="secondary" className="text-xs">
+                  {project.name}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                    onClick={() => clearFilter('project')}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ) : null
+            })}
 
-          {filters.priority?.map((priority) => (
-            <Badge key={priority} variant="secondary" className="text-xs">
-              {priority}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                onClick={() => clearFilter('priority')}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          ))}
-
-          {filters.label?.map((labelId) => {
-            const label = labels.find(l => l.id === labelId)
-            return label ? (
-              <Badge key={labelId} variant="secondary" className="text-xs">
-                {label.name}
+            {filters.priority?.map((priority) => (
+              <Badge key={priority} variant="secondary" className="text-xs">
+                {priority}
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
-                  onClick={() => clearFilter('label')}
+                  onClick={() => clearFilter('priority')}
                 >
                   <X className="h-3 w-3" />
                 </Button>
               </Badge>
-            ) : null
-          })}
-        </div>
+            ))}
+
+            {filters.label?.map((labelId) => {
+              const label = labels.find(l => l.id === labelId)
+              return label ? (
+                <Badge key={labelId} variant="secondary" className="text-xs">
+                  {label.name}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1 hover:bg-transparent"
+                    onClick={() => clearFilter('label')}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ) : null
+            })}
+          </div>
+
+          {/* Clear Filters Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Clear
+          </Button>
+        </>
       )}
     </div>
   )
