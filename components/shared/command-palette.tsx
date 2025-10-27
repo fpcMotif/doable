@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { authClient } from '@/lib/auth-client'
 import {
   Dialog,
   DialogContent,
@@ -48,7 +48,8 @@ export function CommandPalette({
   onCreateProject 
 }: CommandPaletteProps) {
   const router = useRouter()
-  const { user } = useUser()
+  const { data: session } = authClient.useSession()
+  const user = session?.user || null
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
 

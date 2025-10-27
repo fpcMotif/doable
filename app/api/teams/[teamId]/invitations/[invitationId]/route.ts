@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function DELETE(
@@ -8,7 +8,7 @@ export async function DELETE(
 ) {
   try {
     const { teamId, invitationId } = await params
-    const { userId } = await auth()
+    const userId = await getUserId()
 
     if (!userId) {
       return NextResponse.json(

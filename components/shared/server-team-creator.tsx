@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Loader2 } from 'lucide-react'
 import { useToast } from '@/lib/hooks/use-toast'
-import { useUser } from '@clerk/nextjs'
+import { authClient } from '@/lib/auth-client'
 
 interface ServerTeamCreatorProps {
   onTeamCreated?: (team: any) => void
@@ -17,7 +17,8 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
   const [teamName, setTeamName] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const { toast } = useToast()
-  const { user } = useUser()
+  const { data: session } = authClient.useSession()
+  const user = session?.user || null
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault()

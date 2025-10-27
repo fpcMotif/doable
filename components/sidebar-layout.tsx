@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { UserButton } from "@clerk/nextjs";
+// Removed Clerk - TODO: Add your own user component
 import { LucideIcon, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -204,10 +204,10 @@ export default function SidebarLayout(props: {
 
             {/* Right side - User Button */}
             <div className="flex items-center">
-              <UserButton
-                colorModeToggle={() =>
-                  setTheme(resolvedTheme === "light" ? "dark" : "light")
-                }
+              {/* TODO: Replace with your own user button */}
+              <button 
+                onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
+                className="w-10 h-10 rounded-full bg-secondary"
               />
             </div>
           </div>

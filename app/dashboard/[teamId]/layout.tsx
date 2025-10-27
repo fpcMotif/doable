@@ -1,8 +1,8 @@
 'use client';
 
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
-import { useUser } from "@clerk/nextjs";
 import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
 import { WorkspaceSelector } from "@/components/shared/workspace-selector";
@@ -51,7 +51,8 @@ const navigationItems: SidebarItem[] = [
 
 export default function Layout(props: { children: React.ReactNode }) {
   const params = useParams<{ teamId: string }>();
-  const { user } = useUser();
+  const { data: session } = authClient.useSession();
+  const user = session?.user || null;
   const router = useRouter();
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);

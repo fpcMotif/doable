@@ -6,7 +6,7 @@ A modern task management platform built with Next.js.
 ![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC)
-![Clerk](https://img.shields.io/badge/Clerk-Auth-green)
+![Better Auth](https://img.shields.io/badge/Better_Auth-Auth-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 
 ## Overview
@@ -17,8 +17,8 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 - **Modern Interface** - Clean, intuitive design inspired by Swiss design principles
 - **Team Collaboration** - Built-in team management with role-based permissions
-- **Lightning Fast** - Built with Next.js 14 and optimized for performance
-- **Secure & Reliable** - Enterprise-grade security with Clerk
+- **Lightning Fast** - Built with Next.js 15 and optimized for performance
+- **Secure & Reliable** - Enterprise-grade security with Better Auth and Google OAuth
 - **Open Source** - Full source code available for customization
 - **Modular Design** - Clean architecture with reusable components
 
@@ -26,7 +26,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS with custom Swiss design system
-- **Authentication**: Clerk
+- **Authentication**: Better Auth with Google OAuth
 - **Database**: PostgreSQL with Prisma ORM
 - **UI Components**: Custom components with Shadcn/ui base
 - **Forms**: React Hook Form with Zod validation
@@ -37,7 +37,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 - Node.js 18+ 
 - PostgreSQL database
-- Clerk account
+- Google Cloud OAuth credentials
 
 ### Installation
 
@@ -53,26 +53,29 @@ Doable is a comprehensive task management solution designed for modern teams.
    ```
 
 3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
+   Create a `.env.local` file in the project root
    
-   Update `.env` with your configuration:
+   Update `.env.local` with your configuration:
    ```env
-   # Clerk Authentication (Required)
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
-   CLERK_SECRET_KEY=sk_test_your_key_here
+   # Better Auth (Required)
+   BETTER_AUTH_SECRET="your-secret-key-generate-with-openssl-rand-base64-32"
+   BETTER_AUTH_URL=http://localhost:3000
    
    # Database (Required)
    DATABASE_URL="postgresql://username:password@localhost:5432/doable"
    
-   # Application URL (Optional)
-   NEXT_PUBLIC_URL=http://localhost:3000
+   # Google OAuth (Required)
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   
+   # Application URL (Required)
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
 4. **Set up the database**
    ```bash
    npx prisma db push
+   npx @better-auth/cli generate
    npm run db:seed
    ```
 
@@ -92,7 +95,7 @@ doable/
 │   ├── (landing-page)/    # Landing page routes
 │   ├── dashboard/         # Dashboard routes
 │   ├── api/               # API routes
-│   └── handler/           # Stack Auth handler
+│   │   └── auth/         # Better Auth handlers
 ├── components/            # React components
 │   ├── ui/               # Base UI components
 │   ├── projects/         # Project-related components
@@ -117,7 +120,8 @@ doable/
 - Multiple view modes (list, board, table)
 
 ### Authentication
-- Seamless Clerk integration
+- Google OAuth sign-in/sign-up
+- Secure session management with Better Auth
 - Team-based access control
 - User management and permissions
 
@@ -149,15 +153,28 @@ npx prisma studio
 
 ## Configuration
 
-### Clerk Setup
+### Better Auth Setup
 
-1. Create a new project in [Clerk Dashboard](https://dashboard.clerk.com)
-2. Configure OAuth providers (optional)
-3. Set up team management settings
-4. Copy your publishable key and secret key to `.env`
-5. Set the environment variables:
-   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key (starts with `pk_test_` or `pk_live_`)
-   - `CLERK_SECRET_KEY`: Your Clerk secret key (starts with `sk_test_` or `sk_live_`)
+#### 1. Generate Secret Key
+```bash
+openssl rand -base64 32
+```
+
+#### 2. Set Up Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Navigate to **APIs & Services** → **Credentials**
+4. Create OAuth 2.0 Client ID
+5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+6. Copy Client ID and Client Secret
+
+#### 3. Environment Variables
+Add these to `.env.local`:
+- `BETTER_AUTH_SECRET`: Your generated secret key
+- `BETTER_AUTH_URL`: `http://localhost:3000`
+- `GOOGLE_CLIENT_ID`: Your Google OAuth Client ID
+- `GOOGLE_CLIENT_SECRET`: Your Google OAuth Client Secret
+- `NEXT_PUBLIC_APP_URL`: `http://localhost:3000`
 
 ### Database Configuration
 
@@ -177,15 +194,20 @@ The application uses PostgreSQL with Prisma ORM. Make sure your database is runn
 
 3. **Configure Environment Variables in Vercel**
    Go to your project settings → Environment Variables and add:
-   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-   - `CLERK_SECRET_KEY`
+   - `BETTER_AUTH_SECRET`
+   - `BETTER_AUTH_URL`
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
    - `DATABASE_URL`
-   - `NEXT_PUBLIC_URL` (optional, Vercel sets this automatically)
+   - `NEXT_PUBLIC_APP_URL`
+   
+   **Important**: Update Google OAuth redirect URI to your production domain:
+   `https://your-domain.com/api/auth/callback/google`
 
 4. **Deploy**
    Vercel will automatically deploy your application on push to main branch.
 
-**Note**: The application will build successfully even without Clerk keys for static pages, but authentication features require the keys to be set.
+**Note**: The application will build successfully even without Better Auth keys for static pages, but authentication features require the keys to be set.
 
 ## Design System
 

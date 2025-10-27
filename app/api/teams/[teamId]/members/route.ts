@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from '@/lib/auth-server-helpers'
 import { db } from '@/lib/db'
 
 export async function GET(
@@ -8,15 +8,8 @@ export async function GET(
 ) {
   try {
     const { teamId } = await params
-    const { userId } = await auth()
-    const user = await currentUser()
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const userId = await getUserId()
+    const user = await getUser()
 
     // Fetch team members from database
     const teamMembers = await db.teamMember.findMany({
@@ -26,8 +19,8 @@ export async function GET(
 
     // If no members exist, add current user as admin
     if (teamMembers.length === 0 && user) {
-      const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
-      const userEmail = user.emailAddresses[0]?.emailAddress || ''
+      const userName = user.name || user.email || 'Unknown'
+      const userEmail = user.email || ''
 
       const newMember = await db.teamMember.create({
         data: {
@@ -46,7 +39,7 @@ export async function GET(
         displayName: newMember.userName,
         email: newMember.userEmail,
         role: newMember.role,
-        profileImageUrl: user.imageUrl || undefined,
+        profileImageUrl: user.image || undefined,
       }
 
       return NextResponse.json([formattedMember])

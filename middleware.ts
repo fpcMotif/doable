@@ -1,36 +1,23 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-// Define public routes
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/api/public(.*)",
-]);
+export async function middleware(request: NextRequest) {
+  const sessionCookie = getSessionCookie(request);
+  const { pathname } = request.nextUrl;
 
-// Check if Clerk keys are available
-const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
-const clerkSecretKey = process.env.CLERK_SECRET_KEY || "";
-
-// Protect all non-public routes
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  // If Clerk is not configured, allow all requests
-  if (!clerkPublishableKey || !clerkSecretKey) {
-    return NextResponse.next();
+  // Redirect authenticated users away from auth pages
+  if (sessionCookie && ["/sign-in", "/sign-up"].includes(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Protect non-public routes
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  // Redirect unauthenticated users from protected routes to sign-in
+  if (!sessionCookie && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
-});
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: [
-    // Skip Next.js internals and static files
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/dashboard/:path*", "/sign-in", "/sign-up"],
 };

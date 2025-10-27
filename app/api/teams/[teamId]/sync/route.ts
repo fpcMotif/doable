@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { getUserId } from '@/lib/auth-server-helpers'
 
 export async function POST(
   request: NextRequest,
@@ -9,8 +9,8 @@ export async function POST(
   try {
     const { teamId } = await params
 
-    // Get the current user from Clerk
-    const { userId } = await auth()
+    // Get the current user from Better Auth
+    const userId = await getUserId()
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

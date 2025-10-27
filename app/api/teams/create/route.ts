@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from '@/lib/auth-server-helpers'
 import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
@@ -14,16 +14,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get the current user from Clerk
-    const { userId } = await auth()
-    const user = await currentUser()
-    
-    if (!userId || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Get the current user from Better Auth
+    const userId = await getUserId()
+    const user = await getUser()
 
     // Generate unique team key
     // Use first 3 chars of name + random 3 char suffix to ensure uniqueness
@@ -31,9 +24,7 @@ export async function POST(request: NextRequest) {
     const randomSuffix = Math.random().toString(36).substring(2, 5).toUpperCase()
     const teamKey = `${baseKey}${randomSuffix}`
     
-    // Create organization using Clerk API
-    // For now, we'll just create the team in our local database
-    // In production, you should integrate with Clerk Organizations API
+    // Create team in database
     const team = await db.team.create({
       data: {
         name: displayName,

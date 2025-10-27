@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useUser } from '@clerk/nextjs'
+import { authClient } from '@/lib/auth-client'
 import {
   Select,
   SelectContent,
@@ -49,20 +49,20 @@ export function UserSelector({
   className,
   teamId
 }: UserSelectorProps) {
-  const { user } = useUser()
+  const { data: session } = authClient.useSession()
   const [teamMembers, setTeamMembers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
   // Memoize current user to avoid recreating
   const currentUser = useMemo(() => {
-    if (!user) return null
+    if (!session?.user) return null
     return {
-      id: user.id,
-      displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
-      email: user.emailAddresses[0]?.emailAddress || '',
-      profileImageUrl: user.imageUrl || undefined
+      id: session.user.id,
+      displayName: session.user.name || session.user.email || 'Unknown',
+      email: session.user.email || '',
+      profileImageUrl: session.user.image || undefined
     }
-  }, [user])
+  }, [session])
 
   useEffect(() => {
     const fetchTeamMembers = async () => {

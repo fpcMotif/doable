@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getIssueById, updateIssue, deleteIssue } from '@/lib/api/issues'
 import { UpdateIssueData } from '@/lib/types'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from "@/lib/auth-server-helpers"
 
 export async function GET(
   request: NextRequest,
@@ -38,17 +38,17 @@ export async function PATCH(
     
     // Get current user info (parallel calls for speed)
     const [authResult, userResult] = await Promise.all([
-      auth(),
-      currentUser()
+      getUserId(),
+      getUser()
     ])
     
-    const { userId } = authResult
+    const userId = authResult
     const user = userResult
     
     // Set assignee name if assigneeId is being updated and is the current user
     let assigneeName: string | null = null
     if (body.assigneeId && body.assigneeId !== 'unassigned' && userId && userId === body.assigneeId && user) {
-      assigneeName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+      assigneeName = user.name || user.email || 'Unknown'
     }
 
     const updateData: UpdateIssueData = {

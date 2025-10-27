@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from "@/lib/auth-server-helpers"
 import { db } from '@/lib/db'
 import { sendInvitationEmail } from '@/lib/email'
 
@@ -9,8 +9,8 @@ export async function POST(
 ) {
   try {
     const { teamId, invitationId } = await params
-    const { userId } = await auth()
-    const user = await currentUser()
+    const userId = await getUserId()
+    const user = await getUser()
 
     if (!userId || !user) {
       return NextResponse.json(
@@ -54,9 +54,7 @@ export async function POST(
     })
 
     // Get inviter info
-    const inviterName = user.firstName && user.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : user.emailAddresses[0]?.emailAddress || 'Someone'
+    const inviterName = user.name || user.email || 'Someone'
 
     // Resend invitation email
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'

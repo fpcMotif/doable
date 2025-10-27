@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -6,25 +5,6 @@ import { Provider } from "./provider";
 import { HydrationBoundary } from "@/components/hydration-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
-
-// Get Clerk publishable key
-const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
-
-// Conditional wrapper for ClerkProvider
-function ClerkWrapper({ children }: { children: React.ReactNode }) {
-  if (!clerkPublishableKey) {
-    console.warn("Clerk publishable key is not set. Authentication features will not work.");
-    return <>{children}</>;
-  }
-  
-  return (
-    <ClerkProvider 
-      publishableKey={clerkPublishableKey}
-    >
-      {children}
-    </ClerkProvider>
-  );
-}
 
 export const metadata: Metadata = {
   title: "Doable - Modern Team Task Management. Elevated.",
@@ -81,14 +61,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkWrapper>
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
-          <HydrationBoundary>
-            <Provider>{children}</Provider>
-          </HydrationBoundary>
-        </body>
-      </html>
-    </ClerkWrapper>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <HydrationBoundary>
+          <Provider>{children}</Provider>
+        </HydrationBoundary>
+      </body>
+    </html>
   );
 }

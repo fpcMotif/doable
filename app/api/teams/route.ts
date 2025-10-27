@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { getSessionOrNull } from '@/lib/auth-server-helpers'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the current user from Clerk
-    const { userId } = await auth()
+    // Get the current user from Better Auth
+    const session = await getSessionOrNull()
     
-    if (!userId) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

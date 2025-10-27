@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjects, createProject, getProjectStats } from '@/lib/api/projects'
 import { CreateProjectData } from '@/lib/types'
-import { auth, currentUser } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
-
-// Cache for team existence to avoid repeated DB queries
-const teamExistsCache = new Set<string>()
+import { getUserId, getUser } from "@/lib/auth-server-helpers"
 
 export async function GET(
   request: NextRequest,
@@ -42,11 +38,11 @@ export async function POST(
 
     // Get the current user from Clerk (parallel calls for speed)
     const [authResult, userResult] = await Promise.all([
-      auth(),
-      currentUser()
+      getUserId(),
+      getUser()
     ])
     
-    const { userId } = authResult
+    const userId = authResult
     const user = userResult
     
     if (!userId || !user) {
@@ -57,7 +53,7 @@ export async function POST(
     }
 
     // Get user display name from Clerk
-    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+    const userName = user.name || user.email || 'Unknown'
 
     const projectData: CreateProjectData = {
       name: body.name,

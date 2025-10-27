@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getIssues, createIssue, getIssueStats } from '@/lib/api/issues'
 import { CreateIssueData } from '@/lib/types'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from "@/lib/auth-server-helpers"
 import { db } from '@/lib/db'
 
 // Cache for team existence checks
@@ -78,25 +78,15 @@ export async function POST(
     const { teamId } = await params
     const body = await request.json()
     
-    // Get user info from Clerk (parallel calls for speed)
-    const [authResult, userResult, teamCheck] = await Promise.all([
-      auth(),
-      currentUser(),
+    // Get user info from Better Auth (parallel calls for speed)
+    const [userId, user, teamCheck] = await Promise.all([
+      getUserId(),
+      getUser(),
       ensureTeamExists(teamId)
     ])
-    
-    const { userId } = authResult
-    const user = userResult
-    
-    if (!userId || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     // Get creator name
-    const creatorName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+    const creatorName = user.name || user.email || 'Unknown'
 
     // Set assignee name - if assignee is current user, use creator name
     // For now, since we only have the current user in the system, assignee name is same as creator

@@ -32,9 +32,9 @@ model Project {
   id          String   @id @default(cuid())
   name        String
   description String?
-  key         String   // 3-letter project identifier (e.g., "WEB", "API")
+  key         String // 3-letter project identifier (e.g., "WEB", "API")
   color       String   @default("#6366f1") // Hex color
-  icon        String?  // Icon name or emoji
+  icon        String? // Icon name or emoji
   status      String   @default("active") // active, completed, canceled
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -53,11 +53,11 @@ model Project {
 }
 
 model WorkflowState {
-  id       String @id @default(cuid())
-  name     String
-  type     String // backlog, unstarted, started, completed, canceled
-  color    String @default("#64748b") // Hex color
-  position Int    @default(0) // Order in workflow
+  id        String   @id @default(cuid())
+  name      String
+  type      String // backlog, unstarted, started, completed, canceled
+  color     String   @default("#64748b") // Hex color
+  position  Int      @default(0) // Order in workflow
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -89,14 +89,14 @@ model Label {
 }
 
 model Issue {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
-  number      Int      // Sequential number per team (e.g., 123)
-  priority    String   @default("none") // none, low, medium, high, urgent
-  estimate    Int?     // Story points or hours
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  number      Int // Sequential number per team (e.g., 123)
+  priority    String    @default("none") // none, low, medium, high, urgent
+  estimate    Int? // Story points or hours
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
   // Relations
@@ -113,7 +113,7 @@ model Issue {
   assignee   String? // User display name
 
   creatorId String // Clerk user ID
-  creator   String  // User display name
+  creator   String // User display name
 
   comments Comment[]
   labels   IssueLabel[]
@@ -176,14 +176,73 @@ model Invitation {
   email     String
   role      String   @default("developer") // developer, admin, viewer
   status    String   @default("pending") // pending, accepted, rejected
-  invitedBy String   // Clerk user ID
+  invitedBy String // Clerk user ID
   createdAt DateTime @default(now())
   expiresAt DateTime
-  
   // Relations
-  teamId String
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, email])
   @@map("invitations")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
 }

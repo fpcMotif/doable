@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@clerk/nextjs'
+import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,7 +13,8 @@ interface TeamSelectorProps {
 }
 
 export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
-  const { user } = useUser()
+  const { data: session } = authClient.useSession()
+  const user = session?.user || null
   const router = useRouter()
   const [teams, setTeams] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)

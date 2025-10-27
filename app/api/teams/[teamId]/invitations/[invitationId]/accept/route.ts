@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { getUserId, getUser } from "@/lib/auth-server-helpers"
 import { db } from '@/lib/db'
 
 export async function POST(
@@ -8,8 +8,8 @@ export async function POST(
 ) {
   try {
     const { teamId, invitationId } = await params
-    const { userId } = await auth()
-    const user = await currentUser()
+    const userId = await getUserId()
+    const user = await getUser()
 
     if (!userId || !user) {
       return NextResponse.json(
@@ -48,7 +48,7 @@ export async function POST(
     }
 
     // Verify email matches
-    const userEmail = user.emailAddresses[0]?.emailAddress
+    const userEmail = user.email
     if (invitation.email !== userEmail) {
       return NextResponse.json(
         { error: 'Invitation email does not match your account' },
@@ -77,7 +77,7 @@ export async function POST(
     }
 
     // Create team member
-    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+    const userName = user.name || user.email || 'Unknown'
     
     await db.teamMember.create({
       data: {
