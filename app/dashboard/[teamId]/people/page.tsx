@@ -16,6 +16,7 @@ import { UserAvatar } from '@/components/shared/user-avatar'
 import { UserPlus, Mail, Trash2, AlertCircle } from 'lucide-react'
 import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
+import { Spinner } from '@/components/ui/spinner'
 
 interface TeamMember {
   id: string
@@ -219,6 +220,11 @@ export default function PeoplePage() {
                 {isSubmitting ? 'Sending...' : 'Send Invitation'}
               </Button>
             </div>
+            {isSubmitting && (
+              <div className="flex items-center justify-center pt-2">
+                <Spinner size="sm" />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -230,8 +236,11 @@ export default function PeoplePage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-12 text-center text-muted-foreground">
-              Loading members...
+            <div className="flex items-center justify-center py-12 min-h-[200px]">
+              <div className="flex flex-col items-center space-y-4">
+                <Spinner size="md" />
+                <p className="text-muted-foreground">Loading members...</p>
+              </div>
             </div>
           ) : members.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">

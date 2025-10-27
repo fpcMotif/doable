@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function InvitePage({ params }: { params: { invitationId: string } }) {
   const [status, setStatus] = useState<'loading' | 'accepting' | 'success' | 'error' | 'not-found' | 'expired'>('loading')
@@ -87,15 +88,19 @@ export default function InvitePage({ params }: { params: { invitationId: string 
         <CardContent className="space-y-4">
           {status === 'loading' && (
             <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Loading invitation...</p>
+              <div className="flex flex-col items-center space-y-4">
+                <Spinner size="md" />
+                <p className="text-muted-foreground">Loading invitation...</p>
+              </div>
             </div>
           )}
 
           {status === 'accepting' && (
             <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Accepting invitation...</p>
+              <div className="flex flex-col items-center space-y-4">
+                <Spinner size="md" />
+                <p className="text-muted-foreground">Accepting invitation...</p>
+              </div>
             </div>
           )}
 

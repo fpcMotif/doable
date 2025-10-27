@@ -17,6 +17,15 @@ import { Plus, Search, Filter, AlertTriangle, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -49,6 +58,8 @@ export default function ProjectsPage() {
     search: ''
   })
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(12)
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
@@ -264,6 +275,52 @@ export default function ProjectsPage() {
     return searchMatch && statusMatch && leadMatch
   })
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex)
+
+  // Calculate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+      
+      if (currentPage > 3) {
+        pages.push('ellipsis')
+      }
+      
+      // Show current page and neighbors
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        pages.push(i)
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pages.push('ellipsis')
+      }
+      
+      // Always show last page
+      if (totalPages > 1) {
+        pages.push(totalPages)
+      }
+    }
+    
+    return pages
+  }
+
+  useEffect(() => {
+    // Reset to page 1 when filters change
+    setCurrentPage(1)
+  }, [filters])
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -476,7 +533,7 @@ export default function ProjectsPage() {
               <>
                 {currentView === 'list' && (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredProjects.map((project) => (
+                    {paginatedProjects.map((project) => (
                       <ProjectCard
                         key={project.id}
                         project={project}
@@ -491,7 +548,7 @@ export default function ProjectsPage() {
 
                 {currentView === 'table' && (
                   <ProjectTable
-                    projects={filteredProjects}
+                    projects={paginatedProjects}
                     onProjectUpdate={(projectId, updates) => {
                       setProjects(prev => 
                         prev.map(project => 
@@ -510,6 +567,54 @@ export default function ProjectsPage() {
               </>
             )}
           </>
+        )}
+
+        {/* Pagination */}
+        {filteredProjects.length > itemsPerPage && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage > 1) setCurrentPage(currentPage - 1)
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+              
+              {getPageNumbers().map((page, index) => (
+                <PaginationItem key={`${page}-${index}`}>
+                  {page === 'ellipsis' ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(page as number)
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
       </div>
 

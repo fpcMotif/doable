@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, BarChart3, Shield, CheckCircle2, Target, AlertCircle } from "lucide-react"
 import { ChartContainer } from "@/components/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip } from "recharts"
+import { Spinner } from "@/components/ui/spinner"
 
 const COLORS = {
   urgent: '#ef4444',
@@ -44,8 +45,11 @@ export function ManagementPageClient() {
 
   if (loading || !stats) {
     return (
-      <div className="flex items-center justify-center h-[400px]">
-        <div className="text-muted-foreground">Loading statistics...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Spinner size="lg" />
+          <p className="text-muted-foreground">Loading statistics...</p>
+        </div>
       </div>
     )
   }

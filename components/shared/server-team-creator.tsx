@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/lib/hooks/use-toast'
 import { authClient } from '@/lib/auth-client'
 
@@ -85,10 +86,9 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
             disabled={isCreating || !teamName.trim()}
           >
             {isCreating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating Team...
-              </>
+              <div className="flex items-center justify-center">
+                <span className="mr-2">Creating Team...</span>
+              </div>
             ) : (
               <>
                 <Plus className="h-4 w-4 mr-2" />
@@ -96,6 +96,11 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
               </>
             )}
           </Button>
+          {isCreating && (
+            <div className="flex items-center justify-center pt-2">
+              <Spinner size="sm" />
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

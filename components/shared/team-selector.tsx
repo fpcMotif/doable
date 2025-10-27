@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Plus } from 'lucide-react'
 import { ServerTeamCreator } from './server-team-creator'
+import { Spinner } from '@/components/ui/spinner'
 
 interface TeamSelectorProps {
   onCreateTeam?: () => void
@@ -79,7 +80,10 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
       <div className="flex items-center justify-center h-screen w-screen">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Loading teams...</p>
+            <div className="flex flex-col items-center space-y-4">
+              <Spinner size="md" />
+              <p className="text-center text-muted-foreground">Loading teams...</p>
+            </div>
           </CardContent>
         </Card>
       </div>

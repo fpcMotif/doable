@@ -17,8 +17,18 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { IssueCardSkeleton, TableSkeleton, BoardSkeleton } from '@/components/ui/skeletons'
-import { Plus, Search, AlertTriangle, Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
+import { Plus, Search, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 
 interface Issue {
   id: string
@@ -93,6 +103,8 @@ export default function IssuesPage() {
   const [sort, setSort] = useState<IssueSort>({ field: 'createdAt', direction: 'desc' })
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast()
@@ -349,6 +361,52 @@ export default function IssuesPage() {
     return true
   })
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedIssues = filteredIssues.slice(startIndex, endIndex)
+
+  // Calculate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+      
+      if (currentPage > 3) {
+        pages.push('ellipsis')
+      }
+      
+      // Show current page and neighbors
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+        pages.push(i)
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pages.push('ellipsis')
+      }
+      
+      // Always show last page
+      if (totalPages > 1) {
+        pages.push(totalPages)
+      }
+    }
+    
+    return pages
+  }
+
+  useEffect(() => {
+    // Reset to page 1 when filters or search change
+    setCurrentPage(1)
+  }, [filters, searchQuery])
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -428,9 +486,9 @@ export default function IssuesPage() {
         {/* Issues Display */}
         <div className="space-y-6">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex items-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin" />
+          <div className="flex items-center justify-center py-12 min-h-[400px]">
+            <div className="flex flex-col items-center space-y-4">
+              <Spinner size="md" />
               <span className="text-muted-foreground">Loading dashboard...</span>
             </div>
           </div>
@@ -489,7 +547,7 @@ export default function IssuesPage() {
               <>
                 {currentView === 'list' && (
                   <div className="grid gap-4">
-                    {filteredIssues.map((issue) => (
+                    {paginatedIssues.map((issue) => (
                       <IssueCard
                         key={issue.id}
                         issue={issue as any}
@@ -533,7 +591,7 @@ export default function IssuesPage() {
 
                 {currentView === 'table' && (
                   <IssueTable
-                    issues={filteredIssues as any}
+                    issues={paginatedIssues as any}
                     workflowStates={workflowStates}
                     projects={projects}
                     onIssueClick={(issue) => {
@@ -547,6 +605,54 @@ export default function IssuesPage() {
               </>
             )}
           </>
+        )}
+
+        {/* Pagination */}
+        {filteredIssues.length > itemsPerPage && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage > 1) setCurrentPage(currentPage - 1)
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+              
+              {getPageNumbers().map((page, index) => (
+                <PaginationItem key={`${page}-${index}`}>
+                  {page === 'ellipsis' ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(page as number)
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
       </div>
 
