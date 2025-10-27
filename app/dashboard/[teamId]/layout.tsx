@@ -38,18 +38,6 @@ const navigationItems: SidebarItem[] = [
     type: "item",
   },
   {
-    name: "Segments",
-    href: "/segments",
-    icon: Workflow,
-    type: "item",
-  },
-  {
-    name: "Regions",
-    href: "/regions",
-    icon: MapPin,
-    type: "item",
-  },
-  {
     type: 'label',
     name: 'Settings',
   },

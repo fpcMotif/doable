@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useUser } from '@clerk/nextjs'
 import {
   Select,
@@ -26,6 +26,22 @@ interface UserSelectorProps {
   teamId?: string
 }
 
+// Global cache for team members
+const membersCache = new Map<string, { data: User[], timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+function getCachedMembers(teamId: string): User[] | null {
+  const cached = membersCache.get(teamId)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data
+  }
+  return null
+}
+
+function setCachedMembers(teamId: string, data: User[]) {
+  membersCache.set(teamId, { data, timestamp: Date.now() })
+}
+
 export function UserSelector({ 
   value, 
   onValueChange, 
@@ -37,6 +53,17 @@ export function UserSelector({
   const [teamMembers, setTeamMembers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Memoize current user to avoid recreating
+  const currentUser = useMemo(() => {
+    if (!user) return null
+    return {
+      id: user.id,
+      displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
+      email: user.emailAddresses[0]?.emailAddress || '',
+      profileImageUrl: user.imageUrl || undefined
+    }
+  }, [user])
+
   useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
@@ -44,15 +71,18 @@ export function UserSelector({
         
         if (!teamId) {
           // If no teamId provided, just show current user
-          if (user) {
-            const currentUser = {
-              id: user.id,
-              displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
-              email: user.emailAddresses[0]?.emailAddress || '',
-              profileImageUrl: user.imageUrl || undefined
-            }
+          if (currentUser) {
             setTeamMembers([currentUser])
+            setLoading(false)
           }
+          return
+        }
+        
+        // Check cache first
+        const cachedMembers = getCachedMembers(teamId)
+        if (cachedMembers) {
+          setTeamMembers(cachedMembers)
+          setLoading(false)
           return
         }
         
@@ -65,30 +95,20 @@ export function UserSelector({
 
         if (response.ok) {
           const members = await response.json()
+          // Cache the result
+          setCachedMembers(teamId, members)
           setTeamMembers(members)
         } else {
           console.error('Failed to fetch team members:', response.statusText)
           // Fallback to current user if API fails
-          if (user) {
-            const currentUser = {
-              id: user.id,
-              displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
-              email: user.emailAddresses[0]?.emailAddress || '',
-              profileImageUrl: user.imageUrl || undefined
-            }
+          if (currentUser) {
             setTeamMembers([currentUser])
           }
         }
       } catch (error) {
         console.error('Error fetching team members:', error)
         // Fallback to current user if API fails
-        if (user) {
-          const currentUser = {
-            id: user.id,
-            displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
-            email: user.emailAddresses[0]?.emailAddress || '',
-            profileImageUrl: user.imageUrl || undefined
-          }
+        if (currentUser) {
           setTeamMembers([currentUser])
         }
       } finally {
@@ -97,7 +117,7 @@ export function UserSelector({
     }
 
     fetchTeamMembers()
-  }, [user, teamId])
+  }, [teamId, currentUser])
 
   const selectedUser = teamMembers.find(member => member.id === value)
 

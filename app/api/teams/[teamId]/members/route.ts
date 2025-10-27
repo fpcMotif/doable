@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -7,33 +8,58 @@ export async function GET(
 ) {
   try {
     const { teamId } = await params
-
-    // Get the current user from Clerk
     const { userId } = await auth()
     const user = await currentUser()
-    
-    if (!userId || !user) {
+
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // For now, return the current user as the only member
-    // In production, integrate with Clerk Organizations API to get actual members
-    const members = [{
-      id: userId,
-      displayName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown',
-      email: user.emailAddresses[0]?.emailAddress || '',
-      profileImageUrl: user.imageUrl || undefined
-    }]
-    
+    // Fetch team members from database
+    const teamMembers = await db.teamMember.findMany({
+      where: { teamId },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    // If no members exist, add current user as admin
+    if (teamMembers.length === 0 && user) {
+      const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
+      const userEmail = user.emailAddresses[0]?.emailAddress || ''
+
+      const newMember = await db.teamMember.create({
+        data: {
+          teamId,
+          userId,
+          userName,
+          userEmail,
+          role: 'admin',
+        },
+      })
+
+      // Format for frontend
+      const formattedMember = {
+        id: newMember.id,
+        userId: newMember.userId,
+        displayName: newMember.userName,
+        email: newMember.userEmail,
+        role: newMember.role,
+        profileImageUrl: user.imageUrl || undefined,
+      }
+
+      return NextResponse.json([formattedMember])
+    }
+
     // Format members for the frontend
-    const formattedMembers = members.map((member: any) => ({
+    const formattedMembers = teamMembers.map((member) => ({
       id: member.id,
-      displayName: member.displayName || member.email,
-      email: member.email,
-      profileImageUrl: member.profileImageUrl
+      userId: member.userId,
+      displayName: member.userName,
+      email: member.userEmail,
+      role: member.role,
+      profileImageUrl: undefined, // Can be enhanced with Clerk user data
     }))
 
     return NextResponse.json(formattedMembers)

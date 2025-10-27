@@ -22,6 +22,8 @@ model Team {
   issues         Issue[]
   workflowStates WorkflowState[]
   labels         Label[]
+  members        TeamMember[]
+  invitations    Invitation[]
 
   @@map("teams")
 }
@@ -149,4 +151,39 @@ model Comment {
   user   String // User display name
 
   @@map("comments")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  role      String   @default("developer") // developer, admin, viewer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  userId    String // Clerk user ID
+  userEmail String
+  userName  String
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      String   @default("developer") // developer, admin, viewer
+  status    String   @default("pending") // pending, accepted, rejected
+  invitedBy String   // Clerk user ID
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  
+  // Relations
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, email])
+  @@map("invitations")
 }

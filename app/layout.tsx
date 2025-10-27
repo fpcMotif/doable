@@ -18,7 +18,9 @@ function ClerkWrapper({ children }: { children: React.ReactNode }) {
   }
   
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider 
+      publishableKey={clerkPublishableKey}
+    >
       {children}
     </ClerkProvider>
   );

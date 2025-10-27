@@ -1,12 +1,317 @@
-export const dynamic = 'force-dynamic'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { UserAvatar } from '@/components/shared/user-avatar'
+import { UserPlus, Mail, Trash2, AlertCircle } from 'lucide-react'
+import { useToast } from '@/lib/hooks/use-toast'
+import { ToastContainer } from '@/lib/hooks/use-toast'
+
+interface TeamMember {
+  id: string
+  userId: string
+  userName: string
+  userEmail: string
+  role: string
+  createdAt: string
+}
+
+interface Invitation {
+  id: string
+  email: string
+  role: string
+  status: string
+  invitedBy: string
+  createdAt: string
+  expiresAt: string
+}
 
 export default function PeoplePage() {
+  const params = useParams<{ teamId: string }>()
+  const teamId = params.teamId
+
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [invitations, setInvitations] = useState<Invitation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('developer')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { toasts, toast, removeToast } = useToast()
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [membersRes, invitationsRes] = await Promise.all([
+        fetch(`/api/teams/${teamId}/members`),
+        fetch(`/api/teams/${teamId}/invitations`)
+      ])
+
+      if (membersRes.ok) {
+        const membersData = await membersRes.json()
+        setMembers(membersData)
+      }
+
+      if (invitationsRes.ok) {
+        const invitationsData = await invitationsRes.json()
+        setInvitations(invitationsData)
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      toast.error('Failed to load data', 'Please try again.')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      await fetchData()
+      setLoading(false)
+    }
+    loadData()
+  }, [fetchData])
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !inviteEmail.includes('@')) {
+      toast.error('Invalid email', 'Please enter a valid email address.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/teams/${teamId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole,
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('Invitation sent', 'The invitation has been sent successfully.')
+        setInviteEmail('')
+        setInviteRole('developer')
+        setInviteDialogOpen(false)
+        await fetchData()
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send invitation')
+      }
+    } catch (error: any) {
+      console.error('Error sending invitation:', error)
+      toast.error('Failed to send invitation', error.message || 'Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleResendInvitation = async (invitationId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/invitations/${invitationId}/resend`, {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        toast.success('Invitation resent', 'The invitation has been resent successfully.')
+      } else {
+        throw new Error('Failed to resend invitation')
+      }
+    } catch (error) {
+      console.error('Error resending invitation:', error)
+      toast.error('Failed to resend invitation', 'Please try again.')
+    }
+  }
+
+  const handleRemoveInvitation = async (invitationId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/invitations/${invitationId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        toast.success('Invitation removed', 'The invitation has been removed successfully.')
+        await fetchData()
+      } else {
+        throw new Error('Failed to remove invitation')
+      }
+    } catch (error) {
+      console.error('Error removing invitation:', error)
+      toast.error('Failed to remove invitation', 'Please try again.')
+    }
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">People</h1>
-      <p className="text-muted-foreground">
-        Manage team members and their roles. This feature will be available in a future update.
-      </p>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">People</h1>
+          <p className="text-muted-foreground">
+            Manage team members and their roles
+          </p>
+        </div>
+        <Button onClick={() => setInviteDialogOpen(true)} className="font-medium">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Invite Developer
+        </Button>
+      </div>
+
+      {/* Invite Dialog */}
+      {inviteDialogOpen && (
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle>Invite Team Member</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Email Address</label>
+              <Input
+                type="email"
+                placeholder="developer@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Role</label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="developer">Developer</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setInviteDialogOpen(false)
+                  setInviteEmail('')
+                  setInviteRole('developer')
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleInvite}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? 'Sending...' : 'Send Invitation'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Members List */}
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="py-12 text-center text-muted-foreground">
+              Loading members...
+            </div>
+          ) : members.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              No team members yet
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      name={member.userName}
+                      size="md"
+                    />
+                    <div>
+                      <div className="font-medium">{member.userName}</div>
+                      <div className="text-sm text-muted-foreground">{member.userEmail}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm px-2 py-1 rounded-md bg-muted text-muted-foreground capitalize">
+                      {member.role}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pending Invitations */}
+      {invitations.length > 0 && (
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle>Pending Invitations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {invitations.map((invitation) => (
+                <div
+                  key={invitation.id}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{invitation.email}</div>
+                      <div className="text-sm text-muted-foreground capitalize">
+                        {invitation.role} • Invited {new Date(invitation.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleResendInvitation(invitation.id)}
+                    >
+                      Resend
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveInvitation(invitation.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   )
 }

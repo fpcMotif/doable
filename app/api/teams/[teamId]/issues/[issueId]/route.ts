@@ -45,29 +45,10 @@ export async function PATCH(
     const { userId } = authResult
     const user = userResult
     
-    // Get assignee name from team members if assigneeId is being updated
+    // Set assignee name if assigneeId is being updated and is the current user
     let assigneeName: string | null = null
-    if (body.assigneeId && body.assigneeId !== 'unassigned') {
-      const currentUserDisplayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown' : null
-      
-      // Check if the assignee is the current user
-      if (userId && userId === body.assigneeId && currentUserDisplayName) {
-        assigneeName = currentUserDisplayName
-      } else if (body.assigneeId) {
-        // Fetch team members to get the assignee's name
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/teams/${teamId}/members`)
-          if (response.ok) {
-            const members = await response.json()
-            const assigneeMember = members.find((m: any) => m.id === body.assigneeId)
-            if (assigneeMember) {
-              assigneeName = assigneeMember.displayName
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching assignee:', error)
-        }
-      }
+    if (body.assigneeId && body.assigneeId !== 'unassigned' && userId && userId === body.assigneeId && user) {
+      assigneeName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.emailAddresses[0]?.emailAddress || 'Unknown'
     }
 
     const updateData: UpdateIssueData = {
