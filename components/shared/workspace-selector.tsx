@@ -94,19 +94,29 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
         // Show success toast
         toast.success('Workspace deleted', 'The workspace has been deleted successfully.')
         
-        // Refresh the teams list
+        // If the deleted team was the current one, redirect immediately
+        if (teamToDelete.id === currentTeamId) {
+          // Refresh the teams list first
+          const updatedTeams = teams.filter(t => t.id !== teamToDelete.id)
+          setTeams(updatedTeams)
+
+          // Redirect immediately before trying to update UI
+          if (updatedTeams.length > 0) {
+            router.replace(`/dashboard/${updatedTeams[0].id}/issues`)
+          } else {
+            router.replace('/dashboard')
+          }
+          
+          // Close dialog and reset state immediately
+          setDeleteDialogOpen(false)
+          setTeamToDelete(null)
+          setIsDeleting(false)
+          return // Exit early to prevent further processing
+        }
+
+        // If not the current team, just update the teams list
         const updatedTeams = teams.filter(t => t.id !== teamToDelete.id)
         setTeams(updatedTeams)
-
-        // If the deleted team was the current one, redirect to first team or dashboard
-        if (teamToDelete.id === currentTeamId) {
-          if (updatedTeams.length > 0) {
-            setDisplayTeamName(updatedTeams[0].name)
-            router.push(`/dashboard/${updatedTeams[0].id}/issues`)
-          } else {
-            router.push('/dashboard')
-          }
-        }
       } else {
         const error = await response.json()
         console.error('Error deleting team:', error)
@@ -114,6 +124,7 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
       }
     } catch (error) {
       console.error('Error deleting team:', error)
+      toast.error('Failed to delete workspace', 'An unexpected error occurred.')
     } finally {
       setIsDeleting(false)
       setDeleteDialogOpen(false)

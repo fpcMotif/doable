@@ -46,6 +46,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   const router = useRouter();
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     // Fetch team data
@@ -58,18 +59,33 @@ export default function Layout(props: { children: React.ReactNode }) {
           if (currentTeam) {
             setTeam(currentTeam);
           } else {
-            // If team not found, redirect to dashboard
-            router.push('/dashboard');
+            // If team not found, redirect to dashboard immediately
+            setIsRedirecting(true);
+            setLoading(false);
+            router.replace('/dashboard');
+            return; // Exit early to prevent rendering
           }
         }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching team:', error);
         setLoading(false);
+        setIsRedirecting(true);
+        // Redirect to dashboard on error
+        router.replace('/dashboard');
       }
     };
     fetchTeam();
   }, [params.teamId, router]);
+
+  // Don't render anything if redirecting
+  if (isRedirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <DashboardLoader message="Redirecting..." submessage="Team not found" />
+      </div>
+    );
+  }
 
   // Show loading while team is being fetched
   if (loading || !team) {
