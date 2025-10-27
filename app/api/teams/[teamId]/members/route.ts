@@ -36,6 +36,8 @@ export async function GET(
       const formattedMember = {
         id: newMember.id,
         userId: newMember.userId,
+        userName: newMember.userName,
+        userEmail: newMember.userEmail,
         displayName: newMember.userName,
         email: newMember.userEmail,
         role: newMember.role,
@@ -49,6 +51,8 @@ export async function GET(
     const formattedMembers = teamMembers.map((member) => ({
       id: member.id,
       userId: member.userId,
+      userName: member.userName,
+      userEmail: member.userEmail,
       displayName: member.userName,
       email: member.userEmail,
       role: member.role,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getIssueById, updateIssue, deleteIssue } from '@/lib/api/issues'
 import { UpdateIssueData } from '@/lib/types'
 import { getUserId, getUser } from "@/lib/auth-server-helpers"
+import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -45,10 +46,22 @@ export async function PATCH(
     const userId = authResult
     const user = userResult
     
-    // Set assignee name if assigneeId is being updated and is the current user
+    // Look up assignee name from TeamMember if assigneeId is being updated
     let assigneeName: string | null = null
-    if (body.assigneeId && body.assigneeId !== 'unassigned' && userId && userId === body.assigneeId && user) {
-      assigneeName = user.name || user.email || 'Unknown'
+    if (body.assigneeId && body.assigneeId !== 'unassigned') {
+      const teamMember = await db.teamMember.findFirst({
+        where: {
+          teamId,
+          userId: body.assigneeId
+        }
+      })
+      
+      if (teamMember) {
+        assigneeName = teamMember.userName
+      } else if (body.assigneeId === userId && user) {
+        // Fallback to current user's name if not in team members
+        assigneeName = user.name || user.email || 'Unknown'
+      }
     }
 
     const updateData: UpdateIssueData = {

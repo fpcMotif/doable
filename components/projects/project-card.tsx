@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import { ProjectWithRelations } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { ActionsMenu, projectActions } from '@/components/shared/actions-menu'
+import { UserAvatar } from '@/components/shared/user-avatar'
 
 interface ProjectCardProps {
   project: ProjectWithRelations
@@ -71,9 +72,12 @@ export function ProjectCard({
           {project.name}
         </h3>
 
-        {/* Footer with issues count and actions */}
+        {/* Footer with issues count, lead, and actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {project.lead && (
+              <UserAvatar name={project.lead} size="sm" />
+            )}
             <span className="text-xs text-muted-foreground">
               {project._count.issues} issues
             </span>

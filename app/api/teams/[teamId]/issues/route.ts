@@ -88,9 +88,23 @@ export async function POST(
     // Get creator name
     const creatorName = user.name || user.email || 'Unknown'
 
-    // Set assignee name - if assignee is current user, use creator name
-    // For now, since we only have the current user in the system, assignee name is same as creator
-    const assigneeName = (body.assigneeId && body.assigneeId !== 'unassigned') ? creatorName : undefined
+    // Look up assignee name from TeamMember if assigneeId is provided
+    let assigneeName: string | undefined = undefined
+    if (body.assigneeId && body.assigneeId !== 'unassigned') {
+      const teamMember = await db.teamMember.findFirst({
+        where: {
+          teamId,
+          userId: body.assigneeId
+        }
+      })
+      
+      if (teamMember) {
+        assigneeName = teamMember.userName
+      } else if (body.assigneeId === userId) {
+        // Fallback to current user's name if not in team members
+        assigneeName = creatorName
+      }
+    }
 
     const issueData: CreateIssueData = {
       title: body.title,

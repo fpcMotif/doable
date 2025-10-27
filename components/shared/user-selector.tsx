@@ -13,6 +13,7 @@ import { UserAvatar } from '@/components/shared/user-avatar'
 
 interface User {
   id: string
+  userId: string
   displayName: string
   email: string
   profileImageUrl?: string
@@ -58,6 +59,7 @@ export function UserSelector({
     if (!session?.user) return null
     return {
       id: session.user.id,
+      userId: session.user.id,
       displayName: session.user.name || session.user.email || 'Unknown',
       email: session.user.email || '',
       profileImageUrl: session.user.image || undefined
@@ -119,7 +121,7 @@ export function UserSelector({
     fetchTeamMembers()
   }, [teamId, currentUser])
 
-  const selectedUser = teamMembers.find(member => member.id === value)
+  const selectedUser = teamMembers.find(member => member.userId === value)
 
   if (loading) {
     return (
@@ -167,7 +169,7 @@ export function UserSelector({
           </div>
         </SelectItem>
         {teamMembers.map((member) => (
-          <SelectItem key={member.id} value={member.id}>
+          <SelectItem key={member.id} value={member.userId}>
             <div className="flex items-center gap-2">
               <UserAvatar 
                 name={member.displayName}

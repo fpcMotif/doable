@@ -75,6 +75,7 @@ export interface UpdateProjectData {
   color?: string
   icon?: string
   leadId?: string | null
+  lead?: string | null
   status?: 'active' | 'completed' | 'canceled'
 }
 

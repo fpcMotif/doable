@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProjects, createProject, getProjectStats } from '@/lib/api/projects'
 import { CreateProjectData } from '@/lib/types'
 import { getUserId, getUser } from "@/lib/auth-server-helpers"
+import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -55,14 +56,34 @@ export async function POST(
     // Get user display name from Clerk
     const userName = user.name || user.email || 'Unknown'
 
+    // Look up lead name from TeamMember if leadId is provided
+    let leadName: string | undefined = userName // default to current user
+    const actualLeadId = body.leadId || userId
+    
+    if (actualLeadId) {
+      const teamMember = await db.teamMember.findFirst({
+        where: {
+          teamId,
+          userId: actualLeadId
+        }
+      })
+      
+      if (teamMember) {
+        leadName = teamMember.userName
+      } else if (actualLeadId === userId) {
+        // Fallback to current user's name if not in team members
+        leadName = userName
+      }
+    }
+
     const projectData: CreateProjectData = {
       name: body.name,
       description: body.description,
       key: body.key,
       color: body.color || '#6366f1',
       icon: body.icon,
-      leadId: body.leadId || userId,
-      lead: userName,
+      leadId: actualLeadId,
+      lead: leadName,
     }
 
     // Create project and check team in parallel

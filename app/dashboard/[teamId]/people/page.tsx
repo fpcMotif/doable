@@ -17,6 +17,7 @@ import { UserPlus, Mail, Trash2, AlertCircle } from 'lucide-react'
 import { useToast } from '@/lib/hooks/use-toast'
 import { ToastContainer } from '@/lib/hooks/use-toast'
 import { Spinner } from '@/components/ui/spinner'
+import { cn } from '@/lib/utils'
 
 interface TeamMember {
   id: string
@@ -253,7 +254,7 @@ export default function PeoplePage() {
                   key={member.id}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/50"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <UserAvatar
                       name={member.userName}
                       size="md"
@@ -264,8 +265,17 @@ export default function PeoplePage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm px-2 py-1 rounded-md bg-muted text-muted-foreground capitalize">
-                      {member.role}
+                    <span 
+                      className={cn(
+                        "text-xs px-3 py-1 rounded-full font-medium",
+                        member.role === 'admin' 
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                          : member.role === 'viewer'
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      )}
+                    >
+                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                     </span>
                   </div>
                 </div>

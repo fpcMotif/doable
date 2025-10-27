@@ -69,12 +69,22 @@ export async function createProject(teamId: string, data: CreateProjectData) {
 }
 
 export async function updateProject(teamId: string, projectId: string, data: UpdateProjectData) {
+  const updateData: any = { ...data }
+  
+  // Only update lead fields if explicitly provided
+  if (data.leadId !== undefined) {
+    updateData.leadId = data.leadId
+  }
+  if (data.lead !== undefined) {
+    updateData.lead = data.lead
+  }
+  
   return await db.project.update({
     where: {
       id: projectId,
       teamId,
     },
-    data,
+    data: updateData,
     include: {
       _count: {
         select: {

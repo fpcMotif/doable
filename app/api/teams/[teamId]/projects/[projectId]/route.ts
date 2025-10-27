@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectById, updateProject, deleteProject } from '@/lib/api/projects'
 import { UpdateProjectData } from '@/lib/types'
+import { db } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -35,6 +36,21 @@ export async function PATCH(
     const { teamId, projectId } = await params
     const body = await request.json()
 
+    // Look up lead name from TeamMember if leadId is being updated
+    let leadName: string | undefined = undefined
+    if (body.leadId) {
+      const teamMember = await db.teamMember.findFirst({
+        where: {
+          teamId,
+          userId: body.leadId
+        }
+      })
+      
+      if (teamMember) {
+        leadName = teamMember.userName
+      }
+    }
+
     const updateData: UpdateProjectData = {
       name: body.name,
       description: body.description,
@@ -42,6 +58,7 @@ export async function PATCH(
       color: body.color,
       icon: body.icon,
       leadId: body.leadId,
+      lead: body.leadId ? leadName : undefined,
       status: body.status,
     }
 

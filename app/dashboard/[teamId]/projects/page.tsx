@@ -119,7 +119,7 @@ export default function ProjectsPage() {
         key: `${project.key}-COPY`,
         color: project.color,
         icon: project.icon ?? undefined,
-        leadId: project.lead ?? undefined,
+        leadId: project.leadId ?? undefined,
       }
       
       const response = await fetch(`/api/teams/${teamId}/projects`, {
@@ -644,7 +644,7 @@ export default function ProjectsPage() {
           key: currentProject.key,
           color: currentProject.color,
           icon: currentProject.icon ?? undefined,
-          leadId: currentProject.lead ?? undefined,
+          leadId: currentProject.leadId ?? undefined,
           status: currentProject.status as any,
         } : undefined}
         title="Edit Project"

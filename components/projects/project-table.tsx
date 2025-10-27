@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { ActionsMenu, projectActions } from '@/components/shared/actions-menu'
+import { UserAvatar } from '@/components/shared/user-avatar'
 
 interface ProjectTableProps {
   projects: ProjectWithRelations[]
@@ -132,6 +133,9 @@ export function ProjectTable({
                   <SortButton field="status">Status</SortButton>
                 </th>
                 <th className="text-left p-4 font-medium text-muted-foreground">
+                  Lead
+                </th>
+                <th className="text-left p-4 font-medium text-muted-foreground">
                   <SortButton field="issues">Issues</SortButton>
                 </th>
                 <th className="text-left p-4 font-medium text-muted-foreground">
@@ -166,6 +170,13 @@ export function ProjectTable({
                     >
                       {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
                     </div>
+                  </td>
+                  <td className="p-4">
+                    {project.lead ? (
+                      <UserAvatar name={project.lead} size="sm" />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </td>
                   <td className="p-4">
                     <span className="text-sm text-muted-foreground">
