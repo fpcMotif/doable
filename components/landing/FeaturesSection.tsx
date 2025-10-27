@@ -1,8 +1,7 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Globe, Users, Zap, Shield, Code, ComponentIcon, CheckCircle, ArrowRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Globe, Users, Zap, Shield, Code, ComponentIcon } from 'lucide-react';
 import { TextAnimate } from '@/components/ui/text-animate';
-import { DotPattern } from '@/components/ui/dot-pattern';
 
 interface FeaturesSectionProps {
   className?: string;

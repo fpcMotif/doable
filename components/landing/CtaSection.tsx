@@ -4,9 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { TextAnimate } from '@/components/ui/text-animate';
-import { GitHubStarButton } from './GitHubStarButton';
 import { Ripple } from '@/components/ui/ripple';
-import { DotPattern } from '@/components/ui/dot-pattern';
 import Link from 'next/link';
 
 interface CtaSectionProps {

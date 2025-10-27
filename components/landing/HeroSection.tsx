@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { TextAnimate } from '@/components/ui/text-animate';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { DotPattern } from '@/components/ui/dot-pattern';
