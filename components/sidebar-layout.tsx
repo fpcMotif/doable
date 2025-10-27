@@ -1,8 +1,19 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-// Removed Clerk - TODO: Add your own user component
 import { LucideIcon, Menu } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { LogOut, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -156,6 +167,12 @@ export default function SidebarLayout(props: {
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const { data: session } = authClient.useSession();
+
+  const handleSignOut = async () => {
+    await authClient.signOut()
+    window.location.href = '/sign-in'
+  }
 
   return (
     <div className="w-full flex min-h-screen bg-background">
@@ -203,12 +220,44 @@ export default function SidebarLayout(props: {
             </div>
 
             {/* Right side - User Button */}
-            <div className="flex items-center">
-              {/* TODO: Replace with your own user button */}
-              <button 
-                onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}
-                className="w-10 h-10 rounded-full bg-secondary"
-              />
+            <div className="flex items-center gap-2">
+              {session?.user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={session.user.image || undefined} alt={session.user.name || ""} />
+                        <AvatarFallback>
+                          {session.user.name?.charAt(0)?.toUpperCase() || session.user.email?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{session.user.name || "User"}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {session.user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme(resolvedTheme === "light" ? "dark" : "light")}>
+                      <span>Toggle Theme</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </header>

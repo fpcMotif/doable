@@ -40,13 +40,7 @@ const navigationItems: SidebarItem[] = [
   {
     type: 'label',
     name: 'Settings',
-  },
-  {
-    name: "Configuration",
-    href: "/configuration",
-    icon: Settings,
-    type: "item",
-  },
+  }
 ];
 
 export default function Layout(props: { children: React.ReactNode }) {
