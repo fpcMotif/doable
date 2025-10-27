@@ -1,13 +1,22 @@
 "use client"
 
 import { createAuthClient } from "better-auth/react"
-import type { components } from "@/lib/auth"
+
+// Get the base URL for the client
+const getBaseURL = () => {
+  // In the browser, use the current origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+  // Fallback to environment variable
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+}
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  baseURL: getBaseURL(),
 })
 
-export type Session = components["schemas"]["Session"]
+export type Session = typeof authClient.$Infer.Session
 
 // Export specific methods for easier use
 export const { signIn, signUp, signOut, useSession } = authClient

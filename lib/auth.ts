@@ -23,10 +23,14 @@ export const auth = betterAuth({
       maxAge: 60 * 60 * 1000, // 1 hour
     },
   },
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL || "http://localhost:3000",
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  ],
+  trustedOrigins: async () => {
+    const origins = [
+      process.env.BETTER_AUTH_URL,
+      process.env.NEXT_PUBLIC_APP_URL,
+      "http://localhost:3000",
+    ].filter(Boolean) as string[]
+    return origins
+  },
   plugins: [
     nextCookies(), // Must be last plugin
   ],
