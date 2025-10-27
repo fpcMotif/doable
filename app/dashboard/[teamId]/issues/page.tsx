@@ -435,8 +435,8 @@ export default function IssuesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-light tracking-tight">Issues</h1>
-          <p className="text-muted-foreground text-body-medium">Manage and track your team&apos;s issues</p>
+          <h1 className="text-2xl font-semibold">Issues</h1>
+          <p className="text-muted-foreground text-sm">Manage and track your team&apos;s issues</p>
         </div>
         <Button 
           onClick={() => setCreateDialogOpen(true)}

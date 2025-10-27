@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { LucideIcon, Menu } from "lucide-react";
+import { LucideIcon, Menu, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import {
@@ -17,7 +17,7 @@ import { LogOut, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -66,10 +66,10 @@ function NavItem(props: {
     <Link
       href={props.basePath + props.item.href}
       className={cn(
-        "group relative flex items-center w-full px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
-        "hover:bg-secondary/50 rounded-md",
+        "group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 ease-in-out rounded-lg",
+        "hover:bg-secondary/40",
         selected 
-          ? "bg-secondary text-foreground font-medium border-0" 
+          ? "bg-primary text-primary-foreground shadow-lg" 
           : "text-muted-foreground hover:text-foreground",
         "focus:outline-none focus-visible:outline-none"
       )}
@@ -77,8 +77,8 @@ function NavItem(props: {
       prefetch={true}
     >
       <props.item.icon className={cn(
-        "mr-3 h-4 w-4 transition-colors duration-200",
-        selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+        "mr-3 h-5 w-5 transition-colors duration-200",
+        selected ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
       )} />
       <span className="truncate">{props.item.name}</span>
     </Link>
@@ -95,30 +95,31 @@ function SidebarContent(props: {
   const segment = useSegment(props.basePath);
 
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border">
+    <div className="flex flex-col h-full bg-background border-r border-border/50">
       {/* Header */}
-      <div className="h-16 flex items-center px-4 shrink-0 border-b border-border bg-card">
+      <div className="h-16 flex items-center px-6 shrink-0 border-b border-border/50">
         {props.sidebarTop}
       </div>
       
       {/* Navigation */}
-      <div className="flex-1 flex flex-col py-4 overflow-y-auto">
-        <div className="px-3 space-y-1">
+      <div className="flex-1 flex flex-col py-6 overflow-y-auto">
+        <div className="px-4">
           {props.items.map((item, index) => {
             if (item.type === "separator") {
-              return <Separator key={index} className="my-4 mx-2" />;
+              return <Separator key={index} className="my-3" />;
             } else if (item.type === "item") {
               return (
-                <NavItem
-                  key={index}
-                  item={item}
-                  onClick={props.onNavigate}
-                  basePath={props.basePath}
-                />
+                <div key={index} className="mb-1.5">
+                  <NavItem
+                    item={item}
+                    onClick={props.onNavigate}
+                    basePath={props.basePath}
+                  />
+                </div>
               );
             } else {
               return (
-                <div key={index} className="px-3 py-2">
+                <div key={index} className="px-2 py-3">
                   <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {item.name}
                   </div>
@@ -166,8 +167,19 @@ export default function SidebarLayout(props: {
   basePath: string;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
   const { resolvedTheme, setTheme } = useTheme();
   const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', sidebarCollapsed.toString());
+  }, [sidebarCollapsed]);
 
   const handleSignOut = async () => {
     await authClient.signOut()
@@ -177,17 +189,32 @@ export default function SidebarLayout(props: {
   return (
     <div className="w-full flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex flex-col w-64 h-screen sticky top-0 z-20">
+      <div className={`hidden md:flex flex-col h-screen sticky top-0 z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
         <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
       </div>
       
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-10">
-          <div className="flex items-center justify-between h-full px-4 md:px-6">
+        <header className="h-16 border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-10">
+          <div className="flex items-center justify-between h-full px-6">
             {/* Left side - Mobile menu + Breadcrumb */}
             <div className="flex items-center space-x-4">
+              {/* Desktop Sidebar Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="hidden md:inline-flex"
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeftOpen className="h-5 w-5" />
+                ) : (
+                  <PanelLeftClose className="h-5 w-5" />
+                )}
+                <span className="sr-only">Toggle sidebar</span>
+              </Button>
+
               {/* Mobile Menu */}
               <div className="md:hidden">
                 <Sheet
@@ -263,13 +290,9 @@ export default function SidebarLayout(props: {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-            <div className="swiss-grid">
-              <div className="col-span-full">
-                {props.children}
-              </div>
-            </div>
+        <main className="flex-1 overflow-auto bg-background">
+          <div className="px-6 py-6">
+            {props.children}
           </div>
         </main>
       </div>

@@ -156,11 +156,11 @@ export default function PeoplePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-2">People</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-semibold mb-2">People</h1>
+          <p className="text-muted-foreground text-sm">
             Manage team members and their roles
           </p>
         </div>

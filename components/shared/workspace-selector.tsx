@@ -45,34 +45,40 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          className="w-full justify-between px-2 h-auto py-2 hover:bg-secondary/50"
-        >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Building2 className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate font-medium">{currentTeamName}</span>
-          </div>
-          <ChevronDown className="h-4 w-4 flex-shrink-0 ml-2" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Switch Workspace</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {teams.map((team) => (
-          <DropdownMenuItem
-            key={team.id}
-            onClick={() => handleTeamSwitch(team.id)}
-            className={team.id === currentTeamId ? 'bg-accent' : ''}
-          >
-            <Building2 className="mr-2 h-4 w-4" />
-            <span className="truncate">{team.name}</span>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-3 w-full">
+      <div className="flex items-center gap-2 px-2">
+        <div className="font-semibold text-lg">Doable</div>
+      </div>
+      <div className="flex-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-between px-2 h-auto py-2 hover:bg-secondary/50"
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="truncate font-medium">{currentTeamName}</span>
+              </div>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuLabel>Switch Workspace</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {teams.map((team) => (
+              <DropdownMenuItem
+                key={team.id}
+                onClick={() => handleTeamSwitch(team.id)}
+                className={team.id === currentTeamId ? 'bg-primary text-primary-foreground' : ''}
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                <span className="truncate">{team.name}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   )
 }
 
