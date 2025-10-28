@@ -56,6 +56,7 @@ export async function createProject(teamId: string, data: CreateProjectData) {
       icon: data.icon,
       leadId: data.leadId,
       lead: data.lead,
+      status: data.status || 'active',
       teamId,
     },
     include: {

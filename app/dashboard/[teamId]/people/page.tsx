@@ -84,6 +84,19 @@ export default function PeoplePage() {
     loadData()
   }, [fetchData])
 
+  // Add event listener to refresh people when chatbot invites team members
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchData()
+    }
+
+    window.addEventListener('refresh-people', handleRefresh)
+
+    return () => {
+      window.removeEventListener('refresh-people', handleRefresh)
+    }
+  }, [fetchData])
+
   const handleInvite = async () => {
     if (!inviteEmail || !inviteEmail.includes('@')) {
       toast.error('Invalid email', 'Please enter a valid email address.')

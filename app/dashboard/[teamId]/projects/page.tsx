@@ -88,6 +88,19 @@ export default function ProjectsPage() {
     fetchProjects()
   }, [fetchProjects])
 
+  // Add event listener to refresh projects when chatbot creates/updates projects
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchProjects()
+    }
+
+    window.addEventListener('refresh-projects', handleRefresh)
+
+    return () => {
+      window.removeEventListener('refresh-projects', handleRefresh)
+    }
+  }, [fetchProjects])
+
   const handleProjectEdit = (project: ProjectWithRelations) => {
     setCurrentProject(project)
     setEditDialogOpen(true)

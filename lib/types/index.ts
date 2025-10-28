@@ -66,6 +66,7 @@ export interface CreateProjectData {
   icon?: string
   leadId?: string
   lead?: string
+  status?: 'active' | 'completed' | 'canceled'
 }
 
 export interface UpdateProjectData {

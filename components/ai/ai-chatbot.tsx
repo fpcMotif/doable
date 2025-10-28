@@ -54,7 +54,27 @@ export function AIChatbot({ teamId }: AIChatbotProps) {
         // Check if the last message was from assistant (meaning an action was completed)
         const lastMessage = messages[messages.length - 1]
         if (lastMessage && lastMessage.role === 'assistant') {
-          window.dispatchEvent(new Event('refresh-issues'))
+          // Check for tool calls in the message
+          const hasToolCalls = lastMessage.parts?.some((part: any) => part.type === 'tool-call')
+          
+          if (hasToolCalls) {
+            // Find the tool names from the tool calls
+            const toolNames = lastMessage.parts
+              ?.filter((part: any) => part.type === 'tool-call')
+              .map((part: any) => part.toolName)
+              .join(' ') || ''
+            
+            // Dispatch appropriate refresh events based on tool used
+            if (toolNames.includes('createProject') || toolNames.includes('updateProject')) {
+              window.dispatchEvent(new Event('refresh-projects'))
+            }
+            if (toolNames.includes('inviteTeamMember')) {
+              window.dispatchEvent(new Event('refresh-people'))
+            }
+            if (toolNames.includes('createIssue') || toolNames.includes('updateIssue') || toolNames.includes('deleteIssue')) {
+              window.dispatchEvent(new Event('refresh-issues'))
+            }
+          }
         }
       }
     }, 1000)

@@ -11,7 +11,7 @@ import { updateIssue } from '@/lib/api/issues'
 import { getIssues } from '@/lib/api/issues'
 import { getIssueById } from '@/lib/api/issues'
 import { deleteIssue } from '@/lib/api/issues'
-import { createProject } from '@/lib/api/projects'
+import { createProject, updateProject } from '@/lib/api/projects'
 import { sendInvitationEmail } from '@/lib/email'
 import { stepCountIs } from 'ai'
 
@@ -62,6 +62,8 @@ Workflow States: ${teamContext.workflowStates.map(s => s.name).join(', ')}
 Available Labels: ${teamContext.labels.map(l => l.name).join(', ')}
 Team Members: ${teamContext.members.map(m => m.userName).join(', ') || 'None'}
 
+When user asks to see issues or lists tasks, ALWAYS call the listIssues tool WITHOUT a limit parameter to get ALL issues. 
+Display the results as a bullet list with clear formatting.
 When user provides minimal information, ask ONE follow-up question at a time.
 Always use the provided tools for actions.`
 
@@ -265,14 +267,14 @@ Always use the provided tools for actions.`
       }),
 
       listIssues: tool({
-        description: 'Get a list of issues for the team',
+        description: 'Get a list of ALL issues for the team. Returns all issues by default unless a specific limit is requested. Use this to get a complete overview of all tasks.',
         inputSchema: z.object({
-          limit: z.number().optional().describe('Maximum number of issues to return'),
+          limit: z.number().nullable().optional().describe('Maximum number of issues to return (omit to get all issues)'),
         }),
-        execute: async ({ limit = 20 }) => {
+        execute: async ({ limit }) => {
           try {
             const issues = await getIssues(teamId)
-            const limited = issues.slice(0, limit)
+            const limited = limit ? issues.slice(0, limit) : issues
             
             return {
               success: true,
@@ -288,6 +290,9 @@ Always use the provided tools for actions.`
               })),
               count: limited.length,
               total: issues.length,
+              message: limited.length === issues.length 
+                ? `Found all ${issues.length} issues`
+                : `Showing ${limited.length} of ${issues.length} total issues`
             }
           } catch (error: any) {
             return { success: false, error: error.message || 'Failed to list issues' }
@@ -379,24 +384,31 @@ Always use the provided tools for actions.`
       }),
 
       createProject: tool({
-        description: 'Create a new project',
+        description: 'Create a new project. The color parameter is optional and defaults to #6366f1 if not provided. The status parameter is optional and defaults to "active" if not provided.',
         inputSchema: z.object({
           name: z.string().describe('The name of the project'),
           description: z.string().optional(),
           key: z.string().describe('A 3-letter project identifier'),
-          color: z.string().optional().default('#6366f1'),
+          color: z.string().optional(),
           icon: z.string().optional(),
           leadId: z.string().optional(),
+          status: z.enum(['active', 'completed', 'canceled']).optional().describe('The status of the project (active, completed, or canceled)'),
         }),
-        execute: async ({ name, description, key, color, icon, leadId }) => {
+        execute: async ({ name, description, key, color, icon, leadId, status }) => {
           try {
+            // Default color if not provided
+            const projectColor = color || '#6366f1'
+            // Default status if not provided
+            const projectStatus = status || 'active'
+            
             const project = await createProject(teamId, {
               name,
               description,
               key,
-              color,
+              color: projectColor,
               icon,
               leadId,
+              status: projectStatus,
               lead: leadId ? teamContext.members.find(m => m.userId === leadId)?.userName : undefined,
             })
 
@@ -418,7 +430,7 @@ Always use the provided tools for actions.`
 
       listProjects: tool({
         description: 'Get all projects for the team',
-        inputSchema: z.object({}),
+        inputSchema: z.object({}).passthrough(),
         execute: async () => {
           try {
             const projects = teamContext.projects
@@ -435,6 +447,79 @@ Always use the provided tools for actions.`
             }
           } catch (error: any) {
             return { success: false, error: error.message || 'Failed to list projects' }
+          }
+        },
+      }),
+
+      updateProject: tool({
+        description: 'Update an existing project by name or ID. You can update properties like status, name, description, color, icon, or lead.',
+        inputSchema: z.object({
+          projectId: z.string().optional().describe('The ID of the project to update'),
+          name: z.string().optional().describe('The name of the project to find (if projectId not provided)'),
+          newName: z.string().optional(),
+          description: z.string().optional(),
+          status: z.enum(['active', 'completed', 'canceled']).optional().describe('The new status of the project (active, completed, or canceled)'),
+          color: z.string().optional(),
+          icon: z.string().optional(),
+          leadId: z.string().optional(),
+        }),
+        execute: async ({ projectId, name, newName, description, status, color, icon, leadId }) => {
+          try {
+            let resolvedProjectId = projectId
+
+            // If name is provided, find the project by name
+            if (name && !projectId) {
+              const projects = teamContext.projects
+              const matchingProjects = projects.filter(
+                (project) => project.name.toLowerCase().includes(name.toLowerCase())
+              )
+
+              if (matchingProjects.length === 0) {
+                return { success: false, error: `No project found with name "${name}"` }
+              }
+
+              if (matchingProjects.length > 1) {
+                return {
+                  success: false,
+                  error: `Multiple projects found matching "${name}": ${matchingProjects.map(p => `${p.name} (${p.key})`).join(', ')}. Please be more specific.`,
+                }
+              }
+
+              resolvedProjectId = matchingProjects[0].id
+            }
+
+            if (!resolvedProjectId) {
+              return { success: false, error: 'Either projectId or name must be provided' }
+            }
+
+            const project = await updateProject(teamId, resolvedProjectId, {
+              ...(newName && { name: newName }),
+              ...(description !== undefined && { description }),
+              ...(status && { status }),
+              ...(color && { color }),
+              ...(icon && { icon }),
+              ...(leadId !== undefined && { 
+                leadId,
+                lead: leadId ? teamContext.members.find(m => m.userId === leadId)?.userName : undefined,
+              }),
+            })
+
+            if (!project) {
+              return { success: false, error: 'Project not found' }
+            }
+
+            return {
+              success: true,
+              project: {
+                id: project.id,
+                name: project.name,
+                key: project.key,
+                status: project.status,
+              },
+              message: `Project "${project.name}" has been updated successfully.`,
+            }
+          } catch (error: any) {
+            return { success: false, error: error.message || 'Failed to update project' }
           }
         },
       }),
@@ -503,7 +588,7 @@ Always use the provided tools for actions.`
 
       listTeamMembers: tool({
         description: 'Get all team members',
-        inputSchema: z.object({}),
+        inputSchema: z.object({}).passthrough(),
         execute: async () => {
           try {
             return {
@@ -523,7 +608,7 @@ Always use the provided tools for actions.`
 
       getTeamStats: tool({
         description: 'Get team statistics and summary',
-        inputSchema: z.object({}),
+        inputSchema: z.object({}).passthrough(),
         execute: async () => {
           try {
             const [issueCount, projectCount, memberCount] = await Promise.all([
