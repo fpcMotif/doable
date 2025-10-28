@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ interface TeamSelectorProps {
 }
 
 export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
+  const t = useTranslations('teams')
   const { data: session } = authClient.useSession()
   const user = session?.user || null
   const router = useRouter()
@@ -82,7 +84,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
               <Spinner size="md" />
-              <p className="text-center text-muted-foreground">Loading teams...</p>
+              <p className="text-center text-muted-foreground">{t('loadingTeams')}</p>
             </div>
           </CardContent>
         </Card>
@@ -100,12 +102,12 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
             <CardHeader>
               <CardTitle className="text-center flex items-center justify-center gap-2">
                 <Users className="h-5 w-5" />
-                No Teams Found
+                {t('noTeamsFound')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-muted-foreground">
-                You don&apos;t have access to any teams yet.
+                {t('noAccess')}
               </p>
               
               <Button 
@@ -113,7 +115,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Your First Team
+                {t('createFirstTeam')}
               </Button>
             </CardContent>
           </Card>
@@ -128,12 +130,12 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
         <CardHeader>
           <CardTitle className="text-center flex items-center justify-center gap-2">
             <Users className="h-5 w-5" />
-            Select Team
+            {t('selectTeam')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-center text-muted-foreground">
-            Choose a team to get started
+            {t('chooseTeam')}
           </p>
           
           <div className="space-y-2">
@@ -153,7 +155,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
                   <div className="text-left">
                     <div className="font-medium">{team.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      Team members
+                      {t('teamMembers')}
                     </div>
                   </div>
                 </div>
@@ -167,7 +169,7 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
             className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create New Team
+            {t('createNewTeam')}
           </Button>
         </CardContent>
       </Card>

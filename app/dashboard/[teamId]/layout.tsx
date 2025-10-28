@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from "next-intl";
 import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
 import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -9,44 +10,47 @@ import { WorkspaceSelector } from "@/components/shared/workspace-selector";
 import { ApiKeyDialog } from "@/components/shared/api-key-dialog";
 import { useState, useEffect } from "react";
 
-const navigationItems = (openApiKeyDialog: () => void): SidebarItem[] => [
-  {
-    name: "Issues",
-    href: "/issues",
-    icon: AlertCircle,
-    type: "item",
-  },
-  {
-    name: "Projects",
-    href: "/projects",
-    icon: FolderOpen,
-    type: "item",
-  },
-  {
-    type: 'label',
-    name: 'Management',
-  },
-  {
-    name: "Management",
-    href: "/management",
-    icon: BarChart3,
-    type: "item",
-  },
-  {
-    name: "People",
-    href: "/people",
-    icon: Users,
-    type: "item",
-  },
-  {
-    name: "API Key",
-    icon: Settings,
-    type: "item",
-    action: openApiKeyDialog,
-  },
-];
-
 export default function Layout(props: { children: React.ReactNode }) {
+  const t = useTranslations("navigation");
+  const dashboardT = useTranslations("dashboard");
+  
+  const navigationItems: SidebarItem[] = [
+    {
+      name: t("issues"),
+      href: "/issues",
+      icon: AlertCircle,
+      type: "item",
+    },
+    {
+      name: t("projects"),
+      href: "/projects",
+      icon: FolderOpen,
+      type: "item",
+    },
+    {
+      type: 'label',
+      name: t("management"),
+    },
+    {
+      name: t("management"),
+      href: "/management",
+      icon: BarChart3,
+      type: "item",
+    },
+    {
+      name: t("people"),
+      href: "/people",
+      icon: Users,
+      type: "item",
+    },
+    {
+      name: t("apiKey"),
+      icon: Settings,
+      type: "item",
+      action: () => setApiKeyDialogOpen(true),
+    },
+  ];
+
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
   const params = useParams<{ teamId: string }>();
   const { data: session } = authClient.useSession();
@@ -71,7 +75,7 @@ export default function Layout(props: { children: React.ReactNode }) {
             setIsRedirecting(true);
             setLoading(false);
             router.replace('/dashboard');
-            return; // Exit early to prevent rendering
+            return;
           }
         }
         setLoading(false);
@@ -79,7 +83,6 @@ export default function Layout(props: { children: React.ReactNode }) {
         console.error('Error fetching team:', error);
         setLoading(false);
         setIsRedirecting(true);
-        // Redirect to dashboard on error
         router.replace('/dashboard');
       }
     };
@@ -90,7 +93,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   if (isRedirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <DashboardLoader message="Redirecting..." submessage="Team not found" />
+        <DashboardLoader message={dashboardT("redirecting")} submessage={dashboardT("teamNotFound")} />
       </div>
     );
   }
@@ -99,7 +102,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   if (loading || !team) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <DashboardLoader message="Loading team" submessage="Fetching team data..." />
+        <DashboardLoader message={dashboardT("loading")} submessage={dashboardT("loadingMessage")} />
       </div>
     );
   }
@@ -107,7 +110,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   return (
     <>
       <SidebarLayout 
-        items={navigationItems(() => setApiKeyDialogOpen(true))}
+        items={navigationItems}
         basePath={`/dashboard/${team.id}`}
         sidebarTop={<WorkspaceSelector currentTeamId={team.id} currentTeamName={team.name} />}
         baseBreadcrumb={[{

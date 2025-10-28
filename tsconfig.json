@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@/messages": [
+        "./messages"
       ]
     },
     "target": "ES2017"

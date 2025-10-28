@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 import { Provider } from "./provider";
 import { HydrationBoundary } from "@/components/hydration-boundary";
+import { defaultLocale } from "@/i18n/config";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
   title: "Doable - Modern Team Task Management. Elevated.",
-  description: "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles. Free forever, open source.",
-  keywords: ["task management", "team collaboration", "project management", "kanban", "agile", "productivity", "open source"],
+  description:
+    "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles. Free forever, open source.",
+  keywords: [
+    "task management",
+    "team collaboration",
+    "project management",
+    "kanban",
+    "agile",
+    "productivity",
+    "open source",
+  ],
   authors: [{ name: "Kartik Labhshetwar" }],
   creator: "Kartik Labhshetwar",
   publisher: "Kartik Labhshetwar",
@@ -30,7 +42,8 @@ export const metadata: Metadata = {
     url: "https://doable-lyart.vercel.app/",
     siteName: "Doable",
     title: "Doable - Modern Team Task Management. Elevated.",
-    description: "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles.",
+    description:
+      "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles.",
     images: [
       {
         url: "/open-graph.png",
@@ -46,7 +59,8 @@ export const metadata: Metadata = {
     site: "@code_kartik",
     creator: "@code_kartik",
     title: "Doable - Modern Team Task Management. Elevated.",
-    description: "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles. Free forever, open source.",
+    description:
+      "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles. Free forever, open source.",
     images: ["/open-graph.png"],
   },
   alternates: {
@@ -55,20 +69,34 @@ export const metadata: Metadata = {
   category: "productivity",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode;
-}>) {
+  params: Promise<{ locale?: string }>;
+}
+
+export default async function RootLayout({
+  children,
+  params,
+}: Readonly<RootLayoutProps>) {
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale || defaultLocale;
+  const messages = await getMessages({ locale });
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
-      <script defer src="https://cloud.umami.is/script.js" data-website-id="158d23fd-3fec-46cb-a533-9f1136de3fe7"></script>
+        <script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="158d23fd-3fec-46cb-a533-9f1136de3fe7"
+        />
       </head>
       <body className={inter.className}>
-        <HydrationBoundary>
-          <Provider>{children}</Provider>
-        </HydrationBoundary>
+        <NextIntlClientProvider messages={messages}>
+          <HydrationBoundary>
+            <Provider>{children}</Provider>
+          </HydrationBoundary>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
