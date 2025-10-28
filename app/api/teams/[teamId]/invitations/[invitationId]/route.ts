@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getUserId } from '@/lib/auth-server-helpers'
 import { db } from '@/lib/db'
 
 export async function DELETE(
