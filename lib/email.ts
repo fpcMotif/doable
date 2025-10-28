@@ -1,33 +1,9 @@
-import sgMail from '@sendgrid/mail'
+import { Resend } from 'resend'
 
-// Initialize SendGrid if API key is provided
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-}
+// Initialize Resend if API key is provided
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-export async function sendInvitationEmail(params: {
-  email: string
-  teamName: string
-  inviterName: string
-  role: string
-  inviteUrl: string
-}) {
-  const { email, teamName, inviterName, role, inviteUrl } = params
-
-  try {
-    // If no API key, log the invitation URL for manual testing
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log('📧 EMAIL DISABLED - Copy this invitation URL to manually invite users:')
-      console.log('   Invitation URL:', inviteUrl)
-      console.log('   For email:', email)
-      return { success: true, skipped: true }
-    }
-
-    const msg = {
-      to: email,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@doable.app',
-      subject: `You've been invited to join ${teamName} on Doable`,
-      html: `
+const emailTemplate = (teamName: string, inviterName: string, role: string, inviteUrl: string) => `
         <!DOCTYPE html>
         <html>
           <head>
@@ -62,21 +38,48 @@ export async function sendInvitationEmail(params: {
             </div>
           </body>
         </html>
-      `,
-    }
+      `
 
-    await sgMail.send(msg)
-    return { success: true }
-  } catch (error: any) {
-    // Handle SendGrid errors gracefully
-    if (error?.code === 403 || error?.response?.body?.errors) {
-      console.log('📧 SENDGRID ERROR: Cannot send email')
-      console.log('📧 Invitation created in database, but email not sent.')
-      console.log('📧 Copy this invitation URL to manually invite:')
-      console.log('   URL:', inviteUrl)
+export async function sendInvitationEmail(params: {
+  email: string
+  teamName: string
+  inviterName: string
+  role: string
+  inviteUrl: string
+}) {
+  const { email, teamName, inviterName, role, inviteUrl } = params
+
+  try {
+    // Check if Resend is configured
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.log('📧 EMAIL DISABLED - Resend API key not configured')
+      console.log('📧 Copy this invitation URL to manually invite users:')
+      console.log('   Invitation URL:', inviteUrl)
+      console.log('   For email:', email)
+      console.log('   💡 Tip: Add RESEND_API_KEY to .env')
       return { success: true, skipped: true }
     }
+
+    // Send email via Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      to: email,
+      subject: `You've been invited to join ${teamName} on Doable`,
+      html: emailTemplate(teamName, inviterName, role, inviteUrl),
+    })
+
+    if (error) {
+      console.error('Resend error:', error)
+      throw error
+    }
+
+    console.log('✅ Email sent via Resend:', data)
+    return { success: true }
+  } catch (error: any) {
     console.error('Error sending invitation email:', error)
+    console.log('📧 Invitation created in database, but email failed.')
+    console.log('📧 Copy this invitation URL to manually invite:')
+    console.log('   URL:', inviteUrl)
     return { success: false, error }
   }
 }

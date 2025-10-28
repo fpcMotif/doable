@@ -569,7 +569,7 @@ Always use the provided tools for actions.`
                   teamName: team?.name || 'the team',
                   inviterName,
                   role: role || 'developer',
-                  inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.id}`,
+                  inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL}/invite/${invitation.id}`,
                 })
               } catch (emailError) {
                 console.error('Error sending invitation email:', emailError)
