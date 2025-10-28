@@ -70,6 +70,10 @@ interface Label {
 const cache = new Map<string, { data: any; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+function clearAllCachedData() {
+  cache.clear()
+}
+
 function getCachedData(key: string) {
   const cached = cache.get(key)
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -244,6 +248,21 @@ export default function IssuesPage() {
     fetchIssues()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId, filters, sort])
+
+  // Add event listener to refresh issues when chatbot creates/updates issues
+  useEffect(() => {
+    const handleRefresh = () => {
+      clearAllCachedData()
+      fetchIssues()
+    }
+
+    window.addEventListener('refresh-issues', handleRefresh)
+
+    return () => {
+      window.removeEventListener('refresh-issues', handleRefresh)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId])
 
   const handleIssueView = (issue: IssueWithRelations) => {
     // For now, just open the edit dialog to view details

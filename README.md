@@ -15,6 +15,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 
 ## Features
 
+- **AI-Powered Assistant** - Intelligent chatbot for task management with natural language commands
 - **Modern Interface** - Clean, intuitive design inspired by Swiss design principles
 - **Team Collaboration** - Built-in team management with role-based permissions
 - **Lightning Fast** - Built with Next.js 15 and optimized for performance
@@ -28,6 +29,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 - **Styling**: Tailwind CSS with custom Swiss design system
 - **Authentication**: Better Auth with Google OAuth
 - **Database**: PostgreSQL with Prisma ORM
+- **AI/LLM**: Vercel AI SDK with Groq (llama-3.3-70b)
 - **UI Components**: Custom components with Shadcn/ui base
 - **Forms**: React Hook Form with Zod validation
 
@@ -38,6 +40,7 @@ Doable is a comprehensive task management solution designed for modern teams.
 - Node.js 18+ 
 - PostgreSQL database
 - Google Cloud OAuth credentials
+- Groq API key (for AI chatbot feature)
 
 ### Installation
 
@@ -70,6 +73,13 @@ Doable is a comprehensive task management solution designed for modern teams.
    
    # Application URL (Required)
    NEXT_PUBLIC_APP_URL=http://localhost:3000
+   
+   # AI Chatbot (Optional, but recommended)
+   # Get your free API key from https://console.groq.com/
+   GROQ_API_KEY="your-groq-api-key"
+   
+   # Email Service (Optional, for team invitations)
+   RESEND_API_KEY="your-resend-api-key"
    ```
 
 4. **Set up the database**
@@ -118,6 +128,20 @@ doable/
 - Issue and project management
 - Advanced filtering and search
 - Multiple view modes (list, board, table)
+- **AI Chatbot** - Natural language task management assistant
+
+### AI Chatbot
+- Intelligent conversational assistant powered by Groq
+- Create and manage issues through natural language
+- Ask follow-up questions when details are missing
+- Full access to team data (projects, members, labels, workflow states)
+- Persistent conversation history
+- Features:
+  - Create issues with smart defaults
+  - Update issue status and properties
+  - Create and manage projects
+  - Invite team members
+  - Get team statistics and insights
 
 ### Authentication
 - Google OAuth sign-in/sign-up
@@ -179,6 +203,29 @@ Add these to `.env.local`:
 ### Database Configuration
 
 The application uses PostgreSQL with Prisma ORM. Make sure your database is running and accessible via the `DATABASE_URL` environment variable.
+
+### AI Chatbot Configuration (Groq)
+
+The AI chatbot uses Groq's free LLM API to provide intelligent task management assistance.
+
+1. **Get a Groq API Key**
+   - Sign up at [console.groq.com](https://console.groq.com/)
+   - Create an API key in the dashboard
+   - Free tier includes 30 requests/minute
+
+2. **Bring your own Groq API key**
+   - Click the gear icon in the dashboard header to open the management page
+   - Click the "Manage API Key" button to open the API key dialog
+   - Enter your Groq API key and click the "Save" button
+
+3. **Using the Chatbot**
+   - Click the sparkles brain icon in the dashboard header to open the AI assistant
+   - Chatbot has full access to your team's data
+   - Ask questions like:
+     - "Create a new issue to implement user authentication"
+     - "Show me all high priority issues"
+     - "Move issue #42 to in progress"
+     - "Invite john@example.com to the team"
 
 ### Deployment to Vercel
 

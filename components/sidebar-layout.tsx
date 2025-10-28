@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Brain } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,6 +28,8 @@ import {
 } from "./ui/breadcrumb";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { AIChatbot } from "./ai/ai-chatbot";
+import { ApiKeyDialog } from "./shared/api-key-dialog";
 
 function useSegment(basePath: string) {
   const path = usePathname();
@@ -37,9 +39,10 @@ function useSegment(basePath: string) {
 
 type Item = {
   name: React.ReactNode;
-  href: string;
+  href?: string;
   icon: LucideIcon;
   type: "item";
+  action?: () => void;
 };
 
 type Sep = {
@@ -57,13 +60,42 @@ function NavItem(props: {
   item: Item;
   onClick?: () => void;
   basePath: string;
+  onItemAction?: (action: () => void) => void;
 }) {
   const segment = useSegment(props.basePath);
-  const selected = segment === props.item.href;
+  const selected = props.item.href ? segment === props.item.href : false;
+
+  // If it's an action item (no href), render as button
+  if (props.item.action && !props.item.href) {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          if (props.item.action) {
+            const action = props.item.action;
+            action();
+            props.onItemAction?.(action);
+          }
+        }}
+        className={cn(
+          "group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 ease-in-out rounded-lg",
+          "hover:bg-secondary/40 text-left",
+          "text-muted-foreground hover:text-foreground",
+          "focus:outline-none focus-visible:outline-none"
+        )}
+      >
+        <props.item.icon className={cn(
+          "mr-3 h-5 w-5 transition-colors duration-200",
+          "text-muted-foreground group-hover:text-foreground"
+        )} />
+        <span className="truncate">{props.item.name}</span>
+      </button>
+    );
+  }
 
   return (
     <Link
-      href={props.basePath + props.item.href}
+      href={props.basePath + (props.item.href || '')}
       className={cn(
         "group relative flex items-center w-full px-4 py-3 text-sm font-medium transition-all duration-200 ease-in-out rounded-lg",
         "hover:bg-secondary/40",
@@ -89,6 +121,7 @@ function SidebarContent(props: {
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
   basePath: string;
+  onItemAction?: (action: () => void) => void;
 }) {
   const path = usePathname();
   const segment = useSegment(props.basePath);
@@ -113,6 +146,7 @@ function SidebarContent(props: {
                     item={item}
                     onClick={props.onNavigate}
                     basePath={props.basePath}
+                    onItemAction={props.onItemAction}
                   />
                 </div>
               );
@@ -188,8 +222,11 @@ export default function SidebarLayout(props: {
   items: SidebarItem[];
   sidebarTop?: React.ReactNode;
   basePath: string;
+  teamId?: string;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebar-collapsed');
@@ -213,7 +250,12 @@ export default function SidebarLayout(props: {
     <div className="w-full flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className={`hidden md:flex flex-col h-screen sticky top-0 z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
-        <SidebarContent items={props.items} sidebarTop={props.sidebarTop} basePath={props.basePath} />
+        <SidebarContent 
+          items={props.items} 
+          sidebarTop={props.sidebarTop} 
+          basePath={props.basePath}
+          onItemAction={(action) => action()}
+        />
       </div>
       
       {/* Main Content Area */}
@@ -269,10 +311,22 @@ export default function SidebarLayout(props: {
               />
             </div>
 
-            {/* Right side - User Button */}
+            {/* Right side - Chatbot Button + User Button */}
             <div className="flex items-center gap-2">
               {session?.user && (
-                <DropdownMenu>
+                <>
+                  {/* AI Chatbot Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setChatbotOpen(true)}
+                    className="relative"
+                    title="Open Doable AI"
+                  >
+                    <Brain className="h-5 w-5" />
+                  </Button>
+
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar className="h-10 w-10">
@@ -292,7 +346,6 @@ export default function SidebarLayout(props: {
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />  
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -300,6 +353,7 @@ export default function SidebarLayout(props: {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </>
               )}
             </div>
           </div>
@@ -312,6 +366,19 @@ export default function SidebarLayout(props: {
           </div>
         </main>
       </div>
+
+      {/* AI Chatbot Sheet */}
+      <Sheet open={chatbotOpen} onOpenChange={setChatbotOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-0">
+          {props.teamId && <AIChatbot teamId={props.teamId} />}
+        </SheetContent>
+      </Sheet>
+
+      {/* API Key Dialog */}
+      <ApiKeyDialog
+        open={apiKeyDialogOpen}
+        onOpenChange={setApiKeyDialogOpen}
+      />
     </div>
   );
 }

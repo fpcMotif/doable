@@ -6,9 +6,10 @@ import { authClient } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
 import { WorkspaceSelector } from "@/components/shared/workspace-selector";
+import { ApiKeyDialog } from "@/components/shared/api-key-dialog";
 import { useState, useEffect } from "react";
 
-const navigationItems: SidebarItem[] = [
+const navigationItems = (openApiKeyDialog: () => void): SidebarItem[] => [
   {
     name: "Issues",
     href: "/issues",
@@ -36,10 +37,17 @@ const navigationItems: SidebarItem[] = [
     href: "/people",
     icon: Users,
     type: "item",
-  }
+  },
+  {
+    name: "API Key",
+    icon: Settings,
+    type: "item",
+    action: openApiKeyDialog,
+  },
 ];
 
 export default function Layout(props: { children: React.ReactNode }) {
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
   const params = useParams<{ teamId: string }>();
   const { data: session } = authClient.useSession();
   const user = session?.user || null;
@@ -97,16 +105,25 @@ export default function Layout(props: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarLayout 
-      items={navigationItems}
-      basePath={`/dashboard/${team.id}`}
-      sidebarTop={<WorkspaceSelector currentTeamId={team.id} currentTeamName={team.name} />}
-      baseBreadcrumb={[{
-        title: team.displayName || team.name,
-        href: `/dashboard/${team.id}`,
-      }]}
-    >
-      {props.children}
-    </SidebarLayout>
+    <>
+      <SidebarLayout 
+        items={navigationItems(() => setApiKeyDialogOpen(true))}
+        basePath={`/dashboard/${team.id}`}
+        sidebarTop={<WorkspaceSelector currentTeamId={team.id} currentTeamName={team.name} />}
+        baseBreadcrumb={[{
+          title: team.displayName || team.name,
+          href: `/dashboard/${team.id}`,
+        }]}
+        teamId={team.id}
+      >
+        {props.children}
+      </SidebarLayout>
+      
+      {/* API Key Dialog */}
+      <ApiKeyDialog
+        open={apiKeyDialogOpen}
+        onOpenChange={setApiKeyDialogOpen}
+      />
+    </>
   );
 }
