@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Globe, Users, Zap, Shield, Code, ComponentIcon } from 'lucide-react';
+import { Globe, Users, Zap, Shield, Code, ComponentIcon, Brain } from 'lucide-react';
 import { TextAnimate } from '@/components/ui/text-animate';
 
 interface FeaturesSectionProps {
@@ -9,6 +9,11 @@ interface FeaturesSectionProps {
 
 export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className = '' }) => {
   const features = [
+    {
+      icon: <Brain className="h-8 w-8" />,
+      title: "Doable AI",
+      description: "Built-in AI assistant powered by Groq. Create, update, and manage issues with natural language commands. Just ask and get things done. Powered by Groq.",
+    },
     {
       icon: <Globe className="h-8 w-8" />,
       title: "Modern Interface",
@@ -33,11 +38,6 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ className = ''
       icon: <Code className="h-8 w-8" />,
       title: "Open Source",
       description: "Full source code available. Customize, extend, and contribute to the project.",
-    },
-    {
-      icon: <ComponentIcon className="h-8 w-8" />,
-      title: "Modular Design",
-      description: "Clean architecture with reusable components. No spaghetti code, just clean solutions.",
     },
   ];
 
