@@ -4,7 +4,7 @@ import { v } from "convex/values";
 /**
  * Convex Database Schema
  * Migrated from Prisma schema
- * 
+ *
  * Key differences:
  * - No native relations, use v.id("tableName") for references
  * - System fields _id, _creationTime are automatically added
@@ -12,13 +12,21 @@ import { v } from "convex/values";
  */
 
 export default defineSchema({
+  // Users (Better Auth mirror)
+  users: defineTable({
+    userId: v.string(),
+    email: v.string(),
+    name: v.string(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_email", ["email"]),
+
   // Teams
   teams: defineTable({
     name: v.string(),
     key: v.string(), // 3-letter team identifier (e.g., "ENG", "DES")
     groqApiKey: v.optional(v.string()), // Optional Groq API key for BYOK feature
-  })
-    .index("by_key", ["key"]),
+  }).index("by_key", ["key"]),
 
   // Projects
   projects: defineTable({
@@ -140,7 +148,5 @@ export default defineSchema({
     role: v.string(), // user, assistant, tool
     content: v.string(),
     toolCalls: v.optional(v.any()), // Store tool call data as JSON
-  })
-    .index("by_conversationId", ["conversationId"]),
+  }).index("by_conversationId", ["conversationId"]),
 });
-

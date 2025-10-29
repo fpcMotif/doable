@@ -1,27 +1,24 @@
-'use client'
+"use client";
 
-import { Brain, User } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Markdown } from '@/components/ui/markdown'
-import { cn } from '@/lib/utils'
+import { Brain, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Markdown } from "@/components/ui/markdown";
+import { cn } from "@/lib/utils";
 
-interface ChatMessageProps {
+type ChatMessageProps = {
   message: {
-    role: string
-    content: string
-    id?: string
-  }
-}
+    role: string;
+    content: string;
+    id?: string;
+  };
+};
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const isUser = message.role === 'user'
-  const isAssistant = message.role === 'assistant'
+  const isUser = message.role === "user";
+  const isAssistant = message.role === "assistant";
 
   return (
-    <div className={cn(
-      'flex gap-3 p-4',
-      isUser && 'bg-muted/20'
-    )}>
+    <div className={cn("flex gap-3 p-4", isUser && "bg-muted/20")}>
       <Avatar className="h-8 w-8 shrink-0">
         <AvatarFallback>
           {isUser ? (
@@ -35,7 +32,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       <div className="flex-1 space-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">
-            {isUser ? 'You' : 'Doable AI'}
+            {isUser ? "You" : "Doable AI"}
           </span>
         </div>
 
@@ -48,5 +45,5 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

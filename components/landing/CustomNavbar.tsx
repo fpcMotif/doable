@@ -1,21 +1,21 @@
 "use client";
-import React from 'react';
-import { 
-  Navbar, 
-  NavBody, 
-  MobileNav, 
-  MobileNavHeader, 
-  MobileNavMenu, 
-  MobileNavToggle, 
-  NavbarLogo, 
+import React from "react";
+import {
+  MobileNav,
+  MobileNavHeader,
+  MobileNavMenu,
+  MobileNavToggle,
+  NavBody,
+  Navbar,
   NavbarButton,
-  NavItems 
-} from '@/components/ui/resizable-navbar';
-import { GitHubStarButton } from './GitHubStarButton';
+  NavbarLogo,
+  NavItems,
+} from "@/components/ui/resizable-navbar";
+import { GitHubStarButton } from "./GitHubStarButton";
 
-interface CustomNavbarProps {
+type CustomNavbarProps = {
   className?: string;
-}
+};
 
 export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -26,11 +26,11 @@ export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
       <NavBody>
         <NavbarLogo />
         <div className="flex items-center gap-3">
-          <GitHubStarButton 
-            owner="KartikLabhshetwar" 
-            repo="doable" 
-            variant="outline"
+          <GitHubStarButton
             className="text-sm"
+            owner="KartikLabhshetwar"
+            repo="doable"
+            variant="outline"
           />
           <NavbarButton href="/dashboard" variant="primary">
             Get Started
@@ -52,11 +52,11 @@ export const CustomNavbar: React.FC<CustomNavbarProps> = ({ className }) => {
           onClose={() => setIsMobileMenuOpen(false)}
         >
           <div className="flex flex-col gap-3">
-            <GitHubStarButton 
-              owner="KartikLabhshetwar" 
-              repo="doable" 
-              variant="outline"
+            <GitHubStarButton
               className="text-sm justify-start"
+              owner="KartikLabhshetwar"
+              repo="doable"
+              variant="outline"
             />
             <NavbarButton href="/dashboard" variant="primary">
               Get Started

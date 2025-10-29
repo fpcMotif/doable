@@ -1,38 +1,38 @@
-import { cn } from '@/lib/utils'
-import { IssueWithRelations } from '@/lib/types'
-import { UserAvatar } from '@/components/shared/user-avatar'
-import { Card } from '@/components/ui/card'
-import { ActionsMenu, issueActions } from '@/components/shared/actions-menu'
-import { PriorityIcon } from '@/components/shared/priority-icon'
+import { ActionsMenu, issueActions } from "@/components/shared/actions-menu";
+import { PriorityIcon } from "@/components/shared/priority-icon";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Card } from "@/components/ui/card";
+import type { IssueWithRelations } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-interface IssueCardProps {
-  issue: IssueWithRelations
-  onClick?: () => void
-  onView?: (issue: IssueWithRelations) => void
-  onEdit?: (issue: IssueWithRelations) => void
-  onAssign?: (issue: IssueWithRelations) => void
-  onMove?: (issue: IssueWithRelations) => void
-  onDelete?: (issueId: string) => void
-  className?: string
-  isDragging?: boolean
-}
+type IssueCardProps = {
+  issue: IssueWithRelations;
+  onClick?: () => void;
+  onView?: (issue: IssueWithRelations) => void;
+  onEdit?: (issue: IssueWithRelations) => void;
+  onAssign?: (issue: IssueWithRelations) => void;
+  onMove?: (issue: IssueWithRelations) => void;
+  onDelete?: (issueId: string) => void;
+  className?: string;
+  isDragging?: boolean;
+};
 
-export function IssueCard({ 
-  issue, 
-  onClick, 
+export function IssueCard({
+  issue,
+  onClick,
   onView,
   onEdit,
   onAssign,
   onMove,
   onDelete,
-  className, 
-  isDragging 
+  className,
+  isDragging,
 }: IssueCardProps) {
   return (
     <Card
       className={cn(
-        'p-4 cursor-pointer transition-all hover:bg-muted/50 border-border/50',
-        isDragging && 'opacity-50',
+        "p-4 cursor-pointer transition-all hover:bg-muted/50 border-border/50",
+        isDragging && "opacity-50",
         className
       )}
       onClick={onClick}
@@ -48,17 +48,20 @@ export function IssueCard({
               {issue.project?.key || issue.team.key}-{issue.number}
             </span>
             {issue.project && (
-              <span className="text-xs px-2 py-0.5 rounded-md" style={{ 
-                backgroundColor: `${issue.project.color || '#6366f1'}20`,
-                color: issue.project.color || '#6366f1'
-              }}>
+              <span
+                className="text-xs px-2 py-0.5 rounded-md"
+                style={{
+                  backgroundColor: `${issue.project.color || "#6366f1"}20`,
+                  color: issue.project.color || "#6366f1",
+                }}
+              >
                 {issue.project.key}
               </span>
             )}
           </div>
-          
+
           {/* Status Badge */}
-          <div 
+          <div
             className="text-xs px-2 py-1 rounded text-white font-medium flex-shrink-0"
             style={{ backgroundColor: issue.workflowState.color }}
           >
@@ -85,8 +88,11 @@ export function IssueCard({
               </div>
             )}
           </div>
-          
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+
+          <div
+            className="flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             <ActionsMenu
               actions={[
                 issueActions.view(() => onView?.(issue)),
@@ -96,9 +102,7 @@ export function IssueCard({
                 issueActions.delete(() => onDelete?.(issue.id)),
               ]}
               trigger={
-                <button
-                  className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors"
-                >
+                <button className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors">
                   <span className="text-xs text-muted-foreground">⋯</span>
                 </button>
               }
@@ -107,5 +111,5 @@ export function IssueCard({
         </div>
       </div>
     </Card>
-  )
+  );
 }

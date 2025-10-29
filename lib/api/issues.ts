@@ -1,409 +1,102 @@
-import { db } from '@/lib/db'
-import { CreateIssueData, UpdateIssueData, IssueFilters, IssueSort } from '@/lib/types'
+/**
+ * Issues API - Server-side helpers using Convex
+ */
+
+import type { Id } from "@/convex/_generated/dataModel";
+import { api, getConvexClient } from "@/lib/convex";
+import type {
+  CreateIssueData,
+  IssueFilters,
+  IssueSort,
+  UpdateIssueData,
+} from "@/lib/types";
 
 export async function getIssues(
   teamId: string,
   filters: IssueFilters = {},
-  sort: IssueSort = { field: 'createdAt', direction: 'desc' }
+  sort: IssueSort = { field: "createdAt", direction: "desc" }
 ) {
-  const where: any = {
-    teamId,
-  }
+  const convex = getConvexClient();
 
-  // Apply filters
-  if (filters.status?.length) {
-    where.workflowStateId = {
-      in: filters.status,
-    }
-  }
-
-  if (filters.assignee?.length) {
-    where.assigneeId = {
-      in: filters.assignee,
-    }
-  }
-
-  if (filters.project?.length) {
-    where.projectId = {
-      in: filters.project,
-    }
-  }
-
-  if (filters.priority?.length) {
-    where.priority = {
-      in: filters.priority,
-    }
-  }
-
-  if (filters.label?.length) {
-    where.labels = {
-      some: {
-        labelId: {
-          in: filters.label,
-        },
-      },
-    }
-  }
-
-  if (filters.search) {
-    where.OR = [
-      {
-        title: {
-          contains: filters.search,
-          mode: 'insensitive',
-        },
-      },
-      {
-        description: {
-          contains: filters.search,
-          mode: 'insensitive',
-        },
-      },
-    ]
-  }
-
-  const orderBy: any = {}
-  orderBy[sort.field] = sort.direction
-
-  return await db.issue.findMany({
-    where,
-    orderBy,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      number: true,
-      priority: true,
-      estimate: true,
-      createdAt: true,
-      updatedAt: true,
-      completedAt: true,
-      teamId: true,
-      projectId: true,
-      project: {
-        select: {
-          id: true,
-          name: true,
-          key: true,
-          color: true,
-        },
-      },
-      workflowStateId: true,
-      workflowState: true,
-      assigneeId: true,
-      assignee: true,
-      creatorId: true,
-      creator: true,
-      team: true,
-      labels: {
-        include: {
-          label: true,
-        },
-      },
-      comments: {
-        orderBy: {
-          createdAt: 'desc',
-        },
-      },
-    },
-  })
+  return await convex.query(api.issues.listIssues, {
+    teamId: teamId as Id<"teams">,
+    filters,
+    sort,
+  });
 }
 
 export async function getIssueById(teamId: string, issueId: string) {
-  return await db.issue.findFirst({
-    where: {
-      id: issueId,
-      teamId,
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      number: true,
-      priority: true,
-      estimate: true,
-      createdAt: true,
-      updatedAt: true,
-      completedAt: true,
-      teamId: true,
-      projectId: true,
-      project: {
-        select: {
-          id: true,
-          name: true,
-          key: true,
-          color: true,
-        },
-      },
-      workflowStateId: true,
-      workflowState: true,
-      assigneeId: true,
-      assignee: true,
-      creatorId: true,
-      creator: true,
-      team: true,
-      labels: {
-        include: {
-          label: true,
-        },
-      },
-      comments: {
-        orderBy: {
-          createdAt: 'desc',
-        },
-      },
-    },
-  })
+  const convex = getConvexClient();
+
+  return await convex.query(api.issues.getIssueById, {
+    teamId: teamId as Id<"teams">,
+    issueId: issueId as Id<"issues">,
+  });
 }
 
-export async function createIssue(teamId: string, data: CreateIssueData, creatorId: string, creatorName: string) {
-  // Extract labelIds and exclude from main data
-  const { labelIds, projectId, ...issueData } = data
+export async function createIssue(
+  teamId: string,
+  data: CreateIssueData,
+  creatorId: string,
+  creatorName: string
+) {
+  const convex = getConvexClient();
 
-  // Verify project if provided
-  const project = projectId ? await db.project.findFirst({ where: { id: projectId, teamId } }) : null
-
-  // Get next issue number - use project-specific numbering if project exists, otherwise team-based
-  const lastIssue = project 
-    ? await db.issue.findFirst({
-        where: { teamId, projectId },
-        orderBy: { number: 'desc' },
-        select: { number: true },
-      })
-    : await db.issue.findFirst({
-        where: { teamId, projectId: null },
-        orderBy: { number: 'desc' },
-        select: { number: true },
-      })
-
-  const nextNumber = (lastIssue?.number || 0) + 1
-
-  // Prepare issue data
-  const issueDataToCreate: any = {
-    title: issueData.title,
-    description: issueData.description,
-    workflowStateId: issueData.workflowStateId,
-    assigneeId: issueData.assigneeId,
-    assignee: issueData.assignee,
-    priority: issueData.priority || 'none',
-    estimate: issueData.estimate,
-    teamId,
+  return await convex.mutation(api.issues.createIssue, {
+    teamId: teamId as Id<"teams">,
+    title: data.title,
+    description: data.description,
+    projectId: data.projectId as Id<"projects"> | undefined,
+    workflowStateId: data.workflowStateId as Id<"workflowStates">,
+    assigneeId: data.assigneeId,
+    assignee: data.assignee,
+    priority: data.priority || "none",
+    estimate: data.estimate,
+    labelIds: data.labelIds as Id<"labels">[] | undefined,
     creatorId,
     creator: creatorName,
-    number: nextNumber,
-  }
-
-  // Only set projectId if it exists and belongs to this team (verified by query)
-  if (project) {
-    issueDataToCreate.projectId = projectId
-  }
-
-  // Create the issue with a select that includes all necessary relations
-  const selectConfig = {
-    id: true,
-    title: true,
-    description: true,
-    number: true,
-    priority: true,
-    estimate: true,
-    createdAt: true,
-    updatedAt: true,
-    completedAt: true,
-    teamId: true,
-    projectId: true,
-    project: {
-      select: {
-        id: true,
-        name: true,
-        key: true,
-        color: true,
-      },
-    },
-    workflowStateId: true,
-    workflowState: true,
-    assigneeId: true,
-    assignee: true,
-    creatorId: true,
-    creator: true,
-    team: true,
-    labels: {
-      include: {
-        label: true,
-      },
-    },
-    comments: true,
-  }
-
-  // If labels are provided, create them in the same transaction or directly after
-  if (labelIds?.length) {
-    // Create issue first
-    const issue = await db.issue.create({
-      data: issueDataToCreate,
-      select: selectConfig,
-    })
-
-    // Then create labels in parallel
-    await db.issueLabel.createMany({
-      data: labelIds.map((labelId) => ({
-        issueId: issue.id,
-        labelId,
-      })),
-    })
-
-    // Refetch with labels
-    return await db.issue.findUnique({
-      where: { id: issue.id },
-      select: selectConfig,
-    })
-  }
-
-  // Create issue without labels
-  return await db.issue.create({
-    data: issueDataToCreate,
-    select: selectConfig,
-  })
+  });
 }
 
-export async function updateIssue(teamId: string, issueId: string, data: UpdateIssueData) {
-  // Get current issue to check if project is changing
-  const currentIssue = await db.issue.findUnique({
-    where: { id: issueId },
-    select: { projectId: true, number: true },
-  })
+export async function updateIssue(
+  teamId: string,
+  issueId: string,
+  data: UpdateIssueData
+) {
+  const convex = getConvexClient();
 
-  // Normalize projectId: empty string becomes null
-  const normalizedProjectId = data.projectId === '' ? null : data.projectId
-
-  // Handle project change - renumber the issue
-  if (normalizedProjectId !== undefined && normalizedProjectId !== currentIssue?.projectId) {
-    // Get the last issue number for the new project
-    const lastIssue = normalizedProjectId 
-      ? await db.issue.findFirst({
-          where: { teamId, projectId: normalizedProjectId },
-          orderBy: { number: 'desc' },
-          select: { number: true },
-        })
-      : await db.issue.findFirst({
-          where: { teamId, projectId: null },
-          orderBy: { number: 'desc' },
-          select: { number: true },
-        })
-    
-    const nextNumber = (lastIssue?.number || 0) + 1
-    data.number = nextNumber
-    data.projectId = normalizedProjectId
-  } else if (normalizedProjectId !== undefined) {
-    data.projectId = normalizedProjectId
-  }
-
-  // Handle labels separately
-  if (data.labelIds !== undefined) {
-    // Remove existing labels
-    await db.issueLabel.deleteMany({
-      where: { issueId },
-    })
-
-    // Add new labels
-    if (data.labelIds.length > 0) {
-      await db.issueLabel.createMany({
-        data: data.labelIds.map((labelId) => ({
-          issueId,
-          labelId,
-        })),
-      })
-    }
-  }
-
-  // Update the issue (excluding labelIds)
-  const { labelIds, ...updateData } = data
-
-  const updatedIssue = await db.issue.update({
-    where: {
-      id: issueId,
-      teamId,
-    },
-    data: updateData,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      number: true,
-      priority: true,
-      estimate: true,
-      createdAt: true,
-      updatedAt: true,
-      completedAt: true,
-      teamId: true,
-      projectId: true,
-      project: {
-        select: {
-          id: true,
-          name: true,
-          key: true,
-          color: true,
-        },
-      },
-      workflowStateId: true,
-      workflowState: true,
-      assigneeId: true,
-      assignee: true,
-      creatorId: true,
-      creator: true,
-      team: true,
-      labels: {
-        include: {
-          label: true,
-        },
-      },
-      comments: {
-        orderBy: {
-          createdAt: 'desc',
-        },
-      },
-    },
-  })
-
-  return updatedIssue
+  return await convex.mutation(api.issues.updateIssue, {
+    teamId: teamId as Id<"teams">,
+    issueId: issueId as Id<"issues">,
+    title: data.title,
+    description: data.description,
+    projectId:
+      data.projectId === ""
+        ? undefined
+        : (data.projectId as Id<"projects"> | undefined),
+    workflowStateId: data.workflowStateId as Id<"workflowStates"> | undefined,
+    assigneeId: data.assigneeId,
+    assignee: data.assignee,
+    priority: data.priority,
+    estimate: data.estimate,
+    labelIds: data.labelIds as Id<"labels">[] | undefined,
+    completedAt: data.completedAt,
+  });
 }
 
 export async function deleteIssue(teamId: string, issueId: string) {
-  return await db.issue.delete({
-    where: {
-      id: issueId,
-      teamId,
-    },
-  })
+  const convex = getConvexClient();
+
+  return await convex.mutation(api.issues.deleteIssue, {
+    teamId: teamId as Id<"teams">,
+    issueId: issueId as Id<"issues">,
+  });
 }
 
 export async function getIssueStats(teamId: string) {
-  const [total, byStatus, byPriority, byAssignee] = await Promise.all([
-    db.issue.count({
-      where: { teamId },
-    }),
-    db.issue.groupBy({
-      by: ['workflowStateId'],
-      where: { teamId },
-      _count: true,
-    }),
-    db.issue.groupBy({
-      by: ['priority'],
-      where: { teamId },
-      _count: true,
-    }),
-    db.issue.groupBy({
-      by: ['assigneeId'],
-      where: { 
-        teamId,
-        assigneeId: { not: null },
-      },
-      _count: true,
-    }),
-  ])
+  const convex = getConvexClient();
 
-  return {
-    total,
-    byStatus,
-    byPriority,
-    byAssignee,
-  }
+  return await convex.query(api.issues.getIssueStats, {
+    teamId: teamId as Id<"teams">,
+  });
 }

@@ -1,52 +1,52 @@
-import { ChatConversation, ChatMessage } from '@prisma/client'
+import type { ChatConversation, ChatMessage } from "@prisma/client";
 
 export type ChatConversationWithMessages = ChatConversation & {
-  messages: ChatMessage[]
-}
+  messages: ChatMessage[];
+};
 
-export interface TeamContext {
+export type TeamContext = {
   projects: Array<{
-    id: string
-    name: string
-    description: string | null
-    key: string
-    color: string
-    icon: string | null
-    status: string
-    lead: string | null
-    _count: { issues: number }
-  }>
+    id: string;
+    name: string;
+    description: string | null;
+    key: string;
+    color: string;
+    icon: string | null;
+    status: string;
+    lead: string | null;
+    _count: { issues: number };
+  }>;
   workflowStates: Array<{
-    id: string
-    name: string
-    type: string
-    color: string
-    position: number
-  }>
+    id: string;
+    name: string;
+    type: string;
+    color: string;
+    position: number;
+  }>;
   labels: Array<{
-    id: string
-    name: string
-    color: string
-  }>
+    id: string;
+    name: string;
+    color: string;
+  }>;
   members: Array<{
-    userId: string
-    userName: string
-    userEmail: string
-    role: string
-  }>
-}
+    userId: string;
+    userName: string;
+    userEmail: string;
+    role: string;
+  }>;
+};
 
-export interface CreateChatConversationData {
-  teamId: string
-  userId: string
-  title?: string
-}
+export type CreateChatConversationData = {
+  teamId: string;
+  userId: string;
+  title?: string;
+};
 
-export interface SaveChatMessagesData {
-  conversationId: string
+export type SaveChatMessagesData = {
+  conversationId: string;
   messages: Array<{
-    role: string
-    content: string
-    toolCalls?: any
-  }>
-}
+    role: string;
+    content: string;
+    toolCalls?: any;
+  }>;
+};

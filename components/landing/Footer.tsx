@@ -1,12 +1,12 @@
-import React from 'react';
-import { Logo } from './Logo';
-import Link from 'next/link';
+import Link from "next/link";
+import type React from "react";
+import { Logo } from "./Logo";
 
-interface FooterProps {
+type FooterProps = {
   className?: string;
-}
+};
 
-export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
+export const Footer: React.FC<FooterProps> = ({ className = "" }) => {
   return (
     <footer className={`bg-card border-t border-border ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -23,13 +23,24 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
 
           {/* Links */}
           <div className="flex space-x-4 sm:space-x-6">
-            <a href="https://github.com/KartikLabhshetwar/doable" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+            <a
+              className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+              href="https://github.com/KartikLabhshetwar/doable"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
               GitHub
             </a>
-            <Link href="/dashboard" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+              href="/dashboard"
+            >
               Dashboard
             </Link>
-            <a href="#features" className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors">
+            <a
+              className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+              href="#features"
+            >
               Features
             </a>
           </div>

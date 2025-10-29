@@ -1,11 +1,12 @@
-'use client'
+"use client";
 
-import { IssueWithRelations } from '@/lib/types'
-import { WorkflowState, Project, Label } from '@prisma/client'
-import { StatusBadge } from '@/components/shared/status-badge'
-import { PriorityIcon } from '@/components/shared/priority-icon'
-import { LabelBadge } from '@/components/shared/label-badge'
-import { UserAvatar } from '@/components/shared/user-avatar'
+import type { Project, WorkflowState } from "@prisma/client";
+import { ArrowUpDown, MessageSquare } from "lucide-react";
+import { LabelBadge } from "@/components/shared/label-badge";
+import { PriorityIcon } from "@/components/shared/priority-icon";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,20 +14,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { ArrowUpDown, Calendar, MessageSquare } from 'lucide-react'
+} from "@/components/ui/table";
+import type { IssueWithRelations } from "@/lib/types";
 
-interface IssueTableProps {
-  issues: IssueWithRelations[]
-  workflowStates: WorkflowState[]
-  projects: Project[]
-  onIssueClick?: (issue: IssueWithRelations) => void
-  onSort?: (field: string, direction: 'asc' | 'desc') => void
-  sortField?: string
-  sortDirection?: 'asc' | 'desc'
-  className?: string
-}
+type IssueTableProps = {
+  issues: IssueWithRelations[];
+  workflowStates: WorkflowState[];
+  projects: Project[];
+  onIssueClick?: (issue: IssueWithRelations) => void;
+  onSort?: (field: string, direction: "asc" | "desc") => void;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+  className?: string;
+};
 
 export function IssueTable({
   issues,
@@ -36,64 +36,75 @@ export function IssueTable({
   onSort,
   sortField,
   sortDirection,
-  className
+  className,
 }: IssueTableProps) {
   const formatDate = (date: Date | string) => {
     // Convert to Date object if it's a string
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+
     // Check if the date is valid
     if (isNaN(dateObj.getTime())) {
-      return 'Invalid date'
+      return "Invalid date";
     }
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(dateObj)
-  }
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(dateObj);
+  };
 
   const getProjectInfo = (issue: any) => {
     // First try to get from the project relation (if included in the query)
     if (issue.project) {
-      return issue.project
+      return issue.project;
     }
     // Fallback to looking up by ID in the projects list
     if (issue.projectId) {
-      return projects.find(p => p.id === issue.projectId)
+      return projects.find((p) => p.id === issue.projectId);
     }
-    return null
-  }
+    return null;
+  };
 
   const getWorkflowState = (stateId: string) => {
-    return workflowStates.find(s => s.id === stateId)
-  }
+    return workflowStates.find((s) => s.id === stateId);
+  };
 
   const handleSort = (field: string) => {
-    if (!onSort) return
-    
-    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc'
-    onSort(field, newDirection)
-  }
+    if (!onSort) {
+      return;
+    }
 
-  const SortButton = ({ field, children }: { field: string; children: React.ReactNode }) => {
-    if (!onSort) return <>{children}</>
-    
+    const newDirection =
+      sortField === field && sortDirection === "asc" ? "desc" : "asc";
+    onSort(field, newDirection);
+  };
+
+  const SortButton = ({
+    field,
+    children,
+  }: {
+    field: string;
+    children: React.ReactNode;
+  }) => {
+    if (!onSort) {
+      return <>{children}</>;
+    }
+
     return (
       <Button
-        variant="ghost"
-        size="sm"
         className="h-auto p-0 font-medium hover:bg-transparent"
         onClick={() => handleSort(field)}
+        size="sm"
+        variant="ghost"
       >
         <div className="flex items-center gap-1">
           {children}
           <ArrowUpDown className="h-3 w-3" />
         </div>
       </Button>
-    )
-  }
+    );
+  };
 
   return (
     <div className={`rounded-md border ${className}`}>
@@ -120,19 +131,19 @@ export function IssueTable({
         <TableBody>
           {issues.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+              <TableCell className="text-center py-8 text-gray-500" colSpan={9}>
                 No issues found
               </TableCell>
             </TableRow>
           ) : (
             issues.map((issue) => {
-              const workflowState = getWorkflowState(issue.workflowStateId)
-              const project = getProjectInfo(issue)
-              
+              const workflowState = getWorkflowState(issue.workflowStateId);
+              const project = getProjectInfo(issue);
+
               return (
                 <TableRow
-                  key={issue.id}
                   className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                  key={issue.id}
                   onClick={() => onIssueClick?.(issue)}
                 >
                   <TableCell className="font-medium">
@@ -149,19 +160,23 @@ export function IssueTable({
                     {issue.project?.key || issue.team.key}-{issue.number}
                   </TableCell>
                   <TableCell>
-                    {workflowState && (
-                      <StatusBadge status={workflowState} />
-                    )}
+                    {workflowState && <StatusBadge status={workflowState} />}
                   </TableCell>
                   <TableCell>
-                    <PriorityIcon priority={issue.priority as any} showLabel={true} />
+                    <PriorityIcon
+                      priority={issue.priority as any}
+                      showLabel={true}
+                    />
                   </TableCell>
                   <TableCell className="text-sm">
                     {project ? (
-                      <span className="text-xs px-2 py-0.5 rounded-md" style={{ 
-                        backgroundColor: `${project.color || '#6366f1'}20`,
-                        color: project.color || '#6366f1'
-                      }}>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-md"
+                        style={{
+                          backgroundColor: `${project.color || "#6366f1"}20`,
+                          color: project.color || "#6366f1",
+                        }}
+                      >
                         {project.key}
                       </span>
                     ) : (
@@ -178,7 +193,10 @@ export function IssueTable({
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {issue.labels.slice(0, 2).map((issueLabel) => (
-                        <LabelBadge key={issueLabel.id} label={issueLabel.label} />
+                        <LabelBadge
+                          key={issueLabel.id}
+                          label={issueLabel.label}
+                        />
                       ))}
                       {issue.labels.length > 2 && (
                         <span className="text-xs text-gray-500">
@@ -201,11 +219,11 @@ export function IssueTable({
                     )}
                   </TableCell>
                 </TableRow>
-              )
+              );
             })
           )}
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

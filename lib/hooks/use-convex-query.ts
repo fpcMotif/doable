@@ -1,18 +1,18 @@
 /**
- * Convex + Effect 集成 Hook
- * 将 Convex useQuery 与 Effect 副作用处理结合
+ * Convex + Effect Integration Hook
+ * Combines Convex useQuery with Effect side effect handling
  */
 
 import { useQuery as useConvexQuery } from "convex/react";
-import { type FunctionReference, type FunctionReturnType } from "convex/server";
-import { useEffect, useState } from "react";
+import type { FunctionReference, FunctionReturnType } from "convex/server";
 import { Effect, pipe } from "effect";
+import { useEffect, useState } from "react";
 import { safeApiCall } from "../effect/helpers";
 
 /**
- * 带 Effect 包装的 Convex Query Hook
- * 
- * 使用方法：
+ * Convex Query Hook with Effect wrapper
+ *
+ * Usage:
  * ```tsx
  * const { data, loading, error } = useConvexQueryWithEffect(
  *   api.teams.getUserTeams,
@@ -22,7 +22,9 @@ import { safeApiCall } from "../effect/helpers";
  */
 export function useConvexQueryWithEffect<T extends FunctionReference<"query">>(
   query: T,
-  args: T extends FunctionReference<"query", "public", infer Args> ? Args : never
+  args: T extends FunctionReference<"query", "public", infer Args>
+    ? Args
+    : never
 ) {
   type ReturnType = FunctionReturnType<T>;
 
@@ -30,7 +32,7 @@ export function useConvexQueryWithEffect<T extends FunctionReference<"query">>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Convex 实时查询
+  // Convex real-time query
   const convexData = useConvexQuery(query, args);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function useConvexQueryWithEffect<T extends FunctionReference<"query">>(
       return;
     }
 
-    // 使用 Effect 处理数据
+    // Handle data with Effect
     const program = pipe(
       safeApiCall(async () => convexData, "Convex Query"),
       Effect.map((result) => {
@@ -61,4 +63,3 @@ export function useConvexQueryWithEffect<T extends FunctionReference<"query">>(
 
   return { data, loading, error };
 }
-

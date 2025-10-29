@@ -1,10 +1,12 @@
-import React from 'react';
+import type React from "react";
 
-interface HorizontalLineProps {
+type HorizontalLineProps = {
   className?: string;
-}
+};
 
-export const HorizontalLine: React.FC<HorizontalLineProps> = ({ className = '' }) => {
+export const HorizontalLine: React.FC<HorizontalLineProps> = ({
+  className = "",
+}) => {
   return (
     <div className={`w-full h-px bg-gray-200 dark:bg-gray-700 ${className}`} />
   );

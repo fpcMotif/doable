@@ -1,66 +1,62 @@
-'use client'
+"use client";
 
-import { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
-interface MarkdownProps {
-  content: string
-  className?: string
-}
+type MarkdownProps = {
+  content: string;
+  className?: string;
+};
 
 export function Markdown({ content, className }: MarkdownProps) {
   // Simple markdown renderer
   const renderMarkdown = (text: string): ReactNode[] => {
-    const lines = text.split('\n')
-    const elements: ReactNode[] = []
-    let i = 0
+    const lines = text.split("\n");
+    const elements: ReactNode[] = [];
+    let i = 0;
 
     lines.forEach((line, index) => {
-      if (line.trim() === '') {
-        return
+      if (line.trim() === "") {
+        return;
       }
 
       // Bold text **text**
-      if (line.includes('**')) {
-        const parts = line.split(/(\*\*.*?\*\*)/g)
+      if (line.includes("**")) {
+        const parts = line.split(/(\*\*.*?\*\*)/g);
         elements.push(
-          <div key={`${i++}`} className="mb-2">
+          <div className="mb-2" key={`${i++}`}>
             {parts.map((part, idx) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
+              if (part.startsWith("**") && part.endsWith("**")) {
                 return (
-                  <strong key={idx} className="font-semibold">
+                  <strong className="font-semibold" key={idx}>
                     {part.slice(2, -2)}
                   </strong>
-                )
+                );
               }
-              return <span key={idx}>{part}</span>
+              return <span key={idx}>{part}</span>;
             })}
           </div>
-        )
+        );
       }
       // Lists starting with -
-      else if (line.trim().startsWith('- ')) {
+      else if (line.trim().startsWith("- ")) {
         elements.push(
-          <li key={`${i++}`} className="ml-4 mb-1">
+          <li className="ml-4 mb-1" key={`${i++}`}>
             {line.trim().slice(2)}
           </li>
-        )
+        );
       }
       // Regular paragraph
       else {
         elements.push(
-          <p key={`${i++}`} className="mb-2">
+          <p className="mb-2" key={`${i++}`}>
             {line}
           </p>
-        )
+        );
       }
-    })
+    });
 
-    return elements
-  }
+    return elements;
+  };
 
-  return (
-    <div className={className}>
-      {renderMarkdown(content)}
-    </div>
-  )
+  return <div className={className}>{renderMarkdown(content)}</div>;
 }

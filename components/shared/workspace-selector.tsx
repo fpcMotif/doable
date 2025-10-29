@@ -1,17 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChevronDown, Building2, Trash2 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+import { Building2, ChevronDown, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,121 +12,143 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { useToast } from '@/lib/hooks/use-toast'
-import { ToastContainer } from '@/lib/hooks/use-toast'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ToastContainer, useToast } from "@/lib/hooks/use-toast";
 
-interface WorkspaceSelectorProps {
-  currentTeamId: string
-  currentTeamName: string
-}
+type WorkspaceSelectorProps = {
+  currentTeamId: string;
+  currentTeamName: string;
+};
 
-export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceSelectorProps) {
-  const router = useRouter()
-  const [teams, setTeams] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [teamToDelete, setTeamToDelete] = useState<any>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [displayTeamName, setDisplayTeamName] = useState(currentTeamName)
-  const { toasts, toast, removeToast } = useToast()
+export function WorkspaceSelector({
+  currentTeamId,
+  currentTeamName,
+}: WorkspaceSelectorProps) {
+  const router = useRouter();
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [displayTeamName, setDisplayTeamName] = useState(currentTeamName);
+  const { toasts, toast, removeToast } = useToast();
 
   // Update displayed team name when prop changes
   useEffect(() => {
-    setDisplayTeamName(currentTeamName)
-  }, [currentTeamName])
+    setDisplayTeamName(currentTeamName);
+  }, [currentTeamName]);
 
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await fetch('/api/teams')
+        const response = await fetch("/api/teams");
         if (response.ok) {
-          const data = await response.json()
-          setTeams(data)
+          const data = await response.json();
+          setTeams(data);
           // Update displayed team name from fetched data if current team exists
-          const currentTeam = data.find((t: any) => t.id === currentTeamId)
+          const currentTeam = data.find((t: any) => t.id === currentTeamId);
           if (currentTeam) {
-            setDisplayTeamName(currentTeam.name)
+            setDisplayTeamName(currentTeam.name);
           }
         }
       } catch (error) {
-        console.error('Error fetching teams:', error)
+        console.error("Error fetching teams:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchTeams()
-  }, [currentTeamId])
+    };
+    fetchTeams();
+  }, [currentTeamId]);
 
   const handleTeamSwitch = (teamId: string) => {
-    const selectedTeam = teams.find(t => t.id === teamId)
+    const selectedTeam = teams.find((t) => t.id === teamId);
     if (selectedTeam) {
-      setDisplayTeamName(selectedTeam.name)
+      setDisplayTeamName(selectedTeam.name);
     }
-    router.push(`/dashboard/${teamId}/issues`)
-  }
+    router.push(`/dashboard/${teamId}/issues`);
+  };
 
   const handleDeleteClick = (e: React.MouseEvent, team: any) => {
-    e.stopPropagation()
-    setTeamToDelete(team)
-    setDeleteDialogOpen(true)
-  }
+    e.stopPropagation();
+    setTeamToDelete(team);
+    setDeleteDialogOpen(true);
+  };
 
   const handleDeleteConfirm = async () => {
-    if (!teamToDelete) return
+    if (!teamToDelete) {
+      return;
+    }
 
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/teams/${teamToDelete.id}`, {
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      });
 
       if (response.ok) {
         // Show success toast
-        toast.success('Workspace deleted', 'The workspace has been deleted successfully.')
-        
+        toast.success(
+          "Workspace deleted",
+          "The workspace has been deleted successfully."
+        );
+
         // If the deleted team was the current one, redirect immediately
         if (teamToDelete.id === currentTeamId) {
           // Refresh the teams list first
-          const updatedTeams = teams.filter(t => t.id !== teamToDelete.id)
-          setTeams(updatedTeams)
+          const updatedTeams = teams.filter((t) => t.id !== teamToDelete.id);
+          setTeams(updatedTeams);
 
           // Redirect immediately before trying to update UI
           if (updatedTeams.length > 0) {
-            router.replace(`/dashboard/${updatedTeams[0].id}/issues`)
+            router.replace(`/dashboard/${updatedTeams[0].id}/issues`);
           } else {
-            router.replace('/dashboard')
+            router.replace("/dashboard");
           }
-          
+
           // Close dialog and reset state immediately
-          setDeleteDialogOpen(false)
-          setTeamToDelete(null)
-          setIsDeleting(false)
-          return // Exit early to prevent further processing
+          setDeleteDialogOpen(false);
+          setTeamToDelete(null);
+          setIsDeleting(false);
+          return; // Exit early to prevent further processing
         }
 
         // If not the current team, just update the teams list
-        const updatedTeams = teams.filter(t => t.id !== teamToDelete.id)
-        setTeams(updatedTeams)
+        const updatedTeams = teams.filter((t) => t.id !== teamToDelete.id);
+        setTeams(updatedTeams);
       } else {
-        const error = await response.json()
-        console.error('Error deleting team:', error)
-        toast.error('Failed to delete workspace', error.error || 'Please try again.')
+        const error = await response.json();
+        console.error("Error deleting team:", error);
+        toast.error(
+          "Failed to delete workspace",
+          error.error || "Please try again."
+        );
       }
     } catch (error) {
-      console.error('Error deleting team:', error)
-      toast.error('Failed to delete workspace', 'An unexpected error occurred.')
+      console.error("Error deleting team:", error);
+      toast.error(
+        "Failed to delete workspace",
+        "An unexpected error occurred."
+      );
     } finally {
-      setIsDeleting(false)
-      setDeleteDialogOpen(false)
-      setTeamToDelete(null)
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setTeamToDelete(null);
     }
-  }
+  };
 
   const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false)
-    setTeamToDelete(null)
-  }
+    setDeleteDialogOpen(false);
+    setTeamToDelete(null);
+  };
 
   return (
     <div className="flex items-center gap-3 w-full">
@@ -145,9 +158,9 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
       <div className="flex-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
+            <Button
               className="w-full justify-between px-2 h-auto py-2 hover:bg-secondary/50"
+              variant="ghost"
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span className="truncate font-medium">{displayTeamName}</span>
@@ -160,8 +173,12 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
             <DropdownMenuSeparator />
             {teams.map((team) => (
               <DropdownMenuItem
+                className={
+                  team.id === currentTeamId
+                    ? "bg-primary text-primary-foreground"
+                    : ""
+                }
                 key={team.id}
-                className={team.id === currentTeamId ? 'bg-primary text-primary-foreground' : ''}
               >
                 <div className="flex items-center justify-between w-full">
                   <div
@@ -172,10 +189,10 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
                     <span className="truncate">{team.name}</span>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
                     className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
                     onClick={(e) => handleDeleteClick(e, team)}
+                    size="sm"
+                    variant="ghost"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -186,31 +203,33 @@ export function WorkspaceSelector({ currentTeamId, currentTeamName }: WorkspaceS
         </DropdownMenu>
       </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog onOpenChange={setDeleteDialogOpen} open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Workspace?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{teamToDelete?.name}"? This action cannot be undone. 
-              All projects, issues, and data in this workspace will be permanently deleted.
+              Are you sure you want to delete "{teamToDelete?.name}"? This
+              action cannot be undone. All projects, issues, and data in this
+              workspace will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleDeleteCancel}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+              onClick={handleDeleteConfirm}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Toast Notifications */}
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <ToastContainer onRemove={removeToast} toasts={toasts} />
     </div>
-  )
+  );
 }
-

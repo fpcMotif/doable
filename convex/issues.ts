@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import { auth } from "./auth.config";
+import { mutation, query } from "./_generated/server";
+import auth from "./auth";
 
 /**
- * 获取团队的所有 Issues（支持过滤与排序）
+ * Get all Issues for a team (supports filtering and sorting)
  */
 export const listIssues = query({
   args: {
@@ -50,7 +50,7 @@ export const listIssues = query({
       return [];
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -62,14 +62,14 @@ export const listIssues = query({
       return [];
     }
 
-    // 基础查询
-    let issuesQuery = ctx.db
+    // Base query
+    const issuesQuery = ctx.db
       .query("issues")
       .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId));
 
     let issues = await issuesQuery.collect();
 
-    // 应用过滤器
+    // Apply filters
     if (args.filters) {
       const { status, assignee, project, priority, search } = args.filters;
 
@@ -103,13 +103,15 @@ export const listIssues = query({
       }
     }
 
-    // 应用排序
+    // Apply sorting
     if (args.sort) {
       const { field, direction } = args.sort;
       issues.sort((a, b) => {
         const aVal = a[field as keyof typeof a];
         const bVal = b[field as keyof typeof b];
-        const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        const aStr = String(aVal ?? "");
+        const bStr = String(bVal ?? "");
+        const comparison = aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
         return direction === "asc" ? comparison : -comparison;
       });
     }
@@ -119,7 +121,7 @@ export const listIssues = query({
 });
 
 /**
- * 根据 ID 获取 Issue
+ * Get Issue by ID
  */
 export const getIssue = query({
   args: {
@@ -156,7 +158,7 @@ export const getIssue = query({
       return null;
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -173,7 +175,7 @@ export const getIssue = query({
 });
 
 /**
- * 创建新 Issue
+ * Create new Issue
  */
 export const createIssue = mutation({
   args: {
@@ -194,7 +196,7 @@ export const createIssue = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 获取用户信息
+    // Get user information
     const user = await ctx.db
       .query("users")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -204,7 +206,7 @@ export const createIssue = mutation({
       throw new Error("User not found");
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -216,7 +218,7 @@ export const createIssue = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 获取下一个 Issue 编号
+    // Get next Issue number
     const existingIssues = await ctx.db
       .query("issues")
       .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
@@ -225,7 +227,7 @@ export const createIssue = mutation({
     const maxNumber = Math.max(0, ...existingIssues.map((i) => i.number));
     const number = maxNumber + 1;
 
-    // 创建 Issue
+    // Create Issue
     return await ctx.db.insert("issues", {
       title: args.title,
       description: args.description,
@@ -244,7 +246,7 @@ export const createIssue = mutation({
 });
 
 /**
- * 更新 Issue
+ * Update Issue
  */
 export const updateIssue = mutation({
   args: {
@@ -270,7 +272,7 @@ export const updateIssue = mutation({
       throw new Error("Issue not found");
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -282,17 +284,32 @@ export const updateIssue = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 更新 Issue
+    // Update Issue
     const updates: Partial<typeof issue> = {};
-    if (args.title !== undefined) updates.title = args.title;
-    if (args.description !== undefined) updates.description = args.description;
-    if (args.priority !== undefined) updates.priority = args.priority;
-    if (args.workflowStateId !== undefined)
+    if (args.title !== undefined) {
+      updates.title = args.title;
+    }
+    if (args.description !== undefined) {
+      updates.description = args.description;
+    }
+    if (args.priority !== undefined) {
+      updates.priority = args.priority;
+    }
+    if (args.workflowStateId !== undefined) {
       updates.workflowStateId = args.workflowStateId;
-    if (args.projectId !== undefined) updates.projectId = args.projectId;
-    if (args.assigneeId !== undefined) updates.assigneeId = args.assigneeId;
-    if (args.assignee !== undefined) updates.assignee = args.assignee;
-    if (args.estimate !== undefined) updates.estimate = args.estimate;
+    }
+    if (args.projectId !== undefined) {
+      updates.projectId = args.projectId;
+    }
+    if (args.assigneeId !== undefined) {
+      updates.assigneeId = args.assigneeId;
+    }
+    if (args.assignee !== undefined) {
+      updates.assignee = args.assignee;
+    }
+    if (args.estimate !== undefined) {
+      updates.estimate = args.estimate;
+    }
 
     await ctx.db.patch(args.issueId, updates);
     return null;
@@ -300,7 +317,7 @@ export const updateIssue = mutation({
 });
 
 /**
- * 删除 Issue
+ * Delete Issue
  */
 export const deleteIssue = mutation({
   args: {
@@ -318,7 +335,7 @@ export const deleteIssue = mutation({
       throw new Error("Issue not found");
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -326,11 +343,14 @@ export const deleteIssue = mutation({
       )
       .unique();
 
-    if (!membership || (membership.role !== "admin" && membership.role !== "developer")) {
+    if (
+      !membership ||
+      (membership.role !== "admin" && membership.role !== "developer")
+    ) {
       throw new Error("Unauthorized");
     }
 
-    // 删除相关的 labels 和 comments
+    // Delete related labels and comments
     const issueLabels = await ctx.db
       .query("issueLabels")
       .withIndex("by_issueId", (q) => q.eq("issueId", args.issueId))
@@ -349,9 +369,8 @@ export const deleteIssue = mutation({
       await ctx.db.delete(comment._id);
     }
 
-    // 删除 Issue
+    // Delete Issue
     await ctx.db.delete(args.issueId);
     return null;
   },
 });
-

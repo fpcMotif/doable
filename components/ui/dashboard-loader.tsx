@@ -1,13 +1,13 @@
-import { Spinner } from './spinner'
+import { Spinner } from "./spinner";
 
-interface DashboardLoaderProps {
-  message?: string
-  submessage?: string
-}
+type DashboardLoaderProps = {
+  message?: string;
+  submessage?: string;
+};
 
-export function DashboardLoader({ 
-  message = "Loading dashboard", 
-  submessage = "Fetching your data..." 
+export function DashboardLoader({
+  message = "Loading dashboard",
+  submessage = "Fetching your data...",
 }: DashboardLoaderProps) {
   return (
     <div className="flex items-center justify-center min-h-[400px] py-12">
@@ -19,7 +19,7 @@ export function DashboardLoader({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function InlineLoader({ message = "Loading..." }: { message?: string }) {
@@ -30,5 +30,5 @@ export function InlineLoader({ message = "Loading..." }: { message?: string }) {
         <span className="text-sm text-muted-foreground">{message}</span>
       </div>
     </div>
-  )
+  );
 }

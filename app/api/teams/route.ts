@@ -1,33 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getSessionOrNull } from '@/lib/auth-server-helpers'
-import { db } from '@/lib/db'
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getSessionOrNull } from "@/lib/auth-server-helpers";
+import { api, getConvexClient } from "@/lib/convex";
 
 export async function GET(request: NextRequest) {
   try {
     // Get the current user from Better Auth
-    const session = await getSessionOrNull()
-    
+    const session = await getSessionOrNull();
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // For now, return all teams (in production, filter by user membership)
-    const teams = await db.team.findMany({
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    // Get user teams from Convex
+    const convex = getConvexClient();
+    const teams = await convex.query(api.teams.getUserTeams, {});
 
-    return NextResponse.json(teams)
+    return NextResponse.json(teams);
   } catch (error) {
-    console.error('Error fetching teams:', error)
+    console.error("Error fetching teams:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch teams' },
+      { error: "Failed to fetch teams" },
       { status: 500 }
-    )
+    );
   }
 }
-

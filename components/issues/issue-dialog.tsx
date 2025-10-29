@@ -1,10 +1,16 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '@/components/ui/button'
+import { zodResolver } from "@hookform/resolvers/zod";
+import type {
+  Label as LabelType,
+  Project,
+  WorkflowState,
+} from "@prisma/client";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { UserSelector } from "@/components/shared/user-selector";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -20,46 +26,45 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { CreateIssueData, UpdateIssueData, PriorityLevel } from '@/lib/types'
-import { Project, WorkflowState, Label as LabelType } from '@prisma/client'
-import { UserSelector } from '@/components/shared/user-selector'
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { CreateIssueData, UpdateIssueData } from "@/lib/types";
+import { PriorityLevel } from "@/lib/types";
 
 const issueSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
+  title: z.string().min(1, "Title is required").max(255, "Title is too long"),
   description: z.string().optional(),
   projectId: z.string().optional(),
-  workflowStateId: z.string().min(1, 'Status is required'),
+  workflowStateId: z.string().min(1, "Status is required"),
   assigneeId: z.string().optional(),
-  priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']).optional(),
+  priority: z.enum(["none", "low", "medium", "high", "urgent"]).optional(),
   estimate: z.number().min(0).optional(),
   labelIds: z.array(z.string()).optional(),
-})
+});
 
-type IssueFormData = z.infer<typeof issueSchema>
+type IssueFormData = z.infer<typeof issueSchema>;
 
-interface IssueDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (data: CreateIssueData | UpdateIssueData) => Promise<void>
-  projects: Project[]
-  workflowStates: WorkflowState[]
-  labels: LabelType[]
-  initialData?: Partial<IssueFormData>
-  title?: string
-  description?: string
-  teamId?: string
-}
+type IssueDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: CreateIssueData | UpdateIssueData) => Promise<void>;
+  projects: Project[];
+  workflowStates: WorkflowState[];
+  labels: LabelType[];
+  initialData?: Partial<IssueFormData>;
+  title?: string;
+  description?: string;
+  teamId?: string;
+};
 
 export function IssueDialog({
   open,
@@ -69,91 +74,96 @@ export function IssueDialog({
   workflowStates,
   labels,
   initialData,
-  title = 'Create Issue',
-  description = 'Create a new issue for your team.',
+  title = "Create Issue",
+  description = "Create a new issue for your team.",
   teamId,
 }: IssueDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedLabels, setSelectedLabels] = useState<string[]>(
     initialData?.labelIds || []
-  )
+  );
 
   const form = useForm<IssueFormData>({
     resolver: zodResolver(issueSchema),
     defaultValues: {
-      title: initialData?.title || '',
-      description: initialData?.description || '',
-      projectId: initialData?.projectId || '',
-      workflowStateId: initialData?.workflowStateId || (workflowStates.length > 0 ? workflowStates[0].id : ''),
-      assigneeId: initialData?.assigneeId || '',
-      priority: initialData?.priority || 'none',
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      projectId: initialData?.projectId || "",
+      workflowStateId:
+        initialData?.workflowStateId ||
+        (workflowStates.length > 0 ? workflowStates[0].id : ""),
+      assigneeId: initialData?.assigneeId || "",
+      priority: initialData?.priority || "none",
       estimate: initialData?.estimate,
       labelIds: initialData?.labelIds || [],
     },
-  })
+  });
 
   useEffect(() => {
     if (open && initialData) {
       const resetData = {
         ...initialData,
-        projectId: initialData.projectId || '', // Empty string means no project
-        labelIds: initialData.labelIds || []
-      }
-      form.reset(resetData)
-      setSelectedLabels(initialData.labelIds || [])
+        projectId: initialData.projectId || "", // Empty string means no project
+        labelIds: initialData.labelIds || [],
+      };
+      form.reset(resetData);
+      setSelectedLabels(initialData.labelIds || []);
     } else if (open) {
       // Reset to defaults when opening fresh dialog
       form.reset({
-        title: '',
-        description: '',
-        projectId: '', // Empty string means no project selected
-        workflowStateId: workflowStates.length > 0 ? workflowStates[0].id : '',
-        assigneeId: '',
-        priority: 'none',
+        title: "",
+        description: "",
+        projectId: "", // Empty string means no project selected
+        workflowStateId: workflowStates.length > 0 ? workflowStates[0].id : "",
+        assigneeId: "",
+        priority: "none",
         estimate: undefined,
-        labelIds: []
-      })
-      setSelectedLabels([])
+        labelIds: [],
+      });
+      setSelectedLabels([]);
     }
-  }, [open, initialData, form, workflowStates])
+  }, [open, initialData, form, workflowStates]);
 
   // Update form when workflow states are loaded
   useEffect(() => {
-    if (workflowStates.length > 0 && !form.getValues('workflowStateId')) {
-      form.setValue('workflowStateId', workflowStates[0].id)
+    if (workflowStates.length > 0 && !form.getValues("workflowStateId")) {
+      form.setValue("workflowStateId", workflowStates[0].id);
     }
-  }, [workflowStates, form])
+  }, [workflowStates, form]);
 
   const handleSubmit = async (data: IssueFormData) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await onSubmit({
         ...data,
-        projectId: data.projectId && data.projectId.trim() !== '' ? data.projectId : undefined,
-        priority: data.priority || 'none',
+        projectId:
+          data.projectId && data.projectId.trim() !== ""
+            ? data.projectId
+            : undefined,
+        priority: data.priority || "none",
         labelIds: selectedLabels,
         estimate: data.estimate,
-      })
-      form.reset()
-      setSelectedLabels([])
-      onOpenChange(false)
+      });
+      form.reset();
+      setSelectedLabels([]);
+      onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting issue:', error)
+      console.error("Error submitting issue:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const toggleLabel = (labelId: string) => {
-    setSelectedLabels(prev =>
+    setSelectedLabels((prev) =>
       prev.includes(labelId)
-        ? prev.filter(id => id !== labelId)
+        ? prev.filter((id) => id !== labelId)
         : [...prev, labelId]
-    )
-  }
+    );
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -161,7 +171,10 @@ export function IssueDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="title"
@@ -184,8 +197,8 @@ export function IssueDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe the issue..."
                       className="min-h-[100px]"
+                      placeholder="Describe the issue..."
                       {...field}
                     />
                   </FormControl>
@@ -201,9 +214,11 @@ export function IssueDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Project</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(value === 'none' ? '' : value)} 
-                      value={field.value || 'none'}
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "none" ? "" : value)
+                      }
+                      value={field.value || "none"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -259,10 +274,10 @@ export function IssueDialog({
                     <FormLabel>Assignee</FormLabel>
                     <FormControl>
                       <UserSelector
-                        value={field.value}
                         onValueChange={field.onChange}
                         placeholder="Select assignee"
                         teamId={teamId}
+                        value={field.value}
                       />
                     </FormControl>
                     <FormMessage />
@@ -284,11 +299,11 @@ export function IssueDialog({
                       </FormControl>
                       <SelectContent>
                         {Object.entries({
-                          none: 'None',
-                          low: 'Low',
-                          medium: 'Medium',
-                          high: 'High',
-                          urgent: 'Urgent',
+                          none: "None",
+                          low: "Low",
+                          medium: "Medium",
+                          high: "High",
+                          urgent: "Urgent",
                         }).map(([value, label]) => (
                           <SelectItem key={value} value={value}>
                             {label}
@@ -310,11 +325,15 @@ export function IssueDialog({
                   <FormLabel>Estimate (Story Points)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
                       min="0"
                       placeholder="e.g., 5"
+                      type="number"
                       {...field}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -327,19 +346,19 @@ export function IssueDialog({
               <div className="mt-2 flex flex-wrap gap-2">
                 {labels.map((label) => (
                   <button
-                    key={label.id}
-                    type="button"
                     className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                       selectedLabels.includes(label.id)
-                        ? 'opacity-100'
-                        : 'opacity-50 hover:opacity-75'
+                        ? "opacity-100"
+                        : "opacity-50 hover:opacity-75"
                     }`}
+                    key={label.id}
+                    onClick={() => toggleLabel(label.id)}
                     style={{
                       backgroundColor: `${label.color}20`,
                       color: label.color,
                       borderColor: `${label.color}40`,
                     }}
-                    onClick={() => toggleLabel(label.id)}
+                    type="button"
                   >
                     {label.name}
                   </button>
@@ -349,19 +368,19 @@ export function IssueDialog({
 
             <DialogFooter>
               <Button
+                onClick={() => onOpenChange(false)}
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Issue'}
+              <Button disabled={isSubmitting} type="submit">
+                {isSubmitting ? "Creating..." : "Create Issue"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

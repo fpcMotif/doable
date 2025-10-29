@@ -1,63 +1,71 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus } from 'lucide-react'
-import { Spinner } from '@/components/ui/spinner'
-import { useToast } from '@/lib/hooks/use-toast'
-import { authClient } from '@/lib/auth-client'
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import { authClient } from "@/lib/auth-client";
+import { useToast } from "@/lib/hooks/use-toast";
 
-interface ServerTeamCreatorProps {
-  onTeamCreated?: (team: any) => void
-}
+type ServerTeamCreatorProps = {
+  onTeamCreated?: (team: any) => void;
+};
 
 export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
-  const [teamName, setTeamName] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-  const { toast } = useToast()
-  const { data: session } = authClient.useSession()
-  const user = session?.user || null
+  const [teamName, setTeamName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const { toast } = useToast();
+  const { data: session } = authClient.useSession();
+  const user = session?.user || null;
 
   const handleCreateTeam = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!teamName.trim()) return
+    e.preventDefault();
+    if (!teamName.trim()) {
+      return;
+    }
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      const response = await fetch('/api/teams/create', {
-        method: 'POST',
+      const response = await fetch("/api/teams/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           displayName: teamName.trim(),
         }),
-      })
+      });
 
       if (response.ok) {
-        const team = await response.json()
-        toast.success('Team created successfully!', 'Your team has been created and you have been added as a member.')
-        setTeamName('')
-        onTeamCreated?.(team)
-        
+        const team = await response.json();
+        toast.success(
+          "Team created successfully!",
+          "Your team has been created and you have been added as a member."
+        );
+        setTeamName("");
+        onTeamCreated?.(team);
+
         // Redirect to the new team's dashboard
         if (team?.id) {
-          window.location.href = `/dashboard/${team.id}/issues`
+          window.location.href = `/dashboard/${team.id}/issues`;
         }
       } else {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create team')
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create team");
       }
     } catch (error) {
-      console.error('Error creating team:', error)
-      toast.error('Failed to create team', error instanceof Error ? error.message : 'Please try again.')
+      console.error("Error creating team:", error);
+      toast.error(
+        "Failed to create team",
+        error instanceof Error ? error.message : "Please try again."
+      );
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   return (
     <Card className="max-w-md w-full">
@@ -68,22 +76,22 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleCreateTeam} className="space-y-4">
+        <form className="space-y-4" onSubmit={handleCreateTeam}>
           <div>
             <Label htmlFor="teamName">Team Name</Label>
             <Input
-              id="teamName"
-              placeholder="Enter team name"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
               disabled={isCreating}
+              id="teamName"
+              onChange={(e) => setTeamName(e.target.value)}
+              placeholder="Enter team name"
               required
+              value={teamName}
             />
           </div>
-          <Button 
-            type="submit" 
-            className="w-full" 
+          <Button
+            className="w-full"
             disabled={isCreating || !teamName.trim()}
+            type="submit"
           >
             {isCreating ? (
               <div className="flex items-center justify-center">
@@ -104,5 +112,5 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

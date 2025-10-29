@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { getMessages } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
 import "./globals.css";
-import { Provider } from "./provider";
 import { HydrationBoundary } from "@/components/hydration-boundary";
 import { defaultLocale } from "@/i18n/config";
+import { Provider } from "./provider";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"] });
 
@@ -69,10 +69,10 @@ export const metadata: Metadata = {
   category: "productivity",
 };
 
-interface RootLayoutProps {
+type RootLayoutProps = {
   children: React.ReactNode;
   params: Promise<{ locale?: string }>;
-}
+};
 
 export default async function RootLayout({
   children,
@@ -86,9 +86,9 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <script
+          data-website-id="158d23fd-3fec-46cb-a533-9f1136de3fe7"
           defer
           src="https://cloud.umami.is/script.js"
-          data-website-id="158d23fd-3fec-46cb-a533-9f1136de3fe7"
         />
       </head>
       <body className={inter.className}>

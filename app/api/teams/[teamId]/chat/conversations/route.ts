@@ -1,31 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserId } from '@/lib/auth-server-helpers'
-import { getChatConversations, createChatConversation } from '@/lib/api/chat'
-import { generateConversationTitle } from '@/lib/api/chat'
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import {
+  createChatConversation,
+  generateConversationTitle,
+  getChatConversations,
+} from "@/lib/api/chat";
+import { getUserId } from "@/lib/auth-server-helpers";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const { teamId } = await params
-    const userId = await getUserId()
+    const { teamId } = await params;
+    const userId = await getUserId();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const conversations = await getChatConversations(teamId, userId)
-    return NextResponse.json(conversations)
+    const conversations = await getChatConversations(teamId, userId);
+    return NextResponse.json(conversations);
   } catch (error) {
-    console.error('Error fetching conversations:', error)
+    console.error("Error fetching conversations:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch conversations' },
+      { error: "Failed to fetch conversations" },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -34,31 +35,28 @@ export async function POST(
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const { teamId } = await params
-    const userId = await getUserId()
+    const { teamId } = await params;
+    const userId = await getUserId();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json()
-    const { title } = body
+    const body = await request.json();
+    const { title } = body;
 
     const conversation = await createChatConversation({
       teamId,
       userId,
       title: title || undefined,
-    })
+    });
 
-    return NextResponse.json(conversation, { status: 201 })
+    return NextResponse.json(conversation, { status: 201 });
   } catch (error) {
-    console.error('Error creating conversation:', error)
+    console.error("Error creating conversation:", error);
     return NextResponse.json(
-      { error: 'Failed to create conversation' },
+      { error: "Failed to create conversation" },
       { status: 500 }
-    )
+    );
   }
 }

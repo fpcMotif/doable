@@ -1,37 +1,35 @@
 /**
- * Issues 页面 - Convex + Effect + React 19.2 useEffectEvent 版本
- * 
- * 新特性示例：
- * 1. React 19.2 useEffectEvent - 消除闭包陷阱
- * 2. Convex useQuery - 实时数据订阅
- * 3. Effect - 统一副作用处理
- * 4. Next.js 16 React Compiler - 自动优化
+ * Issues Page - Convex + Effect + React 19.2 useEffectEvent version
+ *
+ * New features example:
+ * 1. React 19.2 useEffectEvent - Eliminate closure traps
+ * 2. Convex useQuery - Real-time data subscription
+ * 3. Effect - Unified side effect handling
+ * 4. Next.js 16 React Compiler - Automatic optimization
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { type Id } from '@/convex/_generated/dataModel';
-import { Effect, pipe } from 'effect';
-import { safeApiCall } from '@/lib/effect/helpers';
-
+import { useMutation, useQuery } from "convex/react";
+import { Effect, pipe } from "effect";
+import { useParams } from "next/navigation";
 // React 19.2 useEffectEvent polyfill
-// 注意：React 19.2 如果未正式发布此 API，使用 useCallback 替代
-import { useCallback } from 'react';
-const useEffectEvent = <T extends (...args: any[]) => any>(fn: T): T => {
-  return useCallback(fn, []) as T;
-};
+// Note: If React 19.2 hasn't officially released this API, use useCallback instead
+import { useCallback, useEffect, useState } from "react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { safeApiCall } from "@/lib/effect/helpers";
 
-interface IssueFilters {
+const useEffectEvent = <T extends (...args: any[]) => any>(fn: T): T =>
+  useCallback(fn, []) as T;
+
+type IssueFilters = {
   status?: Array<Id<"workflowStates">>;
   assignee?: string[];
   project?: Array<Id<"projects">>;
   priority?: string[];
   search?: string;
-}
+};
 
 export default function IssuesPageConvex() {
   const params = useParams();
@@ -39,9 +37,9 @@ export default function IssuesPageConvex() {
 
   // State
   const [filters, setFilters] = useState<IssueFilters>({});
-  const [view, setView] = useState<'board' | 'table' | 'list'>('board');
+  const [view, setView] = useState<"board" | "table" | "list">("board");
 
-  // Convex 实时查询 - 自动订阅数据变化
+  // Convex real-time query - Auto subscribe to data changes
   const issues = useQuery(api.issues.listIssues, {
     teamId,
     filters,
@@ -54,184 +52,177 @@ export default function IssuesPageConvex() {
   const createIssueMutation = useMutation(api.issues.createIssue);
   const updateIssueMutation = useMutation(api.issues.updateIssue);
 
-  // React 19.2 useEffectEvent - 稳定的事件处理器
-  // 访问最新的 filters 但不触发 useEffect 重新执行
+  // React 19.2 useEffectEvent - Stable event handler
+  // Access latest filters without triggering useEffect re-run
   const handleFilterChange = useEffectEvent((newFilters: IssueFilters) => {
     const program = pipe(
-      safeApiCall(
-        async () => {
-          setFilters(newFilters);
-          return newFilters;
-        },
-        "更新过滤器"
-      ),
+      safeApiCall(async () => {
+        setFilters(newFilters);
+        return newFilters;
+      }, "Update filters"),
       Effect.map((f) => {
-        console.log("过滤器已更新:", f);
+        console.log("Filters updated:", f);
         return f;
       }),
       Effect.catchAll((error) =>
-        Effect.sync(() => console.error("过滤器更新失败:", error))
+        Effect.sync(() => console.error("Filter update failed:", error))
       )
     );
 
     Effect.runPromise(program);
   });
 
-  // 使用 Effect 处理复杂的创建 Issue 逻辑
-  const handleCreateIssue = useEffectEvent(async (data: {
-    title: string;
-    description?: string;
-    priority: string;
-    workflowStateId: Id<"workflowStates">;
-  }) => {
-    const program = pipe(
-      // 步骤 1: 验证数据
-      safeApiCall(
-        async () => {
+  // Handle complex Issue creation logic with Effect
+  const handleCreateIssue = useEffectEvent(
+    async (data: {
+      title: string;
+      description?: string;
+      priority: string;
+      workflowStateId: Id<"workflowStates">;
+    }) => {
+      const program = pipe(
+        // Step 1: Validate data
+        safeApiCall(async () => {
           if (!data.title.trim()) {
-            throw new Error("标题不能为空");
+            throw new Error("Title cannot be empty");
           }
           return data;
-        },
-        "验证 Issue 数据"
-      ),
+        }, "Validate Issue data"),
 
-      // 步骤 2: 调用 Convex mutation
-      Effect.flatMap((validData) =>
-        safeApiCall(
-          async () => {
-            return await createIssueMutation({
-              teamId,
-              ...validData,
-            });
-          },
-          "创建 Issue"
+        // Step 2: Call Convex mutation
+        Effect.flatMap((validData) =>
+          safeApiCall(
+            async () =>
+              await createIssueMutation({
+                teamId,
+                ...validData,
+              }),
+            "Create Issue"
+          )
+        ),
+
+        // Step 3: Success handling
+        Effect.map((issueId) => {
+          console.log("Issue created successfully:", issueId);
+          // Can trigger toast notification here
+          return issueId;
+        }),
+
+        // Unified error handling
+        Effect.catchAll((error) =>
+          Effect.sync(() => {
+            console.error("Create Issue failed:", error.message);
+            // Can show error message here
+          })
         )
-      ),
+      );
 
-      // 步骤 3: 成功处理
-      Effect.map((issueId) => {
-        console.log("Issue 创建成功:", issueId);
-        // 可以在这里触发 toast 通知
-        return issueId;
-      }),
+      return Effect.runPromise(program);
+    }
+  );
 
-      // 统一错误处理
-      Effect.catchAll((error) =>
-        Effect.sync(() => {
-          console.error("创建 Issue 失败:", error.message);
-          // 可以在这里显示错误提示
-        })
-      )
-    );
-
-    return Effect.runPromise(program);
-  });
-
-  // 键盘快捷键 - 使用 useEffectEvent 确保访问最新状态
+  // Keyboard shortcuts - Use useEffectEvent to ensure access to latest state
   const handleKeyPress = useEffectEvent((event: KeyboardEvent) => {
     if (event.key === "n" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      // 打开创建 Issue 对话框
-      console.log("创建新 Issue");
+      // Open create Issue dialog
+      console.log("Create new Issue");
     }
   });
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, []); // 空依赖数组 - handleKeyPress 始终稳定
+  }, []); // Empty dependency array - handleKeyPress is always stable
 
   // Loading state
   if (issues === undefined || workflowStates === undefined) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg">加载中...</div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Issues</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="font-bold text-3xl">Issues</h1>
 
         <div className="flex gap-4">
           {/* View Switcher */}
           <div className="flex gap-2">
             <button
-              onClick={() => setView('board')}
-              className={`px-4 py-2 rounded ${view === 'board' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`rounded px-4 py-2 ${view === "board" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+              onClick={() => setView("board")}
             >
-              看板
+              Board
             </button>
             <button
-              onClick={() => setView('table')}
-              className={`px-4 py-2 rounded ${view === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`rounded px-4 py-2 ${view === "table" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+              onClick={() => setView("table")}
             >
-              表格
+              Table
             </button>
             <button
-              onClick={() => setView('list')}
-              className={`px-4 py-2 rounded ${view === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`rounded px-4 py-2 ${view === "list" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+              onClick={() => setView("list")}
             >
-              列表
+              List
             </button>
           </div>
 
           {/* Create Button */}
           <button
+            className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
             onClick={() =>
               handleCreateIssue({
-                title: "新 Issue",
+                title: "New Issue",
                 priority: "medium",
                 workflowStateId: workflowStates[0]._id,
               })
             }
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           >
-            + 创建 Issue
+            + Create Issue
           </button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="mb-6 p-4 bg-gray-100 rounded">
+      <div className="mb-6 rounded bg-gray-100 p-4">
         <input
-          type="text"
-          placeholder="搜索 Issues..."
-          className="w-full px-4 py-2 border rounded"
+          className="w-full rounded border px-4 py-2"
           onChange={(e) =>
             handleFilterChange({ ...filters, search: e.target.value })
           }
+          placeholder="Search Issues..."
+          type="text"
         />
       </div>
 
       {/* Issues Display */}
       <div className="space-y-4">
         {issues.length === 0 ? (
-          <div className="text-center text-gray-500 py-12">
-            没有找到 Issues
-          </div>
+          <div className="py-12 text-center text-gray-500">No Issues found</div>
         ) : (
           <div className="grid gap-4">
             {issues.map((issue) => (
               <div
+                className="rounded border p-4 transition-shadow hover:shadow-md"
                 key={issue._id}
-                className="p-4 border rounded hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-semibold text-lg">{issue.title}</h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-gray-600 text-sm">
                       #{issue.number} · {issue.priority}
                     </p>
                     {issue.description && (
                       <p className="mt-2 text-gray-700">{issue.description}</p>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {issue.assignee || "未分配"}
+                  <div className="text-gray-500 text-sm">
+                    {issue.assignee || "Unassigned"}
                   </div>
                 </div>
               </div>
@@ -241,13 +232,12 @@ export default function IssuesPageConvex() {
       </div>
 
       {/* Real-time Stats */}
-      <div className="mt-6 p-4 bg-blue-50 rounded">
-        <p className="text-sm text-blue-800">
-          实时数据：共 {issues.length} 个 Issues
-          {filters.search && ` (搜索: "${filters.search}")`}
+      <div className="mt-6 rounded bg-blue-50 p-4">
+        <p className="text-blue-800 text-sm">
+          Real-time data: Total {issues.length} Issues
+          {filters.search && ` (Search: "${filters.search}")`}
         </p>
       </div>
     </div>
   );
 }
-

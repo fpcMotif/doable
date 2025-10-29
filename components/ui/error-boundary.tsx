@@ -1,53 +1,72 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface ErrorBoundaryState {
-  hasError: boolean
-  error?: Error
-}
+type ErrorBoundaryState = {
+  hasError: boolean;
+  error?: Error;
+};
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode
-  fallback?: React.ComponentType<{ error?: Error; resetError: () => void }>
-}
+type ErrorBoundaryProps = {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error; resetError: () => void }>;
+};
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   resetError = () => {
-    this.setState({ hasError: false, error: undefined })
-  }
+    this.setState({ hasError: false, error: undefined });
+  };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        const FallbackComponent = this.props.fallback
-        return <FallbackComponent error={this.state.error} resetError={this.resetError} />
+        const FallbackComponent = this.props.fallback;
+        return (
+          <FallbackComponent
+            error={this.state.error}
+            resetError={this.resetError}
+          />
+        );
       }
 
-      return <DefaultErrorFallback error={this.state.error} resetError={this.resetError} />
+      return (
+        <DefaultErrorFallback
+          error={this.state.error}
+          resetError={this.resetError}
+        />
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
-function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError: () => void }) {
+function DefaultErrorFallback({
+  error,
+  resetError,
+}: {
+  error?: Error;
+  resetError: () => void;
+}) {
   return (
     <div className="min-h-[400px] flex items-center justify-center p-8">
       <Card className="max-w-md w-full">
@@ -61,7 +80,7 @@ function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError
           <p className="text-sm text-muted-foreground">
             We encountered an unexpected error. Please try refreshing the page.
           </p>
-          {process.env.NODE_ENV === 'development' && error && (
+          {process.env.NODE_ENV === "development" && error && (
             <details className="text-left">
               <summary className="cursor-pointer text-sm font-medium mb-2">
                 Error Details
@@ -73,7 +92,7 @@ function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError
             </details>
           )}
           <div className="flex gap-2 justify-center">
-            <Button onClick={resetError} variant="outline" size="sm">
+            <Button onClick={resetError} size="sm" variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
@@ -84,13 +103,13 @@ function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 // Hook for error handling in functional components
 export function useErrorHandler() {
   return (error: Error, errorInfo?: string) => {
-    console.error('Error:', error, errorInfo)
+    console.error("Error:", error, errorInfo);
     // You could also send to error reporting service here
-  }
+  };
 }

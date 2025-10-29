@@ -1,139 +1,167 @@
-import { db } from '@/lib/db'
-import { TeamContext, CreateChatConversationData, SaveChatMessagesData } from '@/lib/types/chat'
-import { getSystemPrompt } from '@/lib/prompts/assistant-prompt'
+/**
+ * Chat API - Server-side helpers using Convex
+ */
+
+import type { Id } from "@/convex/_generated/dataModel";
+import { api, getConvexClient } from "@/lib/convex";
+import { getSystemPrompt } from "@/lib/prompts/assistant-prompt";
+import type {
+  CreateChatConversationData,
+  SaveChatMessagesData,
+  TeamContext,
+} from "@/lib/types/chat";
 
 export async function getTeamContext(teamId: string): Promise<TeamContext> {
+  const convex = getConvexClient();
+
   // Fetch all team-related data in parallel for efficiency
   const [projects, workflowStates, labels, members] = await Promise.all([
-    db.project.findMany({
-      where: { teamId },
-      orderBy: { name: 'asc' },
-      include: {
-        _count: {
-          select: { issues: true },
-        },
-      },
+    convex.query(api.projects.listProjects, { teamId: teamId as Id<"teams"> }),
+    convex.query(api.workflowStates.listStates, {
+      teamId: teamId as Id<"teams">,
     }),
-    db.workflowState.findMany({
-      where: { teamId },
-      orderBy: { position: 'asc' },
+    convex.query(api.labels.listLabels, { teamId: teamId as Id<"teams"> }),
+    convex.query(api.teamMembers.listMembers, {
+      teamId: teamId as Id<"teams">,
     }),
-    db.label.findMany({
-      where: { teamId },
-      orderBy: { name: 'asc' },
-    }),
-    db.teamMember.findMany({
-      where: { teamId },
-      select: {
-        userId: true,
-        userName: true,
-        userEmail: true,
-        role: true,
-      },
-    }),
-  ])
+  ]);
 
   return {
     projects,
     workflowStates,
     labels,
     members,
-  }
+  };
 }
 
 export function formatTeamContextForAI(context: TeamContext): string {
-  const systemPrompt = getSystemPrompt(context)
-  return systemPrompt
+  const systemPrompt = getSystemPrompt(context);
+  return systemPrompt;
 }
 
 export async function createChatConversation(data: CreateChatConversationData) {
-  return await db.chatConversation.create({
-    data,
-  })
+  const convex = getConvexClient();
+
+  return await convex.mutation(api.chatConversations.createConversation, {
+    teamId: data.teamId as Id<"teams">,
+    userId: data.userId,
+    title: data.title,
+  });
 }
 
 export async function saveChatMessages(data: SaveChatMessagesData) {
-  // Delete existing messages for this conversation (we'll replace them all)
-  await db.chatMessage.deleteMany({
-    where: { conversationId: data.conversationId },
-  })
+  const convex = getConvexClient();
+
+  // Delete existing messages first
+  const existingMessages = await convex.query(api.chatMessages.listMessages, {
+    conversationId: data.conversationId as Id<"chatConversations">,
+  });
+
+  await Promise.all(
+    existingMessages.map((msg) =>
+      convex.mutation(api.chatMessages.deleteMessage, {
+        messageId: msg._id,
+      })
+    )
+  );
 
   // Insert new messages
-  return await db.chatMessage.createMany({
-    data: data.messages.map((msg) => ({
-      conversationId: data.conversationId,
-      role: msg.role,
-      content: msg.content,
-      toolCalls: msg.toolCalls ? JSON.parse(JSON.stringify(msg.toolCalls)) : null,
-    })),
-  })
+  await Promise.all(
+    data.messages.map((msg) =>
+      convex.mutation(api.chatMessages.createMessage, {
+        conversationId: data.conversationId as Id<"chatConversations">,
+        role: msg.role,
+        content: msg.content,
+        toolCalls: msg.toolCalls
+          ? JSON.parse(JSON.stringify(msg.toolCalls))
+          : null,
+      })
+    )
+  );
 }
 
 export async function getChatConversation(conversationId: string) {
-  return await db.chatConversation.findUnique({
-    where: { id: conversationId },
-    include: {
-      messages: {
-        orderBy: { createdAt: 'asc' },
-      },
-    },
-  })
+  const convex = getConvexClient();
+
+  const [conversation, messages] = await Promise.all([
+    convex.query(api.chatConversations.listConversations, {
+      conversationId: conversationId as Id<"chatConversations">,
+    }),
+    convex.query(api.chatMessages.listMessages, {
+      conversationId: conversationId as Id<"chatConversations">,
+    }),
+  ]);
+
+  return conversation && conversation.length > 0
+    ? {
+        ...conversation[0],
+        messages,
+      }
+    : null;
 }
 
 export async function getChatConversations(teamId: string, userId: string) {
-  return await db.chatConversation.findMany({
-    where: { teamId, userId },
-    orderBy: { updatedAt: 'desc' },
-    include: {
-      _count: {
-        select: { messages: true },
-      },
-    },
-  })
+  const convex = getConvexClient();
+
+  return await convex.query(api.chatConversations.listConversations, {
+    teamId: teamId as Id<"teams">,
+    userId,
+  });
 }
 
 export async function deleteChatConversation(conversationId: string) {
-  return await db.chatConversation.delete({
-    where: { id: conversationId },
-  })
+  const convex = getConvexClient();
+
+  return await convex.mutation(api.chatConversations.deleteConversation, {
+    conversationId: conversationId as Id<"chatConversations">,
+  });
 }
 
 export function generateConversationTitle(firstMessage: string): string {
   // Limit title to 50 characters, clean up the text
-  let title = firstMessage.trim().slice(0, 50)
-  
+  let title = firstMessage.trim().slice(0, 50);
+
   // If truncated, add ellipsis (but make sure we don't exceed 50)
   if (firstMessage.length > 50) {
-    title = title.slice(0, 47) + '...'
+    title = title.slice(0, 47) + "...";
   }
-  
-  return title
+
+  return title;
 }
 
-export async function updateConversationTitle(conversationId: string, title: string) {
-  return await db.chatConversation.update({
-    where: { id: conversationId },
-    data: { title, updatedAt: new Date() },
-  })
+export async function updateConversationTitle(
+  conversationId: string,
+  title: string
+) {
+  const convex = getConvexClient();
+
+  return await convex.mutation(api.chatConversations.updateConversationTitle, {
+    conversationId: conversationId as Id<"chatConversations">,
+    title,
+  });
 }
 
 export async function getTeamSettings(teamId: string) {
-  const team = await db.team.findUnique({
-    where: { id: teamId },
-    select: {
-      groqApiKey: true,
-    },
-  })
+  const convex = getConvexClient();
+
+  const team = await convex.query(api.teams.getTeam, {
+    teamId: teamId as Id<"teams">,
+  });
 
   return {
     hasApiKey: !!team?.groqApiKey,
     apiKey: team?.groqApiKey || null,
-  }
+  };
 }
 
-export async function updateTeamSettings(teamId: string, settings: { groqApiKey?: string | null }) {
-  return await db.team.update({
-    where: { id: teamId },
-    data: settings,
-  })
+export async function updateTeamSettings(
+  teamId: string,
+  settings: { groqApiKey?: string | null }
+) {
+  const convex = getConvexClient();
+
+  return await convex.mutation(api.teams.updateTeam, {
+    teamId: teamId as Id<"teams">,
+    groqApiKey: settings.groqApiKey,
+  });
 }

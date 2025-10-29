@@ -1,64 +1,92 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, BarChart3, Shield, CheckCircle2, Target, AlertCircle, Key, Brain } from "lucide-react"
-import { ChartContainer } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip } from "recharts"
-import { Spinner } from "@/components/ui/spinner"
-import { Button } from "@/components/ui/button"
-import { ApiKeyDialog } from "@/components/shared/api-key-dialog"
-import { Badge } from "@/components/ui/badge"
+import {
+  AlertCircle,
+  BarChart3,
+  Brain,
+  CheckCircle2,
+  Key,
+  Shield,
+  Target,
+  Users,
+} from "lucide-react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { ApiKeyDialog } from "@/components/shared/api-key-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
 
 const COLORS = {
-  urgent: '#ef4444',
-  high: '#f97316',
-  medium: '#f59e0b',
-  low: '#3b82f6',
-  none: '#64748b',
-}
+  urgent: "#ef4444",
+  high: "#f97316",
+  medium: "#f59e0b",
+  low: "#3b82f6",
+  none: "#64748b",
+};
 
-const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4']
+const CHART_COLORS = [
+  "#3b82f6",
+  "#8b5cf6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#06b6d4",
+];
 
 export function ManagementPageClient() {
-  const params = useParams<{ teamId: string }>()
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
-  const [apiKeyStatus, setApiKeyStatus] = useState<{ hasKey: boolean; key: string | null } | null>(null)
+  const params = useParams<{ teamId: string }>();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [apiKeyStatus, setApiKeyStatus] = useState<{
+    hasKey: boolean;
+    key: string | null;
+  } | null>(null);
 
   // Check localStorage for API key
   const checkApiKeyStatus = () => {
-    if (typeof window !== 'undefined') {
-      const apiKey = localStorage.getItem('groq_api_key')
+    if (typeof window !== "undefined") {
+      const apiKey = localStorage.getItem("groq_api_key");
       setApiKeyStatus({
         hasKey: !!apiKey,
-        key: apiKey
-      })
+        key: apiKey,
+      });
     }
-  }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`/api/teams/${params.teamId}/stats`)
+        const response = await fetch(`/api/teams/${params.teamId}/stats`);
         if (response.ok) {
-          const data = await response.json()
-          setStats(data)
+          const data = await response.json();
+          setStats(data);
         }
       } catch (error) {
-        console.error('Error fetching stats:', error)
+        console.error("Error fetching stats:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     if (params.teamId) {
-      fetchStats()
-      checkApiKeyStatus()
+      fetchStats();
+      checkApiKeyStatus();
     }
-  }, [params.teamId])
+  }, [params.teamId]);
 
   if (loading || !stats) {
     return (
@@ -68,19 +96,24 @@ export function ManagementPageClient() {
           <p className="text-muted-foreground">Loading statistics...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const priorityData = stats.priorityBreakdown?.map((item: any) => ({
-    name: item.priority === 'none' ? 'None' : item.priority.charAt(0).toUpperCase() + item.priority.slice(1),
-    value: item.count,
-    color: COLORS[item.priority as keyof typeof COLORS] || COLORS.none
-  })) || []
+  const priorityData =
+    stats.priorityBreakdown?.map((item: any) => ({
+      name:
+        item.priority === "none"
+          ? "None"
+          : item.priority.charAt(0).toUpperCase() + item.priority.slice(1),
+      value: item.count,
+      color: COLORS[item.priority as keyof typeof COLORS] || COLORS.none,
+    })) || [];
 
-  const statusData = stats.statusBreakdown?.map((item: any) => ({
-    name: item.status,
-    value: item.count
-  })) || []
+  const statusData =
+    stats.statusBreakdown?.map((item: any) => ({
+      name: item.status,
+      value: item.count,
+    })) || [];
 
   return (
     <div className="space-y-6">
@@ -92,14 +125,14 @@ export function ManagementPageClient() {
           </p>
         </div>
         <Button
-          variant="outline"
-          onClick={() => setApiKeyDialogOpen(true)}
           className="gap-2"
+          onClick={() => setApiKeyDialogOpen(true)}
+          variant="outline"
         >
           <Key className="h-4 w-4" />
           Manage API Key
           {apiKeyStatus?.hasKey && (
-            <Badge variant="default" className="ml-2">
+            <Badge className="ml-2" variant="default">
               Configured
             </Badge>
           )}
@@ -118,15 +151,17 @@ export function ManagementPageClient() {
                 <CardTitle className="flex items-center gap-2">
                   Doable AI
                   {apiKeyStatus?.hasKey ? (
-                    <Badge variant="default" className="bg-green-600">Ready</Badge>
+                    <Badge className="bg-green-600" variant="default">
+                      Ready
+                    </Badge>
                   ) : (
                     <Badge variant="destructive">Not Configured</Badge>
                   )}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {apiKeyStatus?.hasKey
-                    ? 'AI chatbot is ready to use. Click the sparkles icon in the header to start chatting.'
-                    : 'Get your free Groq API key to enable the Doable AI feature.'}
+                    ? "AI chatbot is ready to use. Click the sparkles icon in the header to start chatting."
+                    : "Get your free Groq API key to enable the Doable AI feature."}
                 </p>
               </div>
             </div>
@@ -142,19 +177,27 @@ export function ManagementPageClient() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.stats?.members || 0}</div>
+            <div className="text-2xl font-bold">
+              {stats.stats?.members || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Active team members</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Projects
+            </CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.stats?.projects || 0}</div>
-            <p className="text-xs text-muted-foreground">Projects in progress</p>
+            <div className="text-2xl font-bold">
+              {stats.stats?.projects || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Projects in progress
+            </p>
           </CardContent>
         </Card>
 
@@ -164,18 +207,26 @@ export function ManagementPageClient() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.stats?.totalIssues || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats.stats?.completedIssues || 0} completed</p>
+            <div className="text-2xl font-bold">
+              {stats.stats?.totalIssues || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.stats?.completedIssues || 0} completed
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Completion Rate
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.stats?.completionRate || 0}%</div>
+            <div className="text-2xl font-bold">
+              {stats.stats?.completionRate || 0}%
+            </div>
             <p className="text-xs text-muted-foreground">Issues completed</p>
           </CardContent>
         </Card>
@@ -191,10 +242,10 @@ export function ManagementPageClient() {
           <CardContent>
             {priorityData.length > 0 ? (
               <ChartContainer
-                config={{
-                  count: { label: "Count" }
-                }}
                 className="h-[300px]"
+                config={{
+                  count: { label: "Count" },
+                }}
               >
                 <BarChart data={priorityData}>
                   <XAxis dataKey="name" />
@@ -202,7 +253,7 @@ export function ManagementPageClient() {
                   <Tooltip />
                   <Bar dataKey="value" fill="var(--color-count)">
                     {priorityData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell fill={entry.color} key={`cell-${index}`} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -223,24 +274,29 @@ export function ManagementPageClient() {
           <CardContent>
             {statusData.length > 0 ? (
               <ChartContainer
-                config={{
-                  count: { label: "Count" }
-                }}
                 className="h-[300px]"
+                config={{
+                  count: { label: "Count" },
+                }}
               >
                 <PieChart>
                   <Pie
-                    data={statusData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    data={statusData}
                     dataKey="value"
+                    fill="#8884d8"
+                    label={({ name, percent }: any) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                    labelLine={false}
+                    outerRadius={80}
                   >
                     {statusData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      <Cell
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        key={`cell-${index}`}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -264,7 +320,10 @@ export function ManagementPageClient() {
           <CardContent className="space-y-2">
             {stats.recentIssues && stats.recentIssues.length > 0 ? (
               stats.recentIssues.map((issue: any) => (
-                <div key={issue.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                  key={issue.id}
+                >
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{issue.title}</span>
@@ -275,7 +334,9 @@ export function ManagementPageClient() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No recent activity</p>
+              <p className="text-sm text-muted-foreground">
+                No recent activity
+              </p>
             )}
           </CardContent>
         </Card>
@@ -318,14 +379,13 @@ export function ManagementPageClient() {
 
       {/* API Key Dialog */}
       <ApiKeyDialog
-        open={apiKeyDialogOpen}
         onOpenChange={setApiKeyDialogOpen}
         onSuccess={() => {
           // Refresh API key status from localStorage
-          checkApiKeyStatus()
+          checkApiKeyStatus();
         }}
+        open={apiKeyDialogOpen}
       />
     </div>
-  )
+  );
 }
-

@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import { auth } from "./auth.config";
+import { mutation, query } from "./_generated/server";
+import auth from "./auth";
 
 /**
- * 获取团队的所有 Projects
+ * Get all Projects for a team
  */
 export const listProjects = query({
   args: { teamId: v.id("teams") },
@@ -28,7 +28,7 @@ export const listProjects = query({
       return [];
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -48,7 +48,7 @@ export const listProjects = query({
 });
 
 /**
- * 根据 ID 获取 Project
+ * Get Project by ID
  */
 export const getProject = query({
   args: { projectId: v.id("projects") },
@@ -79,7 +79,7 @@ export const getProject = query({
       return null;
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -96,7 +96,7 @@ export const getProject = query({
 });
 
 /**
- * 创建 Project
+ * Create Project
  */
 export const createProject = mutation({
   args: {
@@ -116,7 +116,7 @@ export const createProject = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -142,3 +142,108 @@ export const createProject = mutation({
   },
 });
 
+/**
+ * Update Project
+ */
+export const updateProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    key: v.optional(v.string()),
+    color: v.optional(v.string()),
+    icon: v.optional(v.string()),
+    status: v.optional(v.string()),
+    leadId: v.optional(v.string()),
+    lead: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Verify permission
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_teamId_and_userId", (q) =>
+        q.eq("teamId", project.teamId).eq("userId", userId)
+      )
+      .unique();
+
+    if (!membership || membership.role === "viewer") {
+      throw new Error("Unauthorized");
+    }
+
+    const updates: Partial<typeof project> = {};
+    if (args.name !== undefined) {
+      updates.name = args.name;
+    }
+    if (args.description !== undefined) {
+      updates.description = args.description;
+    }
+    if (args.key !== undefined) {
+      updates.key = args.key;
+    }
+    if (args.color !== undefined) {
+      updates.color = args.color;
+    }
+    if (args.icon !== undefined) {
+      updates.icon = args.icon;
+    }
+    if (args.status !== undefined) {
+      updates.status = args.status;
+    }
+    if (args.leadId !== undefined) {
+      updates.leadId = args.leadId;
+    }
+    if (args.lead !== undefined) {
+      updates.lead = args.lead;
+    }
+
+    await ctx.db.patch(args.projectId, updates);
+    return null;
+  },
+});
+
+/**
+ * Delete Project
+ */
+export const deleteProject = mutation({
+  args: {
+    projectId: v.id("projects"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Verify permission
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_teamId_and_userId", (q) =>
+        q.eq("teamId", project.teamId).eq("userId", userId)
+      )
+      .unique();
+
+    if (!membership || membership.role === "viewer") {
+      throw new Error("Unauthorized");
+    }
+
+    await ctx.db.delete(args.projectId);
+    return null;
+  },
+});

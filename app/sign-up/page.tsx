@@ -1,39 +1,42 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignUpPage() {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleGoogleSignUp = async () => {
-    setError("")
-    setLoading(true)
+    setError("");
+    setLoading(true);
 
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard"
-      })
+        callbackURL: "/dashboard",
+      });
     } catch (err) {
-      setError("Failed to sign up with Google")
-      setLoading(false)
+      setError("Failed to sign up with Google");
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Sign Up</CardTitle>
-          <CardDescription>
-            Create an account using Google
-          </CardDescription>
+          <CardDescription>Create an account using Google</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
@@ -42,24 +45,23 @@ export default function SignUpPage() {
             </div>
           )}
 
-          <Button 
-            type="button" 
-            className="w-full" 
-            onClick={handleGoogleSignUp}
+          <Button
+            className="w-full"
             disabled={loading}
+            onClick={handleGoogleSignUp}
+            type="button"
           >
             {loading ? "Signing up..." : "Sign up with Google"}
           </Button>
 
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <a href="/sign-in" className="text-primary hover:underline">
+            <a className="text-primary hover:underline" href="/sign-in">
               Sign in
             </a>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

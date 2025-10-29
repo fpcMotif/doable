@@ -1,25 +1,24 @@
-import { headers } from "next/headers"
-import { auth } from "./auth"
+import { headers } from "next/headers";
+import { auth } from "./auth";
 
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() })
+  return auth.api.getSession({ headers: await headers() });
 }
 
 export async function getUserId() {
-  const session = await getSession()
-  return session?.user?.id
+  const session = await getSession();
+  return session?.user?.id;
 }
 
 export async function requireUserId() {
-  const userId = await getUserId()
+  const userId = await getUserId();
   if (!userId) {
-    throw new Error("Unauthorized")
+    throw new Error("Unauthorized");
   }
-  return userId
+  return userId;
 }
 
 export async function getUser() {
-  const session = await getSession()
-  return session?.user || null
+  const session = await getSession();
+  return session?.user || null;
 }
-

@@ -1,20 +1,22 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
+import * as React from "react";
 import { TeamSelector } from "@/components/shared/team-selector";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
 import { authClient } from "@/lib/auth-client";
 
 export function PageClient() {
-  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   // If loading, show loader
   if (isPending) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <DashboardLoader message="Loading teams" submessage="Setting up your workspace..." />
+        <DashboardLoader
+          message="Loading teams"
+          submessage="Setting up your workspace..."
+        />
       </div>
     );
   }

@@ -1,81 +1,109 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserId, getUser } from '@/lib/auth-server-helpers'
-import { db } from '@/lib/db'
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type { Id } from "@/convex/_generated/dataModel";
+import { getUserId } from "@/lib/auth-server-helpers";
+import { api, getConvexClient } from "@/lib/convex";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { displayName } = body
+    const body = await request.json();
+    const { displayName } = body;
 
     if (!displayName) {
       return NextResponse.json(
-        { error: 'Display name is required' },
+        { error: "Display name is required" },
         { status: 400 }
-      )
+      );
     }
 
     // Get the current user from Better Auth
-    const userId = await getUserId()
-    const user = await getUser()
+    const userId = await getUserId();
 
     // Generate unique team key
     // Use first 3 chars of name + random 3 char suffix to ensure uniqueness
-    const baseKey = displayName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'A').padEnd(3, 'A')
-    const randomSuffix = Math.random().toString(36).substring(2, 5).toUpperCase()
-    const teamKey = `${baseKey}${randomSuffix}`
-    
-    // Create team in database
-    const team = await db.team.create({
-      data: {
-        name: displayName,
-        key: teamKey,
-      }
-    })
+    const baseKey = displayName
+      .substring(0, 3)
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "A")
+      .padEnd(3, "A");
+    const randomSuffix = Math.random()
+      .toString(36)
+      .substring(2, 5)
+      .toUpperCase();
+    const teamKey = `${baseKey}${randomSuffix}`;
+
+    // Create team via Convex
+    const convex = getConvexClient();
+    const teamId = await convex.mutation(api.teams.createTeam, {
+      name: displayName,
+      key: teamKey,
+    });
 
     // Create default workflow states for the team
     const defaultWorkflowStates = [
-      { name: 'Backlog', type: 'backlog', color: '#64748b', position: 0 },
-      { name: 'Todo', type: 'unstarted', color: '#3b82f6', position: 1 },
-      { name: 'In Progress', type: 'started', color: '#f59e0b', position: 2 },
-      { name: 'Done', type: 'completed', color: '#10b981', position: 3 },
-    ]
+      {
+        name: "Backlog",
+        type: "backlog" as const,
+        color: "#64748b",
+        position: 0,
+      },
+      {
+        name: "Todo",
+        type: "unstarted" as const,
+        color: "#3b82f6",
+        position: 1,
+      },
+      {
+        name: "In Progress",
+        type: "started" as const,
+        color: "#f59e0b",
+        position: 2,
+      },
+      {
+        name: "Done",
+        type: "completed" as const,
+        color: "#10b981",
+        position: 3,
+      },
+    ];
 
     await Promise.all(
-      defaultWorkflowStates.map(state =>
-        db.workflowState.create({
-          data: {
-            ...state,
-            teamId: team.id,
-          }
+      defaultWorkflowStates.map((state) =>
+        convex.mutation(api.workflowStates.createState, {
+          teamId: teamId as Id<"teams">,
+          ...state,
         })
       )
-    )
+    );
 
     // Create default labels for the team
     const defaultLabels = [
-      { name: 'Bug', color: '#ef4444' },
-      { name: 'Feature', color: '#8b5cf6' },
-      { name: 'Enhancement', color: '#06b6d4' },
-      { name: 'Documentation', color: '#84cc16' },
-    ]
+      { name: "Bug", color: "#ef4444" },
+      { name: "Feature", color: "#8b5cf6" },
+      { name: "Enhancement", color: "#06b6d4" },
+      { name: "Documentation", color: "#84cc16" },
+    ];
 
     await Promise.all(
-      defaultLabels.map(label =>
-        db.label.create({
-          data: {
-            ...label,
-            teamId: team.id,
-          }
+      defaultLabels.map((label) =>
+        convex.mutation(api.labels.createLabel, {
+          teamId: teamId as Id<"teams">,
+          ...label,
         })
       )
-    )
+    );
 
-    return NextResponse.json(team, { status: 201 })
+    // Fetch the created team
+    const team = await convex.query(api.teams.getTeam, {
+      teamId: teamId as Id<"teams">,
+    });
+
+    return NextResponse.json(team, { status: 201 });
   } catch (error) {
-    console.error('Error creating team:', error)
+    console.error("Error creating team:", error);
     return NextResponse.json(
-      { error: 'Failed to create team' },
+      { error: "Failed to create team" },
       { status: 500 }
-    )
+    );
   }
 }

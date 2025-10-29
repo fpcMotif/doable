@@ -1,83 +1,92 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, CheckCircle } from 'lucide-react'
-import { Spinner } from '@/components/ui/spinner'
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
-export default function InvitePage({ params }: { params: { invitationId: string } }) {
-  const [status, setStatus] = useState<'loading' | 'accepting' | 'success' | 'error' | 'not-found' | 'expired'>('loading')
-  const [error, setError] = useState<string>('')
-  const [teamId, setTeamId] = useState<string>('')
-  const router = useRouter()
+export default function InvitePage({
+  params,
+}: {
+  params: { invitationId: string };
+}) {
+  const [status, setStatus] = useState<
+    "loading" | "accepting" | "success" | "error" | "not-found" | "expired"
+  >("loading");
+  const [error, setError] = useState<string>("");
+  const [teamId, setTeamId] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchInvitation = async () => {
       try {
-        const response = await fetch(`/api/invitations/${params.invitationId}`)
-        
+        const response = await fetch(`/api/invitations/${params.invitationId}`);
+
         if (!response.ok) {
           if (response.status === 404) {
-            setStatus('not-found')
+            setStatus("not-found");
           } else {
-            setStatus('error')
-            setError('Failed to load invitation')
+            setStatus("error");
+            setError("Failed to load invitation");
           }
-          return
+          return;
         }
 
-        const data = await response.json()
-        setTeamId(data.teamId)
+        const data = await response.json();
+        setTeamId(data.teamId);
 
         // Check if already accepted or expired
-        if (data.status === 'accepted') {
-          setStatus('success')
-          return
+        if (data.status === "accepted") {
+          setStatus("success");
+          return;
         }
 
         if (new Date(data.expiresAt) < new Date()) {
-          setStatus('expired')
-          return
+          setStatus("expired");
+          return;
         }
 
-        setStatus('loading')
+        setStatus("loading");
       } catch (error) {
-        console.error('Error fetching invitation:', error)
-        setStatus('error')
-        setError('Failed to load invitation')
+        console.error("Error fetching invitation:", error);
+        setStatus("error");
+        setError("Failed to load invitation");
       }
-    }
+    };
 
-    fetchInvitation()
-  }, [params.invitationId])
+    fetchInvitation();
+  }, [params.invitationId]);
 
   const handleAccept = async () => {
     try {
-      setStatus('accepting')
-      
-      const response = await fetch(`/api/teams/${teamId}/invitations/${params.invitationId}/accept`, {
-        method: 'POST',
-      })
+      setStatus("accepting");
+
+      const response = await fetch(
+        `/api/teams/${teamId}/invitations/${params.invitationId}/accept`,
+        {
+          method: "POST",
+        }
+      );
 
       if (response.ok) {
-        setStatus('success')
+        setStatus("success");
         // Redirect to dashboard after a delay
         setTimeout(() => {
-          router.push(`/dashboard/${teamId}`)
-        }, 2000)
+          router.push(`/dashboard/${teamId}`);
+        }, 2000);
       } else {
-        const errorData = await response.json()
-        setStatus('error')
-        setError(errorData.error || 'Failed to accept invitation')
+        const errorData = await response.json();
+        setStatus("error");
+        setError(errorData.error || "Failed to accept invitation");
       }
     } catch (error) {
-      console.error('Error accepting invitation:', error)
-      setStatus('error')
-      setError('Failed to accept invitation')
+      console.error("Error accepting invitation:", error);
+      setStatus("error");
+      setError("Failed to accept invitation");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -86,7 +95,7 @@ export default function InvitePage({ params }: { params: { invitationId: string 
           <CardTitle className="text-2xl">Team Invitation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {status === 'loading' && (
+          {status === "loading" && (
             <div className="text-center py-8">
               <div className="flex flex-col items-center space-y-4">
                 <Spinner size="md" />
@@ -95,7 +104,7 @@ export default function InvitePage({ params }: { params: { invitationId: string 
             </div>
           )}
 
-          {status === 'accepting' && (
+          {status === "accepting" && (
             <div className="text-center py-8">
               <div className="flex flex-col items-center space-y-4">
                 <Spinner size="md" />
@@ -104,15 +113,17 @@ export default function InvitePage({ params }: { params: { invitationId: string 
             </div>
           )}
 
-          {status === 'success' && (
+          {status === "success" && (
             <div className="text-center py-8 space-y-4">
               <CheckCircle className="h-12 w-12 mx-auto text-green-600" />
               <h3 className="text-xl font-semibold">Invitation Accepted!</h3>
-              <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+              <p className="text-muted-foreground">
+                Redirecting to your dashboard...
+              </p>
             </div>
           )}
 
-          {status === 'not-found' && (
+          {status === "not-found" && (
             <div className="text-center py-8 space-y-4">
               <AlertCircle className="h-12 w-12 mx-auto text-yellow-600" />
               <h3 className="text-xl font-semibold">Invitation Not Found</h3>
@@ -122,7 +133,7 @@ export default function InvitePage({ params }: { params: { invitationId: string 
             </div>
           )}
 
-          {status === 'expired' && (
+          {status === "expired" && (
             <div className="text-center py-8 space-y-4">
               <AlertCircle className="h-12 w-12 mx-auto text-red-600" />
               <h3 className="text-xl font-semibold">Invitation Expired</h3>
@@ -132,18 +143,20 @@ export default function InvitePage({ params }: { params: { invitationId: string 
             </div>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <div className="text-center py-8 space-y-4">
               <AlertCircle className="h-12 w-12 mx-auto text-red-600" />
               <h3 className="text-xl font-semibold">Error</h3>
               <p className="text-muted-foreground">{error}</p>
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
             </div>
           )}
 
-          {status === 'loading' && teamId && (
+          {status === "loading" && teamId && (
             <div className="pt-4">
-              <Button onClick={handleAccept} className="w-full" size="lg">
+              <Button className="w-full" onClick={handleAccept} size="lg">
                 Accept Invitation
               </Button>
             </div>
@@ -151,6 +164,5 @@ export default function InvitePage({ params }: { params: { invitationId: string 
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

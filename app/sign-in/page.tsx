@@ -1,30 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
-  const router = useRouter()
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
-    setError("")
-    setLoading(true)
+    setError("");
+    setLoading(true);
 
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard"
-      })
+        callbackURL: "/dashboard",
+      });
     } catch (err) {
-      setError("Failed to sign in with Google")
-      setLoading(false)
+      setError("Failed to sign in with Google");
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -42,24 +47,23 @@ export default function SignInPage() {
             </div>
           )}
 
-          <Button 
-            type="button" 
-            className="w-full" 
-            onClick={handleGoogleSignIn}
+          <Button
+            className="w-full"
             disabled={loading}
+            onClick={handleGoogleSignIn}
+            type="button"
           >
             {loading ? "Signing in..." : "Sign in with Google"}
           </Button>
 
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <a href="/sign-up" className="text-primary hover:underline">
+            <a className="text-primary hover:underline" href="/sign-up">
               Sign up
             </a>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

@@ -1,173 +1,190 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { AlertCircle, Mail, Trash2, UserPlus } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { UserAvatar } from '@/components/shared/user-avatar'
-import { UserPlus, Mail, Trash2, AlertCircle } from 'lucide-react'
-import { useToast } from '@/lib/hooks/use-toast'
-import { ToastContainer } from '@/lib/hooks/use-toast'
-import { Spinner } from '@/components/ui/spinner'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { ToastContainer, useToast } from "@/lib/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-interface TeamMember {
-  id: string
-  userId: string
-  userName: string
-  userEmail: string
-  role: string
-  createdAt: string
-}
+type TeamMember = {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  role: string;
+  createdAt: string;
+};
 
-interface Invitation {
-  id: string
-  email: string
-  role: string
-  status: string
-  invitedBy: string
-  createdAt: string
-  expiresAt: string
-}
+type Invitation = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;
+};
 
 export default function PeoplePage() {
-  const params = useParams<{ teamId: string }>()
-  const teamId = params.teamId
+  const params = useParams<{ teamId: string }>();
+  const teamId = params.teamId;
 
-  const [members, setMembers] = useState<TeamMember[]>([])
-  const [invitations, setInvitations] = useState<Invitation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('developer')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("developer");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { toasts, toast, removeToast } = useToast()
+  const { toasts, toast, removeToast } = useToast();
 
   const fetchData = useCallback(async () => {
     try {
       const [membersRes, invitationsRes] = await Promise.all([
         fetch(`/api/teams/${teamId}/members`),
-        fetch(`/api/teams/${teamId}/invitations`)
-      ])
+        fetch(`/api/teams/${teamId}/invitations`),
+      ]);
 
       if (membersRes.ok) {
-        const membersData = await membersRes.json()
-        setMembers(membersData)
+        const membersData = await membersRes.json();
+        setMembers(membersData);
       }
 
       if (invitationsRes.ok) {
-        const invitationsData = await invitationsRes.json()
-        setInvitations(invitationsData)
+        const invitationsData = await invitationsRes.json();
+        setInvitations(invitationsData);
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
-      toast.error('Failed to load data', 'Please try again.')
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load data", "Please try again.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamId])
+  }, [teamId]);
 
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true)
-      await fetchData()
-      setLoading(false)
-    }
-    loadData()
-  }, [fetchData])
+      setLoading(true);
+      await fetchData();
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchData]);
 
   // Add event listener to refresh people when chatbot invites team members
   useEffect(() => {
     const handleRefresh = () => {
-      fetchData()
-    }
+      fetchData();
+    };
 
-    window.addEventListener('refresh-people', handleRefresh)
+    window.addEventListener("refresh-people", handleRefresh);
 
     return () => {
-      window.removeEventListener('refresh-people', handleRefresh)
-    }
-  }, [fetchData])
+      window.removeEventListener("refresh-people", handleRefresh);
+    };
+  }, [fetchData]);
 
   const handleInvite = async () => {
-    if (!inviteEmail || !inviteEmail.includes('@')) {
-      toast.error('Invalid email', 'Please enter a valid email address.')
-      return
+    if (!inviteEmail || !inviteEmail.includes("@")) {
+      toast.error("Invalid email", "Please enter a valid email address.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const response = await fetch(`/api/teams/${teamId}/invitations`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: inviteEmail,
           role: inviteRole,
         }),
-      })
+      });
 
       if (response.ok) {
-        toast.success('Invitation sent', 'The invitation has been sent successfully.')
-        setInviteEmail('')
-        setInviteRole('developer')
-        setInviteDialogOpen(false)
-        await fetchData()
+        toast.success(
+          "Invitation sent",
+          "The invitation has been sent successfully."
+        );
+        setInviteEmail("");
+        setInviteRole("developer");
+        setInviteDialogOpen(false);
+        await fetchData();
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to send invitation')
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send invitation");
       }
     } catch (error: any) {
-      console.error('Error sending invitation:', error)
-      toast.error('Failed to send invitation', error.message || 'Please try again.')
+      console.error("Error sending invitation:", error);
+      toast.error(
+        "Failed to send invitation",
+        error.message || "Please try again."
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleResendInvitation = async (invitationId: string) => {
     try {
-      const response = await fetch(`/api/teams/${teamId}/invitations/${invitationId}/resend`, {
-        method: 'POST',
-      })
+      const response = await fetch(
+        `/api/teams/${teamId}/invitations/${invitationId}/resend`,
+        {
+          method: "POST",
+        }
+      );
 
       if (response.ok) {
-        toast.success('Invitation resent', 'The invitation has been resent successfully.')
+        toast.success(
+          "Invitation resent",
+          "The invitation has been resent successfully."
+        );
       } else {
-        throw new Error('Failed to resend invitation')
+        throw new Error("Failed to resend invitation");
       }
     } catch (error) {
-      console.error('Error resending invitation:', error)
-      toast.error('Failed to resend invitation', 'Please try again.')
+      console.error("Error resending invitation:", error);
+      toast.error("Failed to resend invitation", "Please try again.");
     }
-  }
+  };
 
   const handleRemoveInvitation = async (invitationId: string) => {
     try {
-      const response = await fetch(`/api/teams/${teamId}/invitations/${invitationId}`, {
-        method: 'DELETE',
-      })
+      const response = await fetch(
+        `/api/teams/${teamId}/invitations/${invitationId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
-        toast.success('Invitation removed', 'The invitation has been removed successfully.')
-        await fetchData()
+        toast.success(
+          "Invitation removed",
+          "The invitation has been removed successfully."
+        );
+        await fetchData();
       } else {
-        throw new Error('Failed to remove invitation')
+        throw new Error("Failed to remove invitation");
       }
     } catch (error) {
-      console.error('Error removing invitation:', error)
-      toast.error('Failed to remove invitation', 'Please try again.')
+      console.error("Error removing invitation:", error);
+      toast.error("Failed to remove invitation", "Please try again.");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -178,7 +195,10 @@ export default function PeoplePage() {
             Manage team members and their roles
           </p>
         </div>
-        <Button onClick={() => setInviteDialogOpen(true)} className="font-medium">
+        <Button
+          className="font-medium"
+          onClick={() => setInviteDialogOpen(true)}
+        >
           <UserPlus className="h-4 w-4 mr-2" />
           Invite Developer
         </Button>
@@ -192,18 +212,20 @@ export default function PeoplePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Email Address</label>
+              <label className="text-sm font-medium mb-2 block">
+                Email Address
+              </label>
               <Input
-                type="email"
-                placeholder="developer@example.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
                 className="h-11"
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="developer@example.com"
+                type="email"
+                value={inviteEmail}
               />
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block">Role</label>
-              <Select value={inviteRole} onValueChange={setInviteRole}>
+              <Select onValueChange={setInviteRole} value={inviteRole}>
                 <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
@@ -216,22 +238,22 @@ export default function PeoplePage() {
             </div>
             <div className="flex gap-2 pt-2">
               <Button
-                variant="outline"
-                onClick={() => {
-                  setInviteDialogOpen(false)
-                  setInviteEmail('')
-                  setInviteRole('developer')
-                }}
                 className="flex-1"
+                onClick={() => {
+                  setInviteDialogOpen(false);
+                  setInviteEmail("");
+                  setInviteRole("developer");
+                }}
+                variant="outline"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleInvite}
-                disabled={isSubmitting}
                 className="flex-1"
+                disabled={isSubmitting}
+                onClick={handleInvite}
               >
-                {isSubmitting ? 'Sending...' : 'Send Invitation'}
+                {isSubmitting ? "Sending..." : "Send Invitation"}
               </Button>
             </div>
             {isSubmitting && (
@@ -264,31 +286,31 @@ export default function PeoplePage() {
             <div className="space-y-3">
               {members.map((member) => (
                 <div
-                  key={member.id}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/50"
+                  key={member.id}
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <UserAvatar
-                      name={member.userName}
-                      size="md"
-                    />
+                    <UserAvatar name={member.userName} size="md" />
                     <div>
                       <div className="font-medium">{member.userName}</div>
-                      <div className="text-sm text-muted-foreground">{member.userEmail}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {member.userEmail}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span 
+                    <span
                       className={cn(
                         "text-xs px-3 py-1 rounded-full font-medium",
-                        member.role === 'admin' 
+                        member.role === "admin"
                           ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                          : member.role === 'viewer'
-                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          : member.role === "viewer"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                            : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                       )}
                     >
-                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                      {member.role.charAt(0).toUpperCase() +
+                        member.role.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -308,30 +330,31 @@ export default function PeoplePage() {
             <div className="space-y-3">
               {invitations.map((invitation) => (
                 <div
-                  key={invitation.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-border/50"
+                  key={invitation.id}
                 >
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <div className="font-medium">{invitation.email}</div>
                       <div className="text-sm text-muted-foreground capitalize">
-                        {invitation.role} • Invited {new Date(invitation.createdAt).toLocaleDateString()}
+                        {invitation.role} • Invited{" "}
+                        {new Date(invitation.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => handleResendInvitation(invitation.id)}
+                      size="sm"
+                      variant="outline"
                     >
                       Resend
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => handleRemoveInvitation(invitation.id)}
+                      size="sm"
+                      variant="outline"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -343,7 +366,7 @@ export default function PeoplePage() {
         </Card>
       )}
 
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <ToastContainer onRemove={removeToast} toasts={toasts} />
     </div>
-  )
+  );
 }

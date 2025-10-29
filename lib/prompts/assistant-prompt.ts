@@ -1,24 +1,25 @@
 export function getSystemPrompt(teamContext: {
-  projects: Array<{ name: string; key: string; description: string | null }>
-  workflowStates: Array<{ name: string; type: string }>
-  labels: Array<{ name: string }>
-  members: Array<{ userName: string; userEmail: string }>
+  projects: Array<{ name: string; key: string; description: string | null }>;
+  workflowStates: Array<{ name: string; type: string }>;
+  labels: Array<{ name: string }>;
+  members: Array<{ userName: string; userEmail: string }>;
 }) {
   const projectsText = teamContext.projects
-    .map((p) => `- ${p.name} (${p.key})${p.description ? `: ${p.description}` : ''}`)
-    .join('\n')
+    .map(
+      (p) =>
+        `- ${p.name} (${p.key})${p.description ? `: ${p.description}` : ""}`
+    )
+    .join("\n");
 
   const statesText = teamContext.workflowStates
     .map((s) => `- ${s.name} (${s.type})`)
-    .join('\n')
+    .join("\n");
 
-  const labelsText = teamContext.labels
-    .map((l) => `- ${l.name}`)
-    .join('\n')
+  const labelsText = teamContext.labels.map((l) => `- ${l.name}`).join("\n");
 
   const membersText = teamContext.members
     .map((m) => `- ${m.userName} (${m.userEmail})`)
-    .join('\n')
+    .join("\n");
 
   return `You are a helpful AI assistant for a project management system called "Doable". 
 Your role is to help users manage their tasks, projects, and team members through natural conversation.
@@ -33,16 +34,16 @@ Your role is to help users manage their tasks, projects, and team members throug
 ## Current Team Context
 
 ### Available Projects:
-${projectsText || 'No projects yet'}
+${projectsText || "No projects yet"}
 
 ### Workflow States:
-${statesText || 'No states configured'}
+${statesText || "No states configured"}
 
 ### Available Labels:
-${labelsText || 'No labels configured'}
+${labelsText || "No labels configured"}
 
 ### Team Members:
-${membersText || 'No members yet'}
+${membersText || "No members yet"}
 
 ## Guidelines for Issue Creation
 
@@ -69,5 +70,5 @@ ALWAYS ask follow-up questions one at a time to avoid overwhelming the user.
 - Show enthusiasm when helping users accomplish tasks
 - Acknowledge when you perform actions: "Done! I've created the issue..." or "Got it! I've updated..."
 
-Remember: You have access to all team data, so be specific when referencing projects, members, or issues by name.`
+Remember: You have access to all team data, so be specific when referencing projects, members, or issues by name.`;
 }

@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import { auth } from "./auth.config";
+import { mutation, query } from "./_generated/server";
+import auth from "./auth";
 
 /**
- * 获取用户的所有团队
+ * Get all teams for user
  */
 export const getUserTeams = query({
   args: {},
@@ -23,7 +23,7 @@ export const getUserTeams = query({
       return [];
     }
 
-    // 查询用户所属的团队
+    // Query teams belonging to user
     const memberships = await ctx.db
       .query("teamMembers")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -45,7 +45,7 @@ export const getUserTeams = query({
 });
 
 /**
- * 根据 ID 获取团队
+ * Get team by ID
  */
 export const getTeam = query({
   args: { teamId: v.id("teams") },
@@ -65,7 +65,7 @@ export const getTeam = query({
       return null;
     }
 
-    // 验证用户是否为团队成员
+    // Verify user is team member
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -82,7 +82,7 @@ export const getTeam = query({
 });
 
 /**
- * 创建新团队
+ * Create new team
  */
 export const createTeam = mutation({
   args: {
@@ -96,7 +96,7 @@ export const createTeam = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 获取用户信息
+    // Get user information
     const user = await ctx.db
       .query("users")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -106,13 +106,13 @@ export const createTeam = mutation({
       throw new Error("User not found");
     }
 
-    // 创建团队
+    // Create team
     const teamId = await ctx.db.insert("teams", {
       name: args.name,
       key: args.key,
     });
 
-    // 添加创建者为管理员
+    // Add creator as admin
     await ctx.db.insert("teamMembers", {
       teamId,
       userId,
@@ -126,7 +126,137 @@ export const createTeam = mutation({
 });
 
 /**
- * 获取团队统计信息
+ * Update team settings
+ */
+export const updateTeam = mutation({
+  args: {
+    teamId: v.id("teams"),
+    groqApiKey: v.optional(v.union(v.string(), v.null())),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Verify user is admin
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_teamId_and_userId", (q) =>
+        q.eq("teamId", args.teamId).eq("userId", userId)
+      )
+      .unique();
+
+    if (!membership || membership.role !== "admin") {
+      throw new Error("Unauthorized");
+    }
+
+    const updates: Partial<{ groqApiKey: string | undefined }> = {};
+    if (args.groqApiKey !== undefined) {
+      updates.groqApiKey =
+        args.groqApiKey === null ? undefined : args.groqApiKey;
+    }
+
+    await ctx.db.patch(args.teamId, updates);
+    return null;
+  },
+});
+
+/**
+ * Delete team
+ */
+export const deleteTeam = mutation({
+  args: {
+    teamId: v.id("teams"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Verify user is admin
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_teamId_and_userId", (q) =>
+        q.eq("teamId", args.teamId).eq("userId", userId)
+      )
+      .unique();
+
+    if (!membership || membership.role !== "admin") {
+      throw new Error("Unauthorized");
+    }
+
+    // Delete all related data
+    // Note: Convex doesn't have cascading deletes, so we need to manually delete related data
+
+    // Delete team members
+    const members = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(members.map((m) => ctx.db.delete(m._id)));
+
+    // Delete issues
+    const issues = await ctx.db
+      .query("issues")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(issues.map((i) => ctx.db.delete(i._id)));
+
+    // Delete projects
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(projects.map((p) => ctx.db.delete(p._id)));
+
+    // Delete workflow states
+    const workflowStates = await ctx.db
+      .query("workflowStates")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(workflowStates.map((ws) => ctx.db.delete(ws._id)));
+
+    // Delete labels
+    const labels = await ctx.db
+      .query("labels")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(labels.map((l) => ctx.db.delete(l._id)));
+
+    // Delete chat conversations
+    const conversations = await ctx.db
+      .query("chatConversations")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    for (const conv of conversations) {
+      // Delete messages first
+      const messages = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_conversationId", (q) => q.eq("conversationId", conv._id))
+        .collect();
+      await Promise.all(messages.map((m) => ctx.db.delete(m._id)));
+      await ctx.db.delete(conv._id);
+    }
+
+    // Delete invitations
+    const invitations = await ctx.db
+      .query("invitations")
+      .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
+      .collect();
+    await Promise.all(invitations.map((inv) => ctx.db.delete(inv._id)));
+
+    // Finally, delete the team
+    await ctx.db.delete(args.teamId);
+    return null;
+  },
+});
+
+/**
+ * Get team statistics
  */
 export const getTeamStats = query({
   args: { teamId: v.id("teams") },
@@ -143,7 +273,7 @@ export const getTeamStats = query({
       throw new Error("Unauthorized");
     }
 
-    // 验证权限
+    // Verify permission
     const membership = await ctx.db
       .query("teamMembers")
       .withIndex("by_teamId_and_userId", (q) =>
@@ -155,7 +285,7 @@ export const getTeamStats = query({
       throw new Error("Unauthorized");
     }
 
-    // 统计数据
+    // Collect statistics
     const allIssues = await ctx.db
       .query("issues")
       .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
@@ -167,7 +297,9 @@ export const getTeamStats = query({
       .filter((q) => q.eq(q.field("type"), "completed"))
       .collect();
 
-    const completedStateIds = new Set(completedWorkflowStates.map((s) => s._id));
+    const completedStateIds = new Set(
+      completedWorkflowStates.map((s) => s._id)
+    );
     const completedIssues = allIssues.filter((i) =>
       completedStateIds.has(i.workflowStateId)
     );
@@ -191,4 +323,3 @@ export const getTeamStats = query({
     };
   },
 });
-

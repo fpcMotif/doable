@@ -1,15 +1,11 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function RecentSales() {
   return (
     <div className="space-y-8">
       <div className="flex items-center">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/01.png" alt="Avatar" />
+          <AvatarImage alt="Avatar" src="/avatars/01.png" />
           <AvatarFallback>OM</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
@@ -22,7 +18,7 @@ export function RecentSales() {
       </div>
       <div className="flex items-center">
         <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-          <AvatarImage src="/avatars/02.png" alt="Avatar" />
+          <AvatarImage alt="Avatar" src="/avatars/02.png" />
           <AvatarFallback>JL</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
@@ -33,7 +29,7 @@ export function RecentSales() {
       </div>
       <div className="flex items-center">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/03.png" alt="Avatar" />
+          <AvatarImage alt="Avatar" src="/avatars/03.png" />
           <AvatarFallback>IN</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
@@ -46,7 +42,7 @@ export function RecentSales() {
       </div>
       <div className="flex items-center">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/04.png" alt="Avatar" />
+          <AvatarImage alt="Avatar" src="/avatars/04.png" />
           <AvatarFallback>WK</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
@@ -57,7 +53,7 @@ export function RecentSales() {
       </div>
       <div className="flex items-center">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="/avatars/05.png" alt="Avatar" />
+          <AvatarImage alt="Avatar" src="/avatars/05.png" />
           <AvatarFallback>SD</AvatarFallback>
         </Avatar>
         <div className="ml-4 space-y-1">
@@ -67,5 +63,5 @@ export function RecentSales() {
         <div className="ml-auto font-medium">+$39.00</div>
       </div>
     </div>
-  )
+  );
 }

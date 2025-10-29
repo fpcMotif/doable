@@ -1,19 +1,27 @@
-'use client';
+"use client";
 
-import { useTranslations } from "next-intl";
-import SidebarLayout, { SidebarItem } from "@/components/sidebar-layout";
-import { AlertCircle, BarChart3, FolderOpen, MapPin, Settings, Users, Workflow } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import {
+  AlertCircle,
+  BarChart3,
+  FolderOpen,
+  MapPin,
+  Settings,
+  Users,
+  Workflow,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { DashboardLoader } from "@/components/ui/dashboard-loader";
-import { WorkspaceSelector } from "@/components/shared/workspace-selector";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { ApiKeyDialog } from "@/components/shared/api-key-dialog";
-import { useState, useEffect } from "react";
+import { WorkspaceSelector } from "@/components/shared/workspace-selector";
+import SidebarLayout, { type SidebarItem } from "@/components/sidebar-layout";
+import { DashboardLoader } from "@/components/ui/dashboard-loader";
+import { authClient } from "@/lib/auth-client";
 
 export default function Layout(props: { children: React.ReactNode }) {
   const t = useTranslations("navigation");
   const dashboardT = useTranslations("dashboard");
-  
+
   const navigationItems: SidebarItem[] = [
     {
       name: t("issues"),
@@ -28,7 +36,7 @@ export default function Layout(props: { children: React.ReactNode }) {
       type: "item",
     },
     {
-      type: 'label',
+      type: "label",
       name: t("management"),
     },
     {
@@ -51,7 +59,7 @@ export default function Layout(props: { children: React.ReactNode }) {
     },
   ];
 
-  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false)
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const params = useParams<{ teamId: string }>();
   const { data: session } = authClient.useSession();
   const user = session?.user || null;
@@ -64,7 +72,7 @@ export default function Layout(props: { children: React.ReactNode }) {
     // Fetch team data
     const fetchTeam = async () => {
       try {
-        const response = await fetch('/api/teams');
+        const response = await fetch("/api/teams");
         if (response.ok) {
           const teams = await response.json();
           const currentTeam = teams.find((t: any) => t.id === params.teamId);
@@ -74,16 +82,16 @@ export default function Layout(props: { children: React.ReactNode }) {
             // If team not found, redirect to dashboard immediately
             setIsRedirecting(true);
             setLoading(false);
-            router.replace('/dashboard');
+            router.replace("/dashboard");
             return;
           }
         }
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching team:', error);
+        console.error("Error fetching team:", error);
         setLoading(false);
         setIsRedirecting(true);
-        router.replace('/dashboard');
+        router.replace("/dashboard");
       }
     };
     fetchTeam();
@@ -93,7 +101,10 @@ export default function Layout(props: { children: React.ReactNode }) {
   if (isRedirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <DashboardLoader message={dashboardT("redirecting")} submessage={dashboardT("teamNotFound")} />
+        <DashboardLoader
+          message={dashboardT("redirecting")}
+          submessage={dashboardT("teamNotFound")}
+        />
       </div>
     );
   }
@@ -102,30 +113,40 @@ export default function Layout(props: { children: React.ReactNode }) {
   if (loading || !team) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <DashboardLoader message={dashboardT("loading")} submessage={dashboardT("loadingMessage")} />
+        <DashboardLoader
+          message={dashboardT("loading")}
+          submessage={dashboardT("loadingMessage")}
+        />
       </div>
     );
   }
 
   return (
     <>
-      <SidebarLayout 
-        items={navigationItems}
+      <SidebarLayout
+        baseBreadcrumb={[
+          {
+            title: team.displayName || team.name,
+            href: `/dashboard/${team.id}`,
+          },
+        ]}
         basePath={`/dashboard/${team.id}`}
-        sidebarTop={<WorkspaceSelector currentTeamId={team.id} currentTeamName={team.name} />}
-        baseBreadcrumb={[{
-          title: team.displayName || team.name,
-          href: `/dashboard/${team.id}`,
-        }]}
+        items={navigationItems}
+        sidebarTop={
+          <WorkspaceSelector
+            currentTeamId={team.id}
+            currentTeamName={team.name}
+          />
+        }
         teamId={team.id}
       >
         {props.children}
       </SidebarLayout>
-      
+
       {/* API Key Dialog */}
       <ApiKeyDialog
-        open={apiKeyDialogOpen}
         onOpenChange={setApiKeyDialogOpen}
+        open={apiKeyDialogOpen}
       />
     </>
   );

@@ -1,9 +1,16 @@
-import { Resend } from 'resend'
+import { Resend } from "resend";
 
 // Initialize Resend if API key is provided
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
-const emailTemplate = (teamName: string, inviterName: string, role: string, inviteUrl: string) => `
+const emailTemplate = (
+  teamName: string,
+  inviterName: string,
+  role: string,
+  inviteUrl: string
+) => `
         <!DOCTYPE html>
         <html>
           <head>
@@ -38,48 +45,48 @@ const emailTemplate = (teamName: string, inviterName: string, role: string, invi
             </div>
           </body>
         </html>
-      `
+      `;
 
 export async function sendInvitationEmail(params: {
-  email: string
-  teamName: string
-  inviterName: string
-  role: string
-  inviteUrl: string
+  email: string;
+  teamName: string;
+  inviterName: string;
+  role: string;
+  inviteUrl: string;
 }) {
-  const { email, teamName, inviterName, role, inviteUrl } = params
+  const { email, teamName, inviterName, role, inviteUrl } = params;
 
   try {
     // Check if Resend is configured
     if (!resend || !process.env.RESEND_API_KEY) {
-      console.log('📧 EMAIL DISABLED - Resend API key not configured')
-      console.log('📧 Copy this invitation URL to manually invite users:')
-      console.log('   Invitation URL:', inviteUrl)
-      console.log('   For email:', email)
-      console.log('   💡 Tip: Add RESEND_API_KEY to .env')
-      return { success: true, skipped: true }
+      console.log("📧 EMAIL DISABLED - Resend API key not configured");
+      console.log("📧 Copy this invitation URL to manually invite users:");
+      console.log("   Invitation URL:", inviteUrl);
+      console.log("   For email:", email);
+      console.log("   💡 Tip: Add RESEND_API_KEY to .env");
+      return { success: true, skipped: true };
     }
 
     // Send email via Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
       to: email,
       subject: `You've been invited to join ${teamName} on Doable`,
       html: emailTemplate(teamName, inviterName, role, inviteUrl),
-    })
+    });
 
     if (error) {
-      console.error('Resend error:', error)
-      throw error
+      console.error("Resend error:", error);
+      throw error;
     }
 
-    console.log('✅ Email sent via Resend:', data)
-    return { success: true }
+    console.log("✅ Email sent via Resend:", data);
+    return { success: true };
   } catch (error: any) {
-    console.error('Error sending invitation email:', error)
-    console.log('📧 Invitation created in database, but email failed.')
-    console.log('📧 Copy this invitation URL to manually invite:')
-    console.log('   URL:', inviteUrl)
-    return { success: false, error }
+    console.error("Error sending invitation email:", error);
+    console.log("📧 Invitation created in database, but email failed.");
+    console.log("📧 Copy this invitation URL to manually invite:");
+    console.log("   URL:", inviteUrl);
+    return { success: false, error };
   }
 }

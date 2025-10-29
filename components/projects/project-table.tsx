@@ -1,120 +1,140 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { ProjectWithRelations } from '@/lib/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ChevronUp, ChevronDown } from 'lucide-react'
-import { ActionsMenu, projectActions } from '@/components/shared/actions-menu'
-import { UserAvatar } from '@/components/shared/user-avatar'
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
+import { ActionsMenu, projectActions } from "@/components/shared/actions-menu";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ProjectWithRelations } from "@/lib/types";
 
-interface ProjectTableProps {
-  projects: ProjectWithRelations[]
-  onProjectClick?: (project: ProjectWithRelations) => void
-  onProjectUpdate?: (projectId: string, updates: Partial<ProjectWithRelations>) => void
-  onProjectEdit?: (project: ProjectWithRelations) => void
-  onProjectDelete?: (projectId: string) => void
-  onProjectDuplicate?: (project: ProjectWithRelations) => void
-  onProjectArchive?: (projectId: string) => void
-  className?: string
-}
+type ProjectTableProps = {
+  projects: ProjectWithRelations[];
+  onProjectClick?: (project: ProjectWithRelations) => void;
+  onProjectUpdate?: (
+    projectId: string,
+    updates: Partial<ProjectWithRelations>
+  ) => void;
+  onProjectEdit?: (project: ProjectWithRelations) => void;
+  onProjectDelete?: (projectId: string) => void;
+  onProjectDuplicate?: (project: ProjectWithRelations) => void;
+  onProjectArchive?: (projectId: string) => void;
+  className?: string;
+};
 
-export function ProjectTable({ 
-  projects, 
-  onProjectClick, 
+export function ProjectTable({
+  projects,
+  onProjectClick,
   onProjectUpdate,
   onProjectEdit,
   onProjectDelete,
   onProjectDuplicate,
   onProjectArchive,
-  className 
+  className,
 }: ProjectTableProps) {
-  const [sortField, setSortField] = useState<'name' | 'status' | 'createdAt' | 'issues'>('name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [sortField, setSortField] = useState<
+    "name" | "status" | "createdAt" | "issues"
+  >("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const handleSort = (field: 'name' | 'status' | 'createdAt' | 'issues') => {
+  const handleSort = (field: "name" | "status" | "createdAt" | "issues") => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection('asc')
+      setSortField(field);
+      setSortDirection("asc");
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return '#10b981'
-      case 'completed':
-        return '#3b82f6'
-      case 'canceled':
-        return '#ef4444'
+      case "active":
+        return "#10b981";
+      case "completed":
+        return "#3b82f6";
+      case "canceled":
+        return "#ef4444";
       default:
-        return '#64748b'
+        return "#64748b";
     }
-  }
+  };
 
   const formatDate = (date: Date | string) => {
-    if (!date) return 'N/A'
-    
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    
-    if (isNaN(dateObj.getTime())) {
-      return 'N/A'
+    if (!date) {
+      return "N/A";
     }
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(dateObj)
-  }
+
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+
+    if (isNaN(dateObj.getTime())) {
+      return "N/A";
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(dateObj);
+  };
 
   const sortedProjects = [...projects].sort((a, b) => {
-    let aValue: any, bValue: any
+    let aValue: any, bValue: any;
 
     switch (sortField) {
-      case 'name':
-        aValue = a.name.toLowerCase()
-        bValue = b.name.toLowerCase()
-        break
-      case 'status':
-        aValue = a.status
-        bValue = b.status
-        break
-      case 'createdAt':
-        aValue = new Date(a.createdAt).getTime()
-        bValue = new Date(b.createdAt).getTime()
-        break
-      case 'issues':
-        aValue = a._count.issues
-        bValue = b._count.issues
-        break
+      case "name":
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "createdAt":
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+        break;
+      case "issues":
+        aValue = a._count.issues;
+        bValue = b._count.issues;
+        break;
       default:
-        return 0
+        return 0;
     }
 
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-    return 0
-  })
+    if (aValue < bValue) {
+      return sortDirection === "asc" ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortDirection === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
 
-  const SortButton = ({ field, children }: { field: 'name' | 'status' | 'createdAt' | 'issues', children: React.ReactNode }) => (
+  const SortButton = ({
+    field,
+    children,
+  }: {
+    field: "name" | "status" | "createdAt" | "issues";
+    children: React.ReactNode;
+  }) => (
     <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => handleSort(field)}
       className="h-auto p-0 font-medium text-muted-foreground hover:text-foreground"
+      onClick={() => handleSort(field)}
+      size="sm"
+      variant="ghost"
     >
       <span className="flex items-center gap-1">
         {children}
-        {sortField === field && (
-          sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-        )}
+        {sortField === field &&
+          (sortDirection === "asc" ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          ))}
       </span>
     </Button>
-  )
+  );
 
   return (
     <Card className={className}>
@@ -148,9 +168,9 @@ export function ProjectTable({
             </thead>
             <tbody>
               {sortedProjects.map((project) => (
-                <tr 
-                  key={project.id}
+                <tr
                   className="border-b border-border/50 transition-colors"
+                  key={project.id}
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -158,17 +178,24 @@ export function ProjectTable({
                         <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
                       </div>
                       <div>
-                        <div className="font-medium text-foreground">{project.name}</div>
-                        <div className="text-sm text-muted-foreground font-mono">{project.key}</div>
+                        <div className="font-medium text-foreground">
+                          {project.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground font-mono">
+                          {project.key}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
-                    <div 
+                    <div
                       className="text-xs px-2 py-1 rounded text-white font-medium inline-block"
-                      style={{ backgroundColor: getStatusColor(project.status) }}
+                      style={{
+                        backgroundColor: getStatusColor(project.status),
+                      }}
                     >
-                      {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                      {project.status.charAt(0).toUpperCase() +
+                        project.status.slice(1)}
                     </div>
                   </td>
                   <td className="p-4">
@@ -192,9 +219,15 @@ export function ProjectTable({
                     <ActionsMenu
                       actions={[
                         projectActions.edit(() => onProjectEdit?.(project)),
-                        projectActions.duplicate(() => onProjectDuplicate?.(project)),
-                        projectActions.archive(() => onProjectArchive?.(project.id)),
-                        projectActions.delete(() => onProjectDelete?.(project.id)),
+                        projectActions.duplicate(() =>
+                          onProjectDuplicate?.(project)
+                        ),
+                        projectActions.archive(() =>
+                          onProjectArchive?.(project.id)
+                        ),
+                        projectActions.delete(() =>
+                          onProjectDelete?.(project.id)
+                        ),
                       ]}
                     />
                   </td>
@@ -205,5 +238,5 @@ export function ProjectTable({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

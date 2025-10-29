@@ -4,7 +4,7 @@
  */
 
 import { createNavigation } from "next-intl/navigation";
-import { locales, defaultLocale } from "./config";
+import { defaultLocale, locales } from "./config";
 
 export const { Link, redirect, usePathname, useRouter } = createNavigation({
   locales: locales as unknown as string[],

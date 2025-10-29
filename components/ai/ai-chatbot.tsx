@@ -1,86 +1,97 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
-import { Loader2, Brain } from 'lucide-react'
-import { ChatMessage } from './chat-message'
-import { ChatInput } from './chat-input'
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { Brain, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChatInput } from "./chat-input";
+import { ChatMessage } from "./chat-message";
 
-interface AIChatbotProps {
-  teamId: string
-}
+type AIChatbotProps = {
+  teamId: string;
+};
 
 export function AIChatbot({ teamId }: AIChatbotProps) {
-  const [conversationId, setConversationId] = useState<string | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: `/api/teams/${teamId}/chat`,
       prepareSendMessagesRequest({ messages, id }) {
         // Get API key from localStorage if available
-        const apiKey = typeof window !== 'undefined' ? localStorage.getItem('groq_api_key') : null
-        
+        const apiKey =
+          typeof window !== "undefined"
+            ? localStorage.getItem("groq_api_key")
+            : null;
+
         return {
           body: {
             messages,
             conversationId: conversationId || id,
             ...(apiKey && { apiKey }),
           },
-        }
+        };
       },
     }),
-  })
+  });
 
-  const isLoading = status !== 'ready' && status !== 'error'
+  const isLoading = status !== "ready" && status !== "error";
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = (message: string) => {
     sendMessage({
       text: message,
-    })
-  }
+    });
+  };
 
   // Listen for successful tool execution and trigger refresh
   useEffect(() => {
     // Dispatch refresh event after a short delay to allow the API to complete
     const timer = setTimeout(() => {
-      if (messages.length > 0 && status === 'ready') {
+      if (messages.length > 0 && status === "ready") {
         // Check if the last message was from assistant (meaning an action was completed)
-        const lastMessage = messages[messages.length - 1]
-        if (lastMessage && lastMessage.role === 'assistant') {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.role === "assistant") {
           // Check for tool calls in the message
-          const hasToolCalls = lastMessage.parts?.some((part: any) => part.type === 'tool-call')
-          
+          const hasToolCalls = lastMessage.parts?.some(
+            (part) => (part as { type: string }).type === "tool-call"
+          );
+
           if (hasToolCalls) {
             // Find the tool names from the tool calls
-            const toolNames = lastMessage.parts
-              ?.filter((part: any) => part.type === 'tool-call')
-              .map((part: any) => part.toolName)
-              .join(' ') || ''
-            
+            const toolNames =
+              lastMessage.parts
+                ?.filter(
+                  (part) => (part as { type: string }).type === "tool-call"
+                )
+                .map((part) => (part as { toolName: string }).toolName)
+                .join(" ") || "";
+
             // Dispatch appropriate refresh events based on tool used
-            if (toolNames.includes('createProject') || toolNames.includes('updateProject')) {
-              window.dispatchEvent(new Event('refresh-projects'))
+              window.dispatchEvent(new Event("refresh-projects"));
             }
-            if (toolNames.includes('inviteTeamMember')) {
-              window.dispatchEvent(new Event('refresh-people'))
+            if (toolNames.includes("inviteTeamMember")) {
+              window.dispatchEvent(new Event("refresh-people"));
             }
-            if (toolNames.includes('createIssue') || toolNames.includes('updateIssue') || toolNames.includes('deleteIssue')) {
-              window.dispatchEvent(new Event('refresh-issues'))
+            if (
+              toolNames.includes("createIssue") ||
+              toolNames.includes("updateIssue") ||
+              toolNames.includes("deleteIssue")
+            ) {
+              window.dispatchEvent(new Event("refresh-issues"));
             }
           }
         }
       }
-    }, 1000)
+    }, 1000);
 
-    return () => clearTimeout(timer)
-  }, [messages, status])
+    return () => clearTimeout(timer);
+  }, [messages, status]);
 
   return (
     <div className="flex flex-col h-full">
@@ -106,29 +117,30 @@ export function AIChatbot({ teamId }: AIChatbotProps) {
             <Brain className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
             <p className="text-sm text-muted-foreground max-w-sm">
-              I can help you create issues, manage projects, invite team members, and more. 
-              Just ask me anything!
+              I can help you create issues, manage projects, invite team
+              members, and more. Just ask me anything!
             </p>
           </div>
         ) : (
           <>
             {messages.map((message, index) => {
               // Extract text content from message parts
-              const textContent = message.parts
-                ?.filter((part: any) => part.type === 'text')
-                .map((part: any) => part.text)
-                .join('') || ''
-              
+              const textContent =
+                message.parts
+                  ?.filter((part) => (part as { type: string }).type === "text")
+                  .map((part) => (part as { text: string }).text)
+                  .join("") || "";
+
               return (
-                <ChatMessage 
-                  key={message.id || index} 
+                <ChatMessage
+                  key={message.id || index}
                   message={{
                     role: message.role,
                     content: textContent,
                     id: message.id,
-                  }} 
+                  }}
                 />
-              )
+              );
             })}
 
             {error && (
@@ -150,7 +162,7 @@ export function AIChatbot({ teamId }: AIChatbotProps) {
       </div>
 
       {/* Input */}
-      <ChatInput onSend={handleSend} disabled={isLoading} />
+      <ChatInput disabled={isLoading} onSend={handleSend} />
     </div>
-  )
+  );
 }

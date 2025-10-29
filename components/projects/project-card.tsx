@@ -1,48 +1,48 @@
-import { cn } from '@/lib/utils'
-import { ProjectWithRelations } from '@/lib/types'
-import { Card } from '@/components/ui/card'
-import { ActionsMenu, projectActions } from '@/components/shared/actions-menu'
-import { UserAvatar } from '@/components/shared/user-avatar'
+import { ActionsMenu, projectActions } from "@/components/shared/actions-menu";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Card } from "@/components/ui/card";
+import type { ProjectWithRelations } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-interface ProjectCardProps {
-  project: ProjectWithRelations
-  onClick?: () => void
-  onEdit?: (project: ProjectWithRelations) => void
-  onDelete?: (projectId: string) => void
-  onDuplicate?: (project: ProjectWithRelations) => void
-  onArchive?: (projectId: string) => void
-  className?: string
-  isDragging?: boolean
-}
+type ProjectCardProps = {
+  project: ProjectWithRelations;
+  onClick?: () => void;
+  onEdit?: (project: ProjectWithRelations) => void;
+  onDelete?: (projectId: string) => void;
+  onDuplicate?: (project: ProjectWithRelations) => void;
+  onArchive?: (projectId: string) => void;
+  className?: string;
+  isDragging?: boolean;
+};
 
-export function ProjectCard({ 
-  project, 
-  onClick, 
+export function ProjectCard({
+  project,
+  onClick,
   onEdit,
   onDelete,
   onDuplicate,
   onArchive,
-  className, 
-  isDragging 
+  className,
+  isDragging,
 }: ProjectCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return '#10b981'
-      case 'completed':
-        return '#3b82f6'
-      case 'canceled':
-        return '#ef4444'
+      case "active":
+        return "#10b981";
+      case "completed":
+        return "#3b82f6";
+      case "canceled":
+        return "#ef4444";
       default:
-        return '#64748b'
+        return "#64748b";
     }
-  }
+  };
 
   return (
     <Card
       className={cn(
-        'p-4 transition-all hover:bg-muted/50 border-border/50',
-        isDragging && 'opacity-50',
+        "p-4 transition-all hover:bg-muted/50 border-border/50",
+        isDragging && "opacity-50",
         className
       )}
     >
@@ -57,9 +57,9 @@ export function ProjectCard({
               {project.key}
             </span>
           </div>
-          
+
           {/* Status Badge */}
-          <div 
+          <div
             className="text-xs px-2 py-1 rounded text-white font-medium"
             style={{ backgroundColor: getStatusColor(project.status) }}
           >
@@ -75,15 +75,16 @@ export function ProjectCard({
         {/* Footer with issues count, lead, and actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {project.lead && (
-              <UserAvatar name={project.lead} size="sm" />
-            )}
+            {project.lead && <UserAvatar name={project.lead} size="sm" />}
             <span className="text-xs text-muted-foreground">
               {project._count.issues} issues
             </span>
           </div>
-          
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+
+          <div
+            className="flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             <ActionsMenu
               actions={[
                 projectActions.edit(() => onEdit?.(project)),
@@ -92,9 +93,7 @@ export function ProjectCard({
                 projectActions.delete(() => onDelete?.(project.id)),
               ]}
               trigger={
-                <button
-                  className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors"
-                >
+                <button className="h-6 w-6 flex items-center justify-center rounded hover:bg-muted/50 transition-colors">
                   <span className="text-xs text-muted-foreground">⋯</span>
                 </button>
               }
@@ -103,5 +102,5 @@ export function ProjectCard({
         </div>
       </div>
     </Card>
-  )
+  );
 }

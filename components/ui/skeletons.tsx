@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function IssueCardSkeleton() {
   return (
@@ -38,7 +38,7 @@ export function IssueCardSkeleton() {
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
 export function ProjectCardSkeleton() {
@@ -72,7 +72,7 @@ export function ProjectCardSkeleton() {
         <Skeleton className="h-1 w-full rounded-full" />
       </div>
     </Card>
-  )
+  );
 }
 
 export function TableSkeleton() {
@@ -92,7 +92,7 @@ export function TableSkeleton() {
         </div>
       </div>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="border-b p-4">
+        <div className="border-b p-4" key={i}>
           <div className="flex items-center gap-4">
             <Skeleton className="h-4 w-48" />
             <Skeleton className="h-4 w-12" />
@@ -107,14 +107,14 @@ export function TableSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 export function BoardSkeleton() {
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex-shrink-0 w-80">
+        <div className="flex-shrink-0 w-80" key={i}>
           <Card className="h-full">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -136,5 +136,5 @@ export function BoardSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }

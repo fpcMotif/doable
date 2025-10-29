@@ -1,44 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUserId, getUser } from "@/lib/auth-server-helpers"
-import { db } from '@/lib/db'
-import { sendInvitationEmail } from '@/lib/email'
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type { Id } from "@/convex/_generated/dataModel";
+import { getUser, getUserId } from "@/lib/auth-server-helpers";
+import { api, getConvexClient } from "@/lib/convex";
+import { sendInvitationEmail } from "@/lib/email";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const { teamId } = await params
-    const userId = await getUserId()
+    const { teamId } = await params;
+    const userId = await getUserId();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get pending invitations
-    const invitations = await db.invitation.findMany({
-      where: {
-        teamId,
-        status: 'pending',
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const convex = getConvexClient();
 
-    return NextResponse.json(invitations)
+    // Get pending invitations
+    const allInvitations = await convex.query(api.invitations.listInvitations, {
+      teamId: teamId as Id<"teams">,
+    });
+
+    // Filter pending and non-expired
+    const now = Date.now();
+    const invitations = allInvitations.filter(
+      (inv) => inv.status === "pending" && inv.expiresAt > now
+    );
+
+    return NextResponse.json(invitations);
   } catch (error) {
-    console.error('Error fetching invitations:', error)
+    console.error("Error fetching invitations:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch invitations' },
+      { error: "Failed to fetch invitations" },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -47,109 +45,105 @@ export async function POST(
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const { teamId } = await params
-    const body = await request.json()
-    const userId = await getUserId()
-    const user = await getUser()
+    const { teamId } = await params;
+    const body = await request.json();
+    const userId = await getUserId();
+    const user = await getUser();
 
     if (!userId || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email, role } = body
+    const { email, role } = body;
 
     // Validate email
-    if (!email || !email.includes('@')) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      )
+    if (!email || !email.includes("@")) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    // Check if invitation already exists
-    const existingInvitation = await db.invitation.findUnique({
-      where: {
-        teamId_email: {
-          teamId,
-          email,
-        },
-      },
-    })
+    const convex = getConvexClient();
 
-    if (existingInvitation && existingInvitation.status === 'pending') {
+    // Check if user is team admin
+    const members = await convex.query(api.teamMembers.listMembers, {
+      teamId: teamId as Id<"teams">,
+    });
+
+    const inviter = members.find((m) => m.userId === userId);
+    if (!inviter || inviter.role !== "admin") {
       return NextResponse.json(
-        { error: 'Invitation already sent to this email' },
-        { status: 400 }
-      )
+        { error: "Only admins can invite members" },
+        { status: 403 }
+      );
     }
 
-    // Check if user is already a member
-    const existingMember = await db.teamMember.findFirst({
-      where: {
-        teamId,
-        userEmail: email,
-      },
-    })
-
+    // Check for existing member or pending invitation
+    const existingMember = members.find((m) => m.userEmail === email);
     if (existingMember) {
       return NextResponse.json(
-        { error: 'User is already a team member' },
+        { error: "User is already a team member" },
         { status: 400 }
-      )
+      );
     }
 
-    // Create invitation (expires in 7 days)
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7)
+    const existingInvitations = await convex.query(
+      api.invitations.listInvitations,
+      {
+        teamId: teamId as Id<"teams">,
+      }
+    );
 
-    const invitation = await db.invitation.create({
-      data: {
-        teamId,
+    const pendingInvitation = existingInvitations.find(
+      (inv) =>
+        inv.email === email &&
+        inv.status === "pending" &&
+        inv.expiresAt > Date.now()
+    );
+
+    if (pendingInvitation) {
+      return NextResponse.json(
+        { error: "An invitation is already pending for this email" },
+        { status: 400 }
+      );
+    }
+
+    // Set expiration to 7 days from now
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+    // Create invitation
+    const invitationId = await convex.mutation(
+      api.invitations.createInvitation,
+      {
+        teamId: teamId as Id<"teams">,
         email,
-        role: role || 'developer',
+        role,
         invitedBy: userId,
-        status: 'pending',
         expiresAt,
-      },
-    })
-
-    // Get team info for email
-    const team = await db.team.findUnique({
-      where: { id: teamId },
-    })
-
-    // Get inviter info
-    const inviterName = user.name || user.email || 'Someone'
+      }
+    );
 
     // Send invitation email
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
-    const inviteUrl = `${baseUrl}/invite/${invitation.id}`
+    const team = await convex.query(api.teams.getTeam, {
+      teamId: teamId as Id<"teams">,
+    });
 
-    if (process.env.RESEND_API_KEY) {
-      try {
-        await sendInvitationEmail({
-          email,
-          teamName: team?.name || 'the team',
-          inviterName,
-          role: role || 'developer',
-          inviteUrl,
-        })
-      } catch (emailError) {
-        console.error('Error sending invitation email:', emailError)
-        // Don't fail the invitation if email fails
-      }
+    if (team) {
+      await sendInvitationEmail({
+        to: email,
+        teamName: team.name,
+        invitedBy: user.name || user.email || "A team member",
+        invitationUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invitations/${invitationId}`,
+      });
     }
 
-    return NextResponse.json(invitation, { status: 201 })
-  } catch (error) {
-    console.error('Error creating invitation:', error)
     return NextResponse.json(
-      { error: 'Failed to create invitation' },
+      { id: invitationId, message: "Invitation sent" },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating invitation:", error);
+    return NextResponse.json(
+      { error: "Failed to create invitation" },
       { status: 500 }
-    )
+    );
   }
 }
-
