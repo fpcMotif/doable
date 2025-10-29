@@ -40,8 +40,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: "Team deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting team:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete team" },
       { status: 500 }

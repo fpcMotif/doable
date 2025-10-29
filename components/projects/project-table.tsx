@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { ActionsMenu, projectActions } from "@/components/shared/actions-menu";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProjectWithRelations } from "@/lib/types";
@@ -25,8 +24,8 @@ type ProjectTableProps = {
 
 export function ProjectTable({
   projects,
-  onProjectClick,
-  onProjectUpdate,
+  onProjectClick: _onProjectClick,
+  onProjectUpdate: _onProjectUpdate,
   onProjectEdit,
   onProjectDelete,
   onProjectDuplicate,
@@ -79,7 +78,7 @@ export function ProjectTable({
   };
 
   const sortedProjects = [...projects].sort((a, b) => {
-    let aValue: any, bValue: any;
+    let aValue: string | number, bValue: string | number;
 
     switch (sortField) {
       case "name":

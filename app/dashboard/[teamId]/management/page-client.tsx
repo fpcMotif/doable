@@ -48,7 +48,12 @@ const CHART_COLORS = [
 
 export function ManagementPageClient() {
   const params = useParams<{ teamId: string }>();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    stats?: { members?: number; projects?: number; };
+    priorityBreakdown?: Array<{ priority: string; count: number; }>;
+    statusBreakdown?: Array<{ status: string; count: number; }>;
+    recentIssues?: unknown[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [apiKeyStatus, setApiKeyStatus] = useState<{
@@ -75,8 +80,7 @@ export function ManagementPageClient() {
           const data = await response.json();
           setStats(data);
         }
-      } catch (error) {
-        console.error("Error fetching stats:", error);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -100,7 +104,7 @@ export function ManagementPageClient() {
   }
 
   const priorityData =
-    stats.priorityBreakdown?.map((item: any) => ({
+    stats.priorityBreakdown?.map((item) => ({
       name:
         item.priority === "none"
           ? "None"
@@ -110,7 +114,7 @@ export function ManagementPageClient() {
     })) || [];
 
   const statusData =
-    stats.statusBreakdown?.map((item: any) => ({
+    stats.statusBreakdown?.map((item) => ({
       name: item.status,
       value: item.count,
     })) || [];
@@ -252,7 +256,7 @@ export function ManagementPageClient() {
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="value" fill="var(--color-count)">
-                    {priorityData.map((entry: any, index: number) => (
+                    {priorityData.map((entry: { color: string }, index: number) => (
                       <Cell fill={entry.color} key={`cell-${index}`} />
                     ))}
                   </Bar>
@@ -286,13 +290,13 @@ export function ManagementPageClient() {
                     data={statusData}
                     dataKey="value"
                     fill="#8884d8"
-                    label={({ name, percent }: any) =>
+                    label={({ name, percent }: { name: string; percent: number }) =>
                       `${name}: ${(percent * 100).toFixed(0)}%`
                     }
                     labelLine={false}
                     outerRadius={80}
                   >
-                    {statusData.map((entry: any, index: number) => (
+                    {statusData.map((_entry: unknown, index: number) => (
                       <Cell
                         fill={CHART_COLORS[index % CHART_COLORS.length]}
                         key={`cell-${index}`}
@@ -319,7 +323,7 @@ export function ManagementPageClient() {
           </CardHeader>
           <CardContent className="space-y-2">
             {stats.recentIssues && stats.recentIssues.length > 0 ? (
-              stats.recentIssues.map((issue: any) => (
+              stats.recentIssues.map((issue: { id: string; title: string; createdAt: string }) => (
                 <div
                   className="flex items-center justify-between py-2 border-b last:border-0"
                   key={issue.id}

@@ -6,8 +6,7 @@ import {
   streamText,
   tool,
 } from "ai";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import * as z from "zod";
 import {
   getTeamContext,
@@ -60,8 +59,6 @@ export async function POST(
       );
     }
 
-    // Get first workflow state for defaults
-    const defaultWorkflowState = teamContext.workflowStates[0];
 
     // Build system prompt from team context
     const systemPrompt = `You are a helpful AI assistant for a project management system.
@@ -775,8 +772,7 @@ Always use the provided tools for actions.`;
                   role: role || "developer",
                   inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL}/invite/${invitation.id}`,
                 });
-              } catch (emailError) {
-                console.error("Error sending invitation email:", emailError);
+              } catch {
               }
             }
 
@@ -898,15 +894,13 @@ Always use the provided tools for actions.`;
                 }),
               });
             }
-          } catch (error) {
-            console.error("Error saving chat messages:", error);
+          } catch {
             // Don't throw - we don't want to fail the response
           }
         }
       },
     });
-  } catch (error) {
-    console.error("Error in chat route:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to process chat request" },
       { status: 500 }

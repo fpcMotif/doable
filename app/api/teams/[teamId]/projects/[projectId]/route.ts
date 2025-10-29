@@ -21,8 +21,7 @@ export async function GET(
     }
 
     return NextResponse.json(project);
-  } catch (error) {
-    console.error("Error fetching project:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch project" },
       { status: 500 }
@@ -66,8 +65,7 @@ export async function PATCH(
 
     const updatedProject = await updateProject(teamId, projectId, updateData);
     return NextResponse.json(updatedProject);
-  } catch (error) {
-    console.error("Error updating project:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update project" },
       { status: 500 }
@@ -83,8 +81,7 @@ export async function DELETE(
     const { teamId, projectId } = await params;
     await deleteProject(teamId, projectId);
     return NextResponse.json({ message: "Project deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting project:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete project" },
       { status: 500 }

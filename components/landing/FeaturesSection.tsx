@@ -1,12 +1,4 @@
-import {
-  Brain,
-  Code,
-  ComponentIcon,
-  Globe,
-  Shield,
-  Users,
-  Zap,
-} from "lucide-react";
+import { Brain, Code, Globe, Shield, Users, Zap } from "lucide-react";
 import type React from "react";
 import { Card } from "@/components/ui/card";
 import { TextAnimate } from "@/components/ui/text-animate";

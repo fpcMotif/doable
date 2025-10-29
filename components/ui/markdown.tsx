@@ -14,7 +14,7 @@ export function Markdown({ content, className }: MarkdownProps) {
     const elements: ReactNode[] = [];
     let i = 0;
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       if (line.trim() === "") {
         return;
       }

@@ -8,15 +8,12 @@ import {
   Plus,
   Search,
   Settings,
-  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 type CommandItem = {
@@ -45,8 +42,6 @@ export function CommandPalette({
   onCreateProject,
 }: CommandPaletteProps) {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const user = session?.user || null;
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -230,7 +225,7 @@ export function CommandPalette({
                   <div className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     {categoryLabels[category as keyof typeof categoryLabels]}
                   </div>
-                  {commands.map((command, index) => {
+                  {commands.map((command) => {
                     const globalIndex = filteredCommands.indexOf(command);
                     return (
                       <Button

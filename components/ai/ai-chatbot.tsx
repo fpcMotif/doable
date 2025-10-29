@@ -12,7 +12,7 @@ type AIChatbotProps = {
 };
 
 export function AIChatbot({ teamId }: AIChatbotProps) {
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, error } = useChat({
@@ -73,6 +73,10 @@ export function AIChatbot({ teamId }: AIChatbotProps) {
                 .join(" ") || "";
 
             // Dispatch appropriate refresh events based on tool used
+            if (
+              toolNames.includes("createProject") ||
+              toolNames.includes("updateProject")
+            ) {
               window.dispatchEvent(new Event("refresh-projects"));
             }
             if (toolNames.includes("inviteTeamMember")) {

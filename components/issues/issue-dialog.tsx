@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { CreateIssueData, UpdateIssueData } from "@/lib/types";
-import { PriorityLevel } from "@/lib/types";
 
 const issueSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title is too long"),
@@ -147,8 +146,7 @@ export function IssueDialog({
       form.reset();
       setSelectedLabels([]);
       onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting issue:", error);
+    } catch {
     } finally {
       setIsSubmitting(false);
     }

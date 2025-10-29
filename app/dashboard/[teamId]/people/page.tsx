@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Mail, Trash2, UserPlus } from "lucide-react";
+import { Mail, Trash2, UserPlus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { ToastContainer, useToast } from "@/lib/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 type TeamMember = {
   id: string;
@@ -67,8 +68,8 @@ export default function PeoplePage() {
         const invitationsData = await invitationsRes.json();
         setInvitations(invitationsData);
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (error: unknown) {
+      logger.error("Error fetching people data", { error });
       toast.error("Failed to load data", "Please try again.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,11 +129,11 @@ export default function PeoplePage() {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to send invitation");
       }
-    } catch (error: any) {
-      console.error("Error sending invitation:", error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Please try again.";
       toast.error(
         "Failed to send invitation",
-        error.message || "Please try again."
+        message
       );
     } finally {
       setIsSubmitting(false);
@@ -156,8 +157,8 @@ export default function PeoplePage() {
       } else {
         throw new Error("Failed to resend invitation");
       }
-    } catch (error) {
-      console.error("Error resending invitation:", error);
+    } catch (error: unknown) {
+      logger.error("Error resending invitation", { error, invitationId });
       toast.error("Failed to resend invitation", "Please try again.");
     }
   };
@@ -180,8 +181,8 @@ export default function PeoplePage() {
       } else {
         throw new Error("Failed to remove invitation");
       }
-    } catch (error) {
-      console.error("Error removing invitation:", error);
+    } catch (error: unknown) {
+      logger.error("Error removing invitation", { error, invitationId });
       toast.error("Failed to remove invitation", "Please try again.");
     }
   };

@@ -1,5 +1,4 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getUser, getUserId } from "@/lib/auth-server-helpers";
 import { api, getConvexClient } from "@/lib/convex";
@@ -31,8 +30,7 @@ export async function GET(
     );
 
     return NextResponse.json(invitations);
-  } catch (error) {
-    console.error("Error fetching invitations:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch invitations" },
       { status: 500 }
@@ -139,8 +137,7 @@ export async function POST(
       { id: invitationId, message: "Invitation sent" },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("Error creating invitation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create invitation" },
       { status: 500 }

@@ -125,8 +125,7 @@ export function ProjectDialog({
       });
       form.reset();
       onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting project:", error);
+    } catch {
     } finally {
       setIsSubmitting(false);
     }

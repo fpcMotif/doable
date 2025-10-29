@@ -97,15 +97,14 @@ export function IssueBoard({
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
+        await response.text();
         throw new Error(
           `Failed to update issue: ${response.status} ${response.statusText}`
         );
       }
 
       toast.success("Issue moved", "Issue has been moved successfully.");
-    } catch (error) {
-      console.error("Error updating issue:", error);
+    } catch {
       toast.error("Failed to move issue", "Please try again.");
 
       // Revert the optimistic update on error

@@ -47,6 +47,6 @@ export type SaveChatMessagesData = {
   messages: Array<{
     role: string;
     content: string;
-    toolCalls?: any;
+    toolCalls?: unknown;
   }>;
 };

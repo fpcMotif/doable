@@ -1,6 +1,5 @@
 import { AlertTriangle, ChevronUp, Minus, Zap } from "lucide-react";
-import type { PriorityLevel } from "@/lib/types";
-import { PRIORITY_LEVELS } from "@/lib/types";
+import { PRIORITY_LEVELS, type PriorityLevel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type PriorityIconProps = {

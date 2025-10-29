@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,7 @@ export default function SignUpPage() {
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch (err) {
+    } catch {
       setError("Failed to sign up with Google");
       setLoading(false);
     }

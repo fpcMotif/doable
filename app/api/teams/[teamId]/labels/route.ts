@@ -15,8 +15,7 @@ export async function GET(
     const { teamId } = await params;
     const labels = await getLabels(teamId);
     return NextResponse.json(labels);
-  } catch (error) {
-    console.error("Error fetching labels:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch labels" },
       { status: 500 }
@@ -39,8 +38,7 @@ export async function POST(
 
     const label = await createLabel(teamId, labelData);
     return NextResponse.json(label, { status: 201 });
-  } catch (error) {
-    console.error("Error creating label:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create label" },
       { status: 500 }
@@ -63,8 +61,7 @@ export async function PATCH(
 
     const label = await updateLabel(teamId, labelId, updateData);
     return NextResponse.json(label);
-  } catch (error) {
-    console.error("Error updating label:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update label" },
       { status: 500 }
@@ -80,8 +77,7 @@ export async function DELETE(
     const { teamId, labelId } = await params;
     await deleteLabel(teamId, labelId);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting label:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete label" },
       { status: 500 }

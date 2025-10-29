@@ -59,16 +59,15 @@ export async function sendInvitationEmail(params: {
   try {
     // Check if Resend is configured
     if (!resend || !process.env.RESEND_API_KEY) {
-      console.log("📧 EMAIL DISABLED - Resend API key not configured");
-      console.log("📧 Copy this invitation URL to manually invite users:");
-      console.log("   Invitation URL:", inviteUrl);
-      console.log("   For email:", email);
-      console.log("   💡 Tip: Add RESEND_API_KEY to .env");
+      // In development, log helpful info
+      if (process.env.NODE_ENV === "development") {
+        // Email disabled - invitation created but not sent
+      }
       return { success: true, skipped: true };
     }
 
     // Send email via Resend
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
       to: email,
       subject: `You've been invited to join ${teamName} on Doable`,
@@ -76,17 +75,15 @@ export async function sendInvitationEmail(params: {
     });
 
     if (error) {
-      console.error("Resend error:", error);
       throw error;
     }
 
-    console.log("✅ Email sent via Resend:", data);
     return { success: true };
-  } catch (error: any) {
-    console.error("Error sending invitation email:", error);
-    console.log("📧 Invitation created in database, but email failed.");
-    console.log("📧 Copy this invitation URL to manually invite:");
-    console.log("   URL:", inviteUrl);
+  } catch (error: unknown) {
+    // Log error in development only
+    if (process.env.NODE_ENV === "development") {
+      // Email sending failed - invitation still created in database
+    }
     return { success: false, error };
   }
 }

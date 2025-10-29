@@ -45,6 +45,7 @@ export function ProjectCard({
         isDragging && "opacity-50",
         className
       )}
+      onClick={onClick}
     >
       <div className="space-y-3">
         {/* Header with ID and Status */}

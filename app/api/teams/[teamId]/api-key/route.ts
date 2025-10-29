@@ -1,7 +1,6 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import type { Id } from "@/convex/_generated/dataModel";
-import { getTeamSettings, updateTeamSettings } from "@/lib/api/chat";
+import { updateTeamSettings } from "@/lib/api/chat";
 import { getUserId } from "@/lib/auth-server-helpers";
 import { api, getConvexClient } from "@/lib/convex";
 
@@ -44,8 +43,7 @@ export async function GET(
       : null;
 
     return NextResponse.json({ apiKey: maskedKey, hasKey: !!team.groqApiKey });
-  } catch (error) {
-    console.error("Error fetching API key:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch API key" },
       { status: 500 }
@@ -103,8 +101,7 @@ export async function PUT(
     await updateTeamSettings(teamId, { groqApiKey: body.apiKey });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error updating API key:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update API key" },
       { status: 500 }
@@ -146,8 +143,7 @@ export async function DELETE(
     await updateTeamSettings(teamId, { groqApiKey: null });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error removing API key:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to remove API key" },
       { status: 500 }

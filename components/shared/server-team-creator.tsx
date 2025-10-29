@@ -7,19 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/lib/hooks/use-toast";
 
 type ServerTeamCreatorProps = {
-  onTeamCreated?: (team: any) => void;
+  onTeamCreated?: (team: unknown) => void;
 };
 
 export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
   const [teamName, setTeamName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
-  const { data: session } = authClient.useSession();
-  const user = session?.user || null;
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +54,6 @@ export function ServerTeamCreator({ onTeamCreated }: ServerTeamCreatorProps) {
         throw new Error(error.error || "Failed to create team");
       }
     } catch (error) {
-      console.error("Error creating team:", error);
       toast.error(
         "Failed to create team",
         error instanceof Error ? error.message : "Please try again."

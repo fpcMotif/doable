@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Input } from "@/components/ui/input";
+import { logger } from "@/lib/logger";
 import {
   Pagination,
   PaginationContent,
@@ -53,7 +54,6 @@ export default function ProjectsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] =
     useState<ProjectWithRelations | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"list" | "table">("list");
   const [filters, setFilters] = useState<ProjectFilters>({
@@ -63,7 +63,7 @@ export default function ProjectsPage() {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage] = useState(12);
 
   // Toast notifications
   const { toasts, toast, removeToast } = useToast();
@@ -80,8 +80,8 @@ export default function ProjectsPage() {
 
       const data = await response.json();
       setProjects(data);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
+    } catch (error: unknown) {
+      logger.error("Error fetching projects", { error });
       setError("Failed to load projects. Please try again.");
     } finally {
       setLoading(false);
@@ -128,8 +128,8 @@ export default function ProjectsPage() {
       } else {
         throw new Error("Failed to delete project");
       }
-    } catch (error) {
-      console.error("Error deleting project:", error);
+    } catch (error: unknown) {
+      logger.error("Error deleting project", { error, projectId });
       toast.error("Failed to delete project", "Please try again.");
     }
   };
@@ -163,8 +163,8 @@ export default function ProjectsPage() {
       } else {
         throw new Error("Failed to duplicate project");
       }
-    } catch (error) {
-      console.error("Error duplicating project:", error);
+    } catch (error: unknown) {
+      logger.error("Error duplicating project", { error, projectId: project.id });
       toast.error("Failed to duplicate project", "Please try again.");
     }
   };
@@ -200,8 +200,8 @@ export default function ProjectsPage() {
       } else {
         throw new Error("Failed to update project");
       }
-    } catch (error) {
-      console.error("Error updating project:", error);
+    } catch (error: unknown) {
+      logger.error("Error updating project", { error, projectId: currentProject.id });
       toast.error("Failed to update project", "Please try again.");
       throw error;
     }
@@ -233,8 +233,8 @@ export default function ProjectsPage() {
       } else {
         throw new Error("Failed to archive project");
       }
-    } catch (error) {
-      console.error("Error archiving project:", error);
+    } catch (error: unknown) {
+      logger.error("Error archiving project", { error, projectId });
       toast.error("Failed to archive project", "Please try again.");
     }
   };
@@ -261,8 +261,8 @@ export default function ProjectsPage() {
       } else {
         throw new Error("Failed to create project");
       }
-    } catch (error) {
-      console.error("Error creating project:", error);
+    } catch (error: unknown) {
+      logger.error("Error creating project", { error });
       toast.error("Failed to create project", "Please try again.");
       throw error;
     }
@@ -292,7 +292,6 @@ export default function ProjectsPage() {
       lead: [],
       search: "",
     });
-    setSearchQuery("");
   };
 
   const getActiveFilterCount = () => {
@@ -754,7 +753,7 @@ export default function ProjectsPage() {
                   color: currentProject.color,
                   icon: currentProject.icon ?? undefined,
                   leadId: currentProject.leadId ?? undefined,
-                  status: currentProject.status as any,
+                  status: currentProject.status as "active" | "completed" | "canceled",
                 }
               : undefined
           }

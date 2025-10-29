@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import * as React from "react";
 import { TeamSelector } from "@/components/shared/team-selector";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";

@@ -42,25 +42,6 @@ import type {
   ViewType,
 } from "@/lib/types";
 
-type Issue = {
-  id: string;
-  title: string;
-  description?: string;
-  number: number;
-  priority: string;
-  team: { key: string };
-  project?: { name: string; key: string } | null;
-  workflowState: { id: string; name: string; color: string };
-  workflowStateId: string;
-  assignee?: string | null;
-  creator: string;
-  labels: Array<{
-    id: string;
-    label: { id: string; name: string; color: string };
-  }>;
-  comments: Array<{ id: string }>;
-  createdAt: string;
-};
 
 type Project = {
   id: string;
@@ -128,7 +109,7 @@ export default function IssuesPage() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(10);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Toast notifications
@@ -192,8 +173,7 @@ export default function IssuesPage() {
       setProjects(projectsData as Project[]);
       setWorkflowStates(workflowStatesData as WorkflowState[]);
       setLabels(labelsData as Label[]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch {
       setError("Failed to load data. Please try again.");
       toast.error(
         "Failed to load data",
@@ -244,8 +224,7 @@ export default function IssuesPage() {
       // Cache the issues
       setCachedData(cacheKeys.issues, data);
       setIssues(data);
-    } catch (error) {
-      console.error("Error fetching issues:", error);
+    } catch {
       toast.error("Failed to load issues", "Please try again.");
     } finally {
       setIssuesLoading(false);
@@ -328,8 +307,7 @@ export default function IssuesPage() {
       } else {
         throw new Error("Failed to delete issue");
       }
-    } catch (error) {
-      console.error("Error deleting issue:", error);
+    } catch {
       toast.error("Failed to delete issue", "Please try again.");
     }
   };
@@ -366,11 +344,9 @@ export default function IssuesPage() {
         );
       } else {
         const errorData = await response.json();
-        console.error("API Error:", errorData);
         throw new Error(errorData.error || "Failed to update issue");
       }
     } catch (error) {
-      console.error("Error updating issue:", error);
       toast.error("Failed to update issue", "Please try again.");
       throw error;
     }
@@ -399,11 +375,9 @@ export default function IssuesPage() {
         );
       } else {
         const errorData = await response.json();
-        console.error("API Error:", errorData);
         throw new Error(errorData.error || "Failed to create issue");
       }
     } catch (error) {
-      console.error("Error creating issue:", error);
       toast.error("Failed to create issue", "Please try again.");
       throw error;
     }
@@ -815,7 +789,7 @@ export default function IssuesPage() {
               setCurrentIssue(null);
             }
           }}
-          onSubmit={async (data: any) => {
+          onSubmit={async (data: CreateIssueData | UpdateIssueData) => {
             await handleIssueUpdate(data);
           }}
           open={editDialogOpen && !!currentIssue}
@@ -849,7 +823,7 @@ export default function IssuesPage() {
               setCurrentIssue(null);
             }
           }}
-          onSubmit={async (data: any) => {
+          onSubmit={async (data: CreateIssueData | UpdateIssueData) => {
             await handleIssueUpdate(data);
           }}
           open={editDialogOpenForAssign && !!currentIssue}
@@ -883,7 +857,7 @@ export default function IssuesPage() {
               setCurrentIssue(null);
             }
           }}
-          onSubmit={async (data: any) => {
+          onSubmit={async (data: CreateIssueData | UpdateIssueData) => {
             await handleIssueUpdate(data);
           }}
           open={editDialogOpenForMove && !!currentIssue}

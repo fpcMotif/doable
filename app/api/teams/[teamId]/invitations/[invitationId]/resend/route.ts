@@ -66,15 +66,13 @@ export async function POST(
           role: invitation.role,
           inviteUrl,
         });
-      } catch (emailError) {
-        console.error("Error resending invitation email:", emailError);
+      } catch {
         // Don't fail the resend if email fails
       }
     }
 
     return NextResponse.json(updatedInvitation);
-  } catch (error) {
-    console.error("Error resending invitation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to resend invitation" },
       { status: 500 }

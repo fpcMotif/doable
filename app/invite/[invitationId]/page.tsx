@@ -49,8 +49,7 @@ export default function InvitePage({
         }
 
         setStatus("loading");
-      } catch (error) {
-        console.error("Error fetching invitation:", error);
+      } catch {
         setStatus("error");
         setError("Failed to load invitation");
       }
@@ -81,8 +80,7 @@ export default function InvitePage({
         setStatus("error");
         setError(errorData.error || "Failed to accept invitation");
       }
-    } catch (error) {
-      console.error("Error accepting invitation:", error);
+    } catch {
       setStatus("error");
       setError("Failed to accept invitation");
     }

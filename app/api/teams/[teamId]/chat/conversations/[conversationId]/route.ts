@@ -1,5 +1,4 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { deleteChatConversation, getChatConversation } from "@/lib/api/chat";
 import { getUserId } from "@/lib/auth-server-helpers";
 
@@ -30,8 +29,7 @@ export async function GET(
     }
 
     return NextResponse.json(conversation);
-  } catch (error) {
-    console.error("Error fetching conversation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch conversation" },
       { status: 500 }
@@ -67,8 +65,7 @@ export async function DELETE(
 
     await deleteChatConversation(conversationId);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting conversation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete conversation" },
       { status: 500 }

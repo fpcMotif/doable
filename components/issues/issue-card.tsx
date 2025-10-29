@@ -1,8 +1,7 @@
 import { ActionsMenu, issueActions } from "@/components/shared/actions-menu";
 import { PriorityIcon } from "@/components/shared/priority-icon";
-import { UserAvatar } from "@/components/shared/user-avatar";
 import { Card } from "@/components/ui/card";
-import type { IssueWithRelations } from "@/lib/types";
+import type { IssueWithRelations, PriorityLevel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type IssueCardProps = {
@@ -76,7 +75,10 @@ export function IssueCard({
 
         {/* Priority */}
         <div className="flex items-center gap-2">
-          <PriorityIcon priority={issue.priority as any} showLabel={true} />
+          <PriorityIcon
+            priority={issue.priority as PriorityLevel}
+            showLabel={true}
+          />
         </div>
 
         {/* Footer with assignee and actions */}

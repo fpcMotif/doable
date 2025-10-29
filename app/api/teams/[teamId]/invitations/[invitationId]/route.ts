@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth-server-helpers";
 import { db } from "@/lib/db";
 
+import { logger } from "@/lib/logger";
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string; invitationId: string }> }
@@ -22,10 +24,10 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting invitation:", error);
+  } catch (error: unknown) {
+    const debugId = logger.error("Error deleting invitation", { error });
     return NextResponse.json(
-      { error: "Failed to delete invitation" },
+      { error: "Failed to delete invitation", debugId },
       { status: 500 }
     );
   }

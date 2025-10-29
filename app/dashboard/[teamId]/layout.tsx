@@ -4,10 +4,8 @@ import {
   AlertCircle,
   BarChart3,
   FolderOpen,
-  MapPin,
   Settings,
   Users,
-  Workflow,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -16,7 +14,6 @@ import { ApiKeyDialog } from "@/components/shared/api-key-dialog";
 import { WorkspaceSelector } from "@/components/shared/workspace-selector";
 import SidebarLayout, { type SidebarItem } from "@/components/sidebar-layout";
 import { DashboardLoader } from "@/components/ui/dashboard-loader";
-import { authClient } from "@/lib/auth-client";
 
 export default function Layout(props: { children: React.ReactNode }) {
   const t = useTranslations("navigation");
@@ -61,10 +58,8 @@ export default function Layout(props: { children: React.ReactNode }) {
 
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const params = useParams<{ teamId: string }>();
-  const { data: session } = authClient.useSession();
-  const user = session?.user || null;
   const router = useRouter();
-  const [team, setTeam] = useState<any>(null);
+  const [team, setTeam] = useState<{ id: string; name: string; displayName?: string; } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -75,7 +70,7 @@ export default function Layout(props: { children: React.ReactNode }) {
         const response = await fetch("/api/teams");
         if (response.ok) {
           const teams = await response.json();
-          const currentTeam = teams.find((t: any) => t.id === params.teamId);
+          const currentTeam = teams.find((t: { id: string; name: string; displayName?: string }) => t.id === params.teamId);
           if (currentTeam) {
             setTeam(currentTeam);
           } else {
@@ -87,8 +82,7 @@ export default function Layout(props: { children: React.ReactNode }) {
           }
         }
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching team:", error);
+      } catch {
         setLoading(false);
         setIsRedirecting(true);
         router.replace("/dashboard");

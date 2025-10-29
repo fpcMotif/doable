@@ -39,8 +39,7 @@ export const GitHubStarButton: React.FC<GitHubStarButtonProps> = ({
           const data: GitHubRepoData = await response.json();
           setStarCount(data.stargazers_count);
         }
-      } catch (error) {
-        console.error("Failed to fetch star count:", error);
+      } catch {
       } finally {
         setIsLoading(false);
       }

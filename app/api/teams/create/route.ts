@@ -1,5 +1,4 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getUserId } from "@/lib/auth-server-helpers";
 import { api, getConvexClient } from "@/lib/convex";
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the current user from Better Auth
-    const userId = await getUserId();
+    await getUserId();
 
     // Generate unique team key
     // Use first 3 chars of name + random 3 char suffix to ensure uniqueness
@@ -99,8 +98,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(team, { status: 201 });
-  } catch (error) {
-    console.error("Error creating team:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create team" },
       { status: 500 }

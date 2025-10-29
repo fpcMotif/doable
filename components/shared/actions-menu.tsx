@@ -7,7 +7,6 @@ import {
   Eye,
   MoreHorizontal,
   Move,
-  Settings,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -52,7 +51,7 @@ type ActionsMenuProps = {
 export function ActionsMenu({
   actions,
   trigger,
-  className,
+  className: _className,
   align = "end",
 }: ActionsMenuProps) {
   const [open, setOpen] = useState(false);

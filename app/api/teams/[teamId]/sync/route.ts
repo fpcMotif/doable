@@ -96,8 +96,7 @@ export async function POST(
     const team = await convex.query(api.teams.getTeam, { teamId: newTeamId });
 
     return NextResponse.json(team, { status: 201 });
-  } catch (error) {
-    console.error("Error syncing team:", error);
+  } catch {
     return NextResponse.json({ error: "Failed to sync team" }, { status: 500 });
   }
 }

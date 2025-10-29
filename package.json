@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint --fix",
-    "format": "bun x ultracite fix",
-    "check": "oxlint && bun x ultracite check"
+    "format": "ultracite fix",
+    "check": "oxlint && ultracite check",
+    "prepare": "husky"
   },
   "dependencies": {
     "@ai-sdk/groq": "^2.0.25",
@@ -67,10 +68,10 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "oxlint --fix",
-      "bun x ultracite fix"
+      "ultracite fix"
     ],
     "*.{json,jsonc,css,md,mdx}": [
-      "bun x ultracite fix"
+      "ultracite fix"
     ]
   }
 }

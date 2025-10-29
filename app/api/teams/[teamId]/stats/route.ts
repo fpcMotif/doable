@@ -3,6 +3,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { getUserId } from "@/lib/auth-server-helpers";
 import { api, getConvexClient } from "@/lib/convex";
 
+import { logger } from "@/lib/logger";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
@@ -113,10 +115,10 @@ export async function GET(
       })),
       recentIssues,
     });
-  } catch (error) {
-    console.error("Error fetching team stats:", error);
+  } catch (error: unknown) {
+    const debugId = logger.error("Error fetching team statistics", { error });
     return NextResponse.json(
-      { error: "Failed to fetch team statistics" },
+      { error: "Failed to fetch team statistics", debugId },
       { status: 500 }
     );
   }

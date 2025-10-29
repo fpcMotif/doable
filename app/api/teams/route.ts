@@ -1,9 +1,8 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSessionOrNull } from "@/lib/auth-server-helpers";
 import { api, getConvexClient } from "@/lib/convex";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get the current user from Better Auth
     const session = await getSessionOrNull();
@@ -17,8 +16,7 @@ export async function GET(request: NextRequest) {
     const teams = await convex.query(api.teams.getUserTeams, {});
 
     return NextResponse.json(teams);
-  } catch (error) {
-    console.error("Error fetching teams:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch teams" },
       { status: 500 }

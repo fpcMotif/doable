@@ -1,10 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle } from "lucide-react";
-import Link from "next/link";
 import type React from "react";
-import { Button } from "@/components/ui/button";
 import { TextAnimate } from "@/components/ui/text-animate";
 
 type HowToUseSectionProps = {

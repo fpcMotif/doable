@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { IssueWithRelations } from "@/lib/types";
+import type { IssueWithRelations, PriorityLevel } from "@/lib/types";
 
 type IssueTableProps = {
   issues: IssueWithRelations[];
@@ -54,7 +54,7 @@ export function IssueTable({
     }).format(dateObj);
   };
 
-  const getProjectInfo = (issue: any) => {
+  const getProjectInfo = (issue: IssueWithRelations) => {
     // First try to get from the project relation (if included in the query)
     if (issue.project) {
       return issue.project;
@@ -164,7 +164,7 @@ export function IssueTable({
                   </TableCell>
                   <TableCell>
                     <PriorityIcon
-                      priority={issue.priority as any}
+                      priority={issue.priority as PriorityLevel}
                       showLabel={true}
                     />
                   </TableCell>

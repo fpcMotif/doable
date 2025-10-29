@@ -34,12 +34,15 @@ export function WorkspaceSelector({
   currentTeamName,
 }: WorkspaceSelectorProps) {
   const router = useRouter();
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState<Array<{ id: string; name: string }>>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [teamToDelete, setTeamToDelete] = useState<any>(null);
+  const [teamToDelete, setTeamToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [displayTeamName, setDisplayTeamName] = useState(currentTeamName);
+  const [, setLoading] = useState(false);
   const { toasts, toast, removeToast } = useToast();
 
   // Update displayed team name when prop changes
@@ -55,13 +58,14 @@ export function WorkspaceSelector({
           const data = await response.json();
           setTeams(data);
           // Update displayed team name from fetched data if current team exists
-          const currentTeam = data.find((t: any) => t.id === currentTeamId);
+          const currentTeam = data.find(
+            (t: { id: string; name: string }) => t.id === currentTeamId
+          );
           if (currentTeam) {
             setDisplayTeamName(currentTeam.name);
           }
         }
-      } catch (error) {
-        console.error("Error fetching teams:", error);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -77,7 +81,10 @@ export function WorkspaceSelector({
     router.push(`/dashboard/${teamId}/issues`);
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, team: any) => {
+  const handleDeleteClick = (
+    e: React.MouseEvent,
+    team: { id: string; name: string }
+  ) => {
     e.stopPropagation();
     setTeamToDelete(team);
     setDeleteDialogOpen(true);
@@ -126,14 +133,12 @@ export function WorkspaceSelector({
         setTeams(updatedTeams);
       } else {
         const error = await response.json();
-        console.error("Error deleting team:", error);
         toast.error(
           "Failed to delete workspace",
           error.error || "Please try again."
         );
       }
-    } catch (error) {
-      console.error("Error deleting team:", error);
+    } catch {
       toast.error(
         "Failed to delete workspace",
         "An unexpected error occurred."
@@ -208,9 +213,9 @@ export function WorkspaceSelector({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Workspace?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{teamToDelete?.name}"? This
-              action cannot be undone. All projects, issues, and data in this
-              workspace will be permanently deleted.
+              Are you sure you want to delete &quot;{teamToDelete?.name}&quot;?
+              This action cannot be undone. All projects, issues, and data in
+              this workspace will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -28,9 +28,7 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
-  }
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {}
 
   resetError = () => {
     this.setState({ hasError: false, error: undefined });
@@ -108,8 +106,7 @@ function DefaultErrorFallback({
 
 // Hook for error handling in functional components
 export function useErrorHandler() {
-  return (error: Error, errorInfo?: string) => {
-    console.error("Error:", error, errorInfo);
+  return (_error: Error, _errorInfo?: string) => {
     // You could also send to error reporting service here
   };
 }

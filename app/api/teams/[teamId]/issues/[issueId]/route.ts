@@ -18,8 +18,7 @@ export async function GET(
     }
 
     return NextResponse.json(issue);
-  } catch (error) {
-    console.error("Error fetching issue:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch issue" },
       { status: 500 }
@@ -78,8 +77,7 @@ export async function PATCH(
 
     const updatedIssue = await updateIssue(teamId, issueId, updateData);
     return NextResponse.json(updatedIssue);
-  } catch (error) {
-    console.error("Error updating issue:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update issue" },
       { status: 500 }
@@ -95,8 +93,7 @@ export async function DELETE(
     const { teamId, issueId } = await params;
     await deleteIssue(teamId, issueId);
     return NextResponse.json({ message: "Issue deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting issue:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete issue" },
       { status: 500 }

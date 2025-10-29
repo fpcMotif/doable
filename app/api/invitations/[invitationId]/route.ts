@@ -1,6 +1,4 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import type { Id } from "@/convex/_generated/dataModel";
+import { type NextRequest, NextResponse } from "next/server";
 import { api, getConvexClient } from "@/lib/convex";
 
 export async function GET(
@@ -35,8 +33,7 @@ export async function GET(
       expiresAt: invitation.expiresAt,
       teamId: invitation.teamId,
     });
-  } catch (error) {
-    console.error("Error fetching invitation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch invitation" },
       { status: 500 }

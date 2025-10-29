@@ -1,8 +1,6 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   createChatConversation,
-  generateConversationTitle,
   getChatConversations,
 } from "@/lib/api/chat";
 import { getUserId } from "@/lib/auth-server-helpers";
@@ -21,8 +19,7 @@ export async function GET(
 
     const conversations = await getChatConversations(teamId, userId);
     return NextResponse.json(conversations);
-  } catch (error) {
-    console.error("Error fetching conversations:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch conversations" },
       { status: 500 }
@@ -52,8 +49,7 @@ export async function POST(
     });
 
     return NextResponse.json(conversation, { status: 201 });
-  } catch (error) {
-    console.error("Error creating conversation:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create conversation" },
       { status: 500 }

@@ -62,7 +62,7 @@ function PromptInput({
   value,
   onValueChange,
   onSubmit,
-  disabled = false,
+  disabled: _disabled = false,
   children,
 }: PromptInputProps) {
   const [internalValue, setInternalValue] = useState(value || "");
@@ -129,7 +129,7 @@ function PromptInputTextarea({
       typeof maxHeight === "number"
         ? `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`
         : `min(${textareaRef.current.scrollHeight}px, ${maxHeight})`;
-  }, [value, maxHeight, disableAutosize]);
+  }, [value, maxHeight, disableAutosize, textareaRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -191,7 +191,9 @@ function PromptInputAction({
     e.stopPropagation();
     // Try to trigger the button's onClick if it exists
     if (children && typeof children === "object" && "props" in children) {
-      const childProps = (children as any).props;
+      const childProps = (
+        children as { props?: { onClick?: (e: React.MouseEvent) => void } }
+      ).props;
       if (childProps?.onClick) {
         childProps.onClick(e);
       }

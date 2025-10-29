@@ -103,14 +103,12 @@ export function UserSelector({
           setCachedMembers(teamId, members);
           setTeamMembers(members);
         } else {
-          console.error("Failed to fetch team members:", response.statusText);
           // Fallback to current user if API fails
           if (currentUser) {
             setTeamMembers([currentUser]);
           }
         }
-      } catch (error) {
-        console.error("Error fetching team members:", error);
+      } catch {
         // Fallback to current user if API fails
         if (currentUser) {
           setTeamMembers([currentUser]);

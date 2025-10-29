@@ -15,13 +15,20 @@ import { Effect, pipe } from "effect";
 import { useParams } from "next/navigation";
 // React 19.2 useEffectEvent polyfill
 // Note: If React 19.2 hasn't officially released this API, use useCallback instead
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { safeApiCall } from "@/lib/effect/helpers";
+import { logger } from "@/lib/logger";
 
-const useEffectEvent = <T extends (...args: any[]) => any>(fn: T): T =>
-  useCallback(fn, []) as T;
+const useEffectEvent = <T extends (...args: unknown[]) => unknown>(fn: T): T => {
+  const ref = useRef(fn);
+  useEffect(() => {
+    ref.current = fn;
+  }, [fn]);
+  // Stable callback that always calls latest fn
+  return useCallback(((...args: Parameters<T>) => (ref.current as T)(...args)) as T, []) as T;
+};
 
 type IssueFilters = {
   status?: Array<Id<"workflowStates">>;
@@ -46,11 +53,9 @@ export default function IssuesPageConvex() {
   });
 
   const workflowStates = useQuery(api.workflowStates.listStates, { teamId });
-  const projects = useQuery(api.projects.listProjects, { teamId });
 
   // Convex Mutations
   const createIssueMutation = useMutation(api.issues.createIssue);
-  const updateIssueMutation = useMutation(api.issues.updateIssue);
 
   // React 19.2 useEffectEvent - Stable event handler
   // Access latest filters without triggering useEffect re-run
@@ -60,13 +65,11 @@ export default function IssuesPageConvex() {
         setFilters(newFilters);
         return newFilters;
       }, "Update filters"),
-      Effect.map((f) => {
-        console.log("Filters updated:", f);
-        return f;
-      }),
-      Effect.catchAll((error) =>
-        Effect.sync(() => console.error("Filter update failed:", error))
-      )
+      Effect.tapError((error) =>
+        Effect.sync(() => {
+          logger.error("Filter update failed", { error, newFilters });
+        })
+      ),
     );
 
     Effect.runPromise(program);
@@ -100,19 +103,9 @@ export default function IssuesPageConvex() {
             "Create Issue"
           )
         ),
-
-        // Step 3: Success handling
-        Effect.map((issueId) => {
-          console.log("Issue created successfully:", issueId);
-          // Can trigger toast notification here
-          return issueId;
-        }),
-
-        // Unified error handling
-        Effect.catchAll((error) =>
+        Effect.tapError((error) =>
           Effect.sync(() => {
-            console.error("Create Issue failed:", error.message);
-            // Can show error message here
+            logger.error("Create Issue failed", { error, data });
           })
         )
       );
@@ -126,14 +119,14 @@ export default function IssuesPageConvex() {
     if (event.key === "n" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       // Open create Issue dialog
-      console.log("Create new Issue");
+      // TODO: open create issue dialog here
     }
   });
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, []); // Empty dependency array - handleKeyPress is always stable
+  }, [handleKeyPress]);
 
   // Loading state
   if (issues === undefined || workflowStates === undefined) {

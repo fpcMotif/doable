@@ -15,8 +15,7 @@ export async function GET(
     const { teamId } = await params;
     const states = await getWorkflowStates(teamId);
     return NextResponse.json(states);
-  } catch (error) {
-    console.error("Error fetching workflow states:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch workflow states" },
       { status: 500 }
@@ -41,8 +40,7 @@ export async function POST(
 
     const state = await createWorkflowState(teamId, stateData);
     return NextResponse.json(state, { status: 201 });
-  } catch (error) {
-    console.error("Error creating workflow state:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create workflow state" },
       { status: 500 }
@@ -67,8 +65,7 @@ export async function PATCH(
 
     const state = await updateWorkflowState(teamId, stateId, updateData);
     return NextResponse.json(state);
-  } catch (error) {
-    console.error("Error updating workflow state:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to update workflow state" },
       { status: 500 }
@@ -84,8 +81,7 @@ export async function DELETE(
     const { teamId, stateId } = await params;
     await deleteWorkflowState(teamId, stateId);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting workflow state:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete workflow state" },
       { status: 500 }

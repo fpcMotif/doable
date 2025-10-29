@@ -25,8 +25,7 @@ export async function GET(
 
     const projects = await getProjects(teamId);
     return NextResponse.json(projects);
-  } catch (error) {
-    console.error("Error fetching projects:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch projects" },
       { status: 500 }
@@ -91,8 +90,7 @@ export async function POST(
     // Create project and check team in parallel
     const project = await createProject(teamId, projectData);
     return NextResponse.json(project, { status: 201 });
-  } catch (error) {
-    console.error("Error creating project:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create project" },
       { status: 500 }

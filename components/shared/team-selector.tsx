@@ -7,21 +7,21 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { authClient } from "@/lib/auth-client";
 import { ServerTeamCreator } from "./server-team-creator";
 
 type TeamSelectorProps = {
   onCreateTeam?: () => void;
 };
 
-export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
+type Team = { id: string; name: string };
+
+export function TeamSelector({
+  onCreateTeam: _onCreateTeam,
+}: TeamSelectorProps) {
   const t = useTranslations("teams");
-  const { data: session } = authClient.useSession();
-  const user = session?.user || null;
   const router = useRouter();
-  const [teams, setTeams] = useState<any[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const [showTeamCreator, setShowTeamCreator] = useState(false);
 
   const fetchTeams = async () => {
@@ -32,11 +32,9 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
         const data = await response.json();
         setTeams(data);
       } else {
-        console.error("Failed to fetch teams:", response.statusText);
         setTeams([]);
       }
-    } catch (error) {
-      console.error("Error fetching teams:", error);
+    } catch {
       setTeams([]);
     } finally {
       setIsLoading(false);
@@ -47,26 +45,11 @@ export function TeamSelector({ onCreateTeam }: TeamSelectorProps) {
     fetchTeams();
   }, []);
 
-  const handleCreateTeam = async () => {
-    if (!onCreateTeam) {
-      return;
-    }
-
-    setIsCreatingTeam(true);
-    try {
-      await onCreateTeam();
-    } catch (error) {
-      console.error("Error creating team:", error);
-    } finally {
-      setIsCreatingTeam(false);
-    }
-  };
-
   const handleSelectTeam = (teamId: string) => {
     router.push(`/dashboard/${teamId}/issues`);
   };
 
-  const handleTeamCreated = async (team: any) => {
+  const handleTeamCreated = async (team: { id?: string }) => {
     // Refresh the teams list to show the new team
     await fetchTeams();
 

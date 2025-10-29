@@ -9,7 +9,6 @@ import {
   Navbar,
   NavbarButton,
   NavbarLogo,
-  NavItems,
 } from "@/components/ui/resizable-navbar";
 import { GitHubStarButton } from "./GitHubStarButton";
 

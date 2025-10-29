@@ -91,7 +91,7 @@ export function ApiKeyDialog({
         toast.error("Invalid API key", "Please check your key and try again.");
         return false;
       }
-    } catch (error) {
+    } catch {
       toast.error("Connection failed", "Could not test the API key.");
       return false;
     } finally {
@@ -121,7 +121,6 @@ export function ApiKeyDialog({
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      console.error("Error saving API key:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Could not save your API key.";
       toast.error("Failed to save", errorMessage);
@@ -144,8 +143,7 @@ export function ApiKeyDialog({
       onSuccess?.();
       onOpenChange(false);
       resetForm();
-    } catch (error) {
-      console.error("Error removing API key:", error);
+    } catch {
       toast.error("Failed to remove", "Could not remove your API key.");
     } finally {
       setIsSubmitting(false);

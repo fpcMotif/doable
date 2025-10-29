@@ -25,8 +25,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   description = "Built for teams who want to get things done. Clean, fast, and powerful task management with Swiss design principles.",
   primaryButtonText = "Get Started Free",
   primaryButtonHref = "/dashboard",
-  secondaryButtonText = "View on GitHub",
-  secondaryButtonHref = "https://github.com/KartikLabhshetwar/doable",
+  secondaryButtonText: _secondaryButtonText = "View on GitHub",
+  secondaryButtonHref:
+    _secondaryButtonHref = "https://github.com/KartikLabhshetwar/doable",
   className = "",
 }) => {
   return (

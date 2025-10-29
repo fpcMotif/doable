@@ -55,7 +55,7 @@ export async function GET(
     const sortDirection = (searchParams.get("sortDirection") || "desc") as
       | "asc"
       | "desc";
-    const sort = { field: sortField as any, direction: sortDirection };
+    const sort = { field: sortField as "createdAt" | "updatedAt" | "title" | "priority", direction: sortDirection };
 
     // Check if requesting stats
     if (searchParams.get("stats") === "true") {
@@ -65,8 +65,7 @@ export async function GET(
 
     const issues = await getIssues(teamId, filters, sort);
     return NextResponse.json(issues);
-  } catch (error) {
-    console.error("Error fetching issues:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch issues" },
       { status: 500 }
@@ -83,7 +82,7 @@ export async function POST(
     const body = await request.json();
 
     // Get user info from Better Auth (parallel calls for speed)
-    const [userId, user, teamCheck] = await Promise.all([
+    const [userId, user] = await Promise.all([
       getUserId(),
       getUser(),
       ensureTeamExists(teamId),
@@ -128,8 +127,7 @@ export async function POST(
 
     const issue = await createIssue(teamId, issueData, userId, creatorName);
     return NextResponse.json(issue, { status: 201 });
-  } catch (error) {
-    console.error("Error creating issue:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create issue" },
       { status: 500 }
